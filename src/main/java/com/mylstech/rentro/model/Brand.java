@@ -19,5 +19,11 @@ public class Brand {
     private String name;
     @OneToMany(mappedBy = "brand", cascade = CascadeType.ALL)
     private List<Product> products;
+    @ElementCollection
+    @CollectionTable(name = "brand_image_urls",
+            joinColumns = @JoinColumn(name = "brand_image_id"))
+    @Column(name = "image_url")
+    private List<String> images;
+
 
 }
