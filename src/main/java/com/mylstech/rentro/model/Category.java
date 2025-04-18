@@ -28,4 +28,11 @@ public class Category {
     @JoinColumn(name = "parent_id")
     @JsonBackReference
     private Category parentCategory;
+
+    @ElementCollection
+    @CollectionTable(name = "category_image_urls",
+            joinColumns = @JoinColumn(name = "category_image_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls;
+
 }

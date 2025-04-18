@@ -16,6 +16,7 @@ public class CategoryResponse {
     private String name;
     private Long parentCategoryId;
     private List<CategoryResponse> subCategories;
+    private List<String> images;
 
     public CategoryResponse(Category category) {
         this.categoryId = category.getCategoryId();
@@ -28,7 +29,10 @@ public class CategoryResponse {
         if (category.getSubCategories() != null) {
             this.subCategories = category.getSubCategories().stream()
                 .map(CategoryResponse::new)
-                .collect(Collectors.toList());
+                .toList();
+        }
+        if (category.getImageUrls() != null) {
+            this.images = category.getImageUrls();
         }
     }
 }
