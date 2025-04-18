@@ -15,8 +15,8 @@ public class SwaggerConfig {
                         .title("My API Documentation")
                         .version("v1")
                         .description("API documentation for My Spring Boot application"))
+                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://2x0yjqez5c4a.share.zrok.io ") )
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080/") )
-                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://javatest.mylstech.com:8080") )
                 ;
     }
 }

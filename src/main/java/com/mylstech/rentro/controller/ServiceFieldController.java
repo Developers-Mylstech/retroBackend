@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/service-fields")
+@RequestMapping("/api/v1/service-fields")
 @RequiredArgsConstructor
 public class ServiceFieldController {
 

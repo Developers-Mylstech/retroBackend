@@ -11,7 +11,7 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @RestController
-@RequestMapping("/specification-fields")
+@RequestMapping("/api/v1/specification-fields")
 @RequiredArgsConstructor
 public class SpecificationFieldController {
 

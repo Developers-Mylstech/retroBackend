@@ -14,7 +14,7 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping("/**")
-                        .allowedOrigins("https://2jx688rdxcnx.share.zrok.io", "http://localhost:5173","http://javatest.mylstech.com:8080") // <-- replace with your real zrok URL
+                        .allowedOrigins("https://2x0yjqez5c4a.share.zrok.io", "http://localhost:8080","http://localhost:5173","http://javatest.mylstech.com:8080") // <-- replace with your real zrok URL
                         .allowedMethods("*")
                         .allowedHeaders("*")
                         .allowCredentials(true); // Only if you’re using cookies/auth headers

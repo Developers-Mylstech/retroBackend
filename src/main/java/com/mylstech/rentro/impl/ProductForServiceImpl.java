@@ -47,29 +47,21 @@ public class ProductForServiceImpl implements ProductForService {
         ProductFor productFor = new ProductFor();
         
         // Set related entities if IDs are provided
-        if (request.getSellId() != null) {
-            Sell sell = sellRepository.findById(request.getSellId())
-                    .orElseThrow(() -> new RuntimeException("Sell not found with id: " + request.getSellId()));
-            productFor.setSell(sell);
+        if (request.getSell() != null) {
+            productFor.setSell(request.getSell().requestToSell());
         }
         
-        if (request.getRentId() != null) {
-            Rent rent = rentRepository.findById(request.getRentId())
-                    .orElseThrow(() -> new RuntimeException("Rent not found with id: " + request.getRentId()));
-            productFor.setRent(rent);
+        if (request.getRent() != null) {
+
+            productFor.setRent(request.getRent().requestToRent());
         }
         
-        if (request.getRequestQuotationId() != null) {
-            RequestQuotation requestQuotation = requestQuotationRepository.findById(request.getRequestQuotationId())
-                    .orElseThrow(() -> new RuntimeException("RequestQuotation not found with id: " + request.getRequestQuotationId()));
-            productFor.setRequestQuotation(requestQuotation);
+        if (request.getRequestQuotation() != null) {
+
+            productFor.setRequestQuotation(request.getRequestQuotation().requestToRequestQuotation());
         }
         
-        if (request.getServiceId() != null) {
-            Service service = serviceRepository.findById(request.getServiceId())
-                    .orElseThrow(() -> new RuntimeException("Service not found with id: " + request.getServiceId()));
-            productFor.setServices(service);
-        }
+
         
         return new ProductForResponse(productForRepository.save(productFor));
     }
@@ -80,30 +72,20 @@ public class ProductForServiceImpl implements ProductForService {
                 .orElseThrow(() -> new RuntimeException("ProductFor not found with id: " + id));
         
         // Update related entities if IDs are provided
-        if (request.getSellId() != null) {
-            Sell sell = sellRepository.findById(request.getSellId())
-                    .orElseThrow(() -> new RuntimeException("Sell not found with id: " + request.getSellId()));
-            productFor.setSell(sell);
+        if (request.getSell() != null) {
+            productFor.setSell(request.getSell().requestToSell());
         }
         
-        if (request.getRentId() != null) {
-            Rent rent = rentRepository.findById(request.getRentId())
-                    .orElseThrow(() -> new RuntimeException("Rent not found with id: " + request.getRentId()));
-            productFor.setRent(rent);
+        if (request.getRent() != null) {
+
+            productFor.setRent(request.getRent().requestToRent());
         }
         
-        if (request.getRequestQuotationId() != null) {
-            RequestQuotation requestQuotation = requestQuotationRepository.findById(request.getRequestQuotationId())
-                    .orElseThrow(() -> new RuntimeException("RequestQuotation not found with id: " + request.getRequestQuotationId()));
-            productFor.setRequestQuotation(requestQuotation);
+        if (request.getRequestQuotation() != null) {
+
+            productFor.setRequestQuotation(request.getRequestQuotation().requestToRequestQuotation());
         }
-        
-        if (request.getServiceId() != null) {
-            Service service = serviceRepository.findById(request.getServiceId())
-                    .orElseThrow(() -> new RuntimeException("Service not found with id: " + request.getServiceId()));
-            productFor.setServices(service);
-        }
-        
+
         return new ProductForResponse(productForRepository.save(productFor));
     }
 
