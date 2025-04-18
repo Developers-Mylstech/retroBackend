@@ -41,4 +41,9 @@ public class Product {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Inventory inventory;
 
+    @ElementCollection
+    @CollectionTable(name = "key_features",
+            joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "key_feature")
+    private List<String> keyFeatures;
 }

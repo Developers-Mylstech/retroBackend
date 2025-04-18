@@ -25,4 +25,5 @@ public class ProductRequest {
     private Long categoryId;
     private Long subCategoryId;
     private InventoryRequest inventory;
+    private List<String> keyFeatures;
 }

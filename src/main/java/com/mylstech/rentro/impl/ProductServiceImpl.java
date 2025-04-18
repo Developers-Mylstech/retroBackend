@@ -30,6 +30,7 @@ public class ProductServiceImpl implements ProductService {
     private final ServiceRepository serviceRepository;
     private final ProductImagesRepository productImagesRepository;
     private final SpecificationFieldRepository specificationFieldRepository;
+   private final ServiceFieldRepository serviceFieldRepository;
 
 
     @Value("${vat.value}")
@@ -39,7 +40,7 @@ public class ProductServiceImpl implements ProductService {
     public List<ProductResponse> getAllProducts() {
         return productRepository.findAll ( ).stream ( )
                 .map ( ProductResponse::new )
-                .collect ( Collectors.toList ( ) );
+                .toList ( ) ;
     }
 
     @Override
@@ -101,6 +102,7 @@ public class ProductServiceImpl implements ProductService {
                 ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
                 if ( serviceRequest.getAmcBasic ( ) != null ) {
                     service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
+
                 }
                 if ( serviceRequest.getAmcGold ( ) != null ) {
                     service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
@@ -111,7 +113,8 @@ public class ProductServiceImpl implements ProductService {
                 if ( serviceRequest.getOts ( ) != null ) {
                     service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
                 }
-                serviceRepository.save ( service );
+                service = serviceRepository.save ( service );
+                productFor.setServices ( service );
             }
 
             // Save the ProductFor entity first
@@ -136,7 +139,7 @@ public class ProductServiceImpl implements ProductService {
             } );
             specifications = request.getSpecifications ( ).stream ( )
                     .map ( specRequest -> specRequest.requestToSpecification ( ) )
-                    .collect ( Collectors.toList ( ) );
+                    .toList ( ) ;
         }
 
         // 4. Create the product
@@ -144,7 +147,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName ( request.getName ( ) );
         product.setDescription ( request.getDescription ( ) );
         product.setLongDescription ( request.getLongDescription ( ) );
-
+        product.setKeyFeatures ( request.getKeyFeatures () );
         // Set category if categoryId is provided
         if ( request.getCategoryId ( ) != null ) {
             Category category = categoryRepository.findById ( request.getCategoryId ( ) )
@@ -308,18 +311,19 @@ public class ProductServiceImpl implements ProductService {
                 if ( serviceRequest.getOts ( ) != null ) {
                     service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
                 }
-                serviceRepository.save ( service );
+                service = serviceRepository.save ( service );
+                productFor.setServices ( service );
             }
 
             // Save the ProductFor entity first
-            productFor = productForRepository.save ( productFor );
+               productForRepository.save ( productFor );
         }
 
         // Update specifications if provided
         if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
             List<Specification> specifications = request.getSpecifications ( ).stream ( )
-                    .map ( specRequest -> specRequest.requestToSpecification ( ) )
-                    .collect ( Collectors.toList ( ) );
+                    .map ( SpecificationRequest::requestToSpecification )
+                    .toList ( ) ;
             product.setSpecification ( specifications );
         }
 

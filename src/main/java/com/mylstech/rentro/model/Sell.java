@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -18,5 +20,9 @@ public class Sell {
     private Double actualPrice;
     private Double discountPrice;
     private Double vat;
-
+    @ElementCollection
+    @CollectionTable(name = "sell_benefits",
+            joinColumns = @JoinColumn(name = "sell_id"))
+    @Column(name = "benefits")
+    private List<String> benefits;
 }

@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -18,5 +20,11 @@ public class Rent {
     private Double monthlyPrice;
     private Double discountPrice;
     private Double vat;
+    @ElementCollection
+    @CollectionTable(name = "rent_benefits",
+            joinColumns = @JoinColumn(name = "rent_id"))
+    @Column(name = "benefits")
+    private List<String> benefits;
+
 
 }

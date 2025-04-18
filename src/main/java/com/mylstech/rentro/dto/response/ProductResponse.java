@@ -27,6 +27,8 @@ public class ProductResponse {
     private ProductForResponse productFor;
     private List<SpecificationResponse> specifications;
     private List<String> imageUrls;
+    private List<String> keyFeatures;
+
 
     public ProductResponse(Product product) {
         this.productId = product.getProductId();
@@ -62,6 +64,9 @@ public class ProductResponse {
 
         if (product.getProductImages() != null) {
             this.imageUrls = product.getProductImages().getImageUrls();
+        }
+        if (product.getKeyFeatures () != null) {
+            this.keyFeatures = product.getKeyFeatures ();
         }
     }
 }
