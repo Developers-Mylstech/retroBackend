@@ -46,4 +46,6 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "key_feature")
     private List<String> keyFeatures;
+
+    private String manufacturer;
 }

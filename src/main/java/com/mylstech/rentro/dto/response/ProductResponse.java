@@ -20,6 +20,7 @@ public class ProductResponse {
     private String name;
     private String description;
     private String longDescription;
+    private String manufacturer;
     private CategoryResponse category;
     private CategoryResponse subCategory;
     private BrandResponse brand;
@@ -35,7 +36,7 @@ public class ProductResponse {
         this.name = product.getName();
         this.description = product.getDescription();
         this.longDescription = product.getLongDescription();
-
+        this.manufacturer=product.getManufacturer ();
         if (product.getCategory() != null) {
             this.category = new CategoryResponse(product.getCategory());
         }

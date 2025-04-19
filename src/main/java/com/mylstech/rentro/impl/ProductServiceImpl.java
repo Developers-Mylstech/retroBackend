@@ -147,6 +147,7 @@ public class ProductServiceImpl implements ProductService {
         product.setName ( request.getName ( ) );
         product.setDescription ( request.getDescription ( ) );
         product.setLongDescription ( request.getLongDescription ( ) );
+        product.setManufacturer ( request.getManufacturer () );
         product.setKeyFeatures ( request.getKeyFeatures () );
         // Set category if categoryId is provided
         if ( request.getCategoryId ( ) != null ) {
@@ -210,7 +211,12 @@ public class ProductServiceImpl implements ProductService {
         if ( request.getName ( ) != null ) {
             product.setName ( request.getName ( ) );
         }
-
+        if ( request.getKeyFeatures ( ) != null ) {
+            product.setKeyFeatures ( request.getKeyFeatures ( ) );
+        }
+        if ( request.getManufacturer ( ) != null ) {
+            product.setManufacturer ( request.getManufacturer ( ) );
+        }
         if ( request.getDescription ( ) != null ) {
             product.setDescription ( request.getDescription ( ) );
         }
