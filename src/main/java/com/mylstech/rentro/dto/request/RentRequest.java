@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,7 +20,7 @@ public class RentRequest {
         Rent rent = new Rent();
         rent.setMonthlyPrice(monthlyPrice);
         rent.setDiscountPrice(discountPrice);
-        rent.setBenefits ( benefits );
+        rent.setBenefits(benefits != null ? benefits : new ArrayList<>());
         return rent;
     }
 }

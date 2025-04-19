@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -17,7 +18,7 @@ public class ServiceFieldRequest {
     public ServiceField requestToServiceField() {
         ServiceField serviceField = new ServiceField();
         serviceField.setPrice(price);
-        serviceField.setBenefits(benefits);
+        serviceField.setBenefits(benefits != null ? benefits : new ArrayList<> ());
         return serviceField;
     }
 }

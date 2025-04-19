@@ -1,6 +1,7 @@
 package com.mylstech.rentro.impl;
 
 import com.luciad.imageio.webp.WebPWriteParam;
+import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.service.FileStorageService;
 
 import org.springframework.beans.factory.annotation.Value;
@@ -18,7 +19,7 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-
+import java.nio.file.StandardCopyOption;
 import java.util.Locale;
 import java.util.UUID;
 
@@ -109,5 +110,37 @@ public class FileStorageServiceImpl implements FileStorageService {
         } else {
             throw new IOException("Invalid file path: " + filePath);
         }
+    }
+
+    @Override
+    public FileUploadResponse storePdf(MultipartFile file) throws IOException {
+        // Validate file type
+        String contentType = file.getContentType();
+        if (contentType == null || !contentType.equals("application/pdf")) {
+            throw new IOException("Only PDF files are allowed");
+        }
+
+        // Create the upload directory if it doesn't exist
+        Path uploadPath = Paths.get(uploadDir, "pdfs").toAbsolutePath().normalize();
+        Files.createDirectories(uploadPath);
+        
+        // Generate a unique file name
+        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename()==null?"noName":file.getOriginalFilename());
+        String baseName = originalFileName;
+        if (originalFileName.contains(".")) {
+            baseName = originalFileName.substring(0, originalFileName.lastIndexOf("."));
+        }
+        
+        String uniqueFileName = UUID.randomUUID().toString() + "_" + baseName + ".pdf";
+        Path targetLocation = uploadPath.resolve(uniqueFileName);
+        
+        // Copy file to target location
+        Files.copy(file.getInputStream(), targetLocation, StandardCopyOption.REPLACE_EXISTING);
+        return new FileUploadResponse(
+                originalFileName,
+                baseUrl + "pdfs/" + uniqueFileName,
+                "application/pdf",
+                file.getSize()
+        );
     }
 }

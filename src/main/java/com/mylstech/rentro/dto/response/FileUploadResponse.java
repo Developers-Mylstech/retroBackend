@@ -12,4 +12,13 @@ public class FileUploadResponse {
     private String fileUrl;
     private String fileType;
     private long size;
+    private String error;
+
+    public FileUploadResponse(String fileName, String fileUrl, String fileType, long size) {
+        this.fileName = fileName;
+        this.fileUrl = fileUrl;
+        this.fileType = fileType;
+        this.size = size;
+        this.error = null;
+    }
 }

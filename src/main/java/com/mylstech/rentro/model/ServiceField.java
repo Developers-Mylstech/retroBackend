@@ -19,7 +19,7 @@ public class ServiceField {
     private Long serviceFieldId;
     private Double price;
     @ElementCollection
-    @CollectionTable(name = "benefits",
+    @CollectionTable(name = "service_field_benefits",
             joinColumns = @JoinColumn(name = "service_field_id"))
     @Column(name = "benefit")
     private List<String> benefits;

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Data
@@ -19,7 +20,7 @@ public class SellRequest {
         Sell sell = new Sell();
         sell.setActualPrice(actualPrice);
         sell.setDiscountPrice(discountPrice);
-        sell.setBenefits ( benefits );
+        sell.setBenefits(benefits != null ? benefits : new ArrayList<> ());
         return sell;
     }
 }

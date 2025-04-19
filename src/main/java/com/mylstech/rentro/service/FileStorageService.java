@@ -1,5 +1,6 @@
 package com.mylstech.rentro.service;
 
+import com.mylstech.rentro.dto.response.FileUploadResponse;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -13,6 +14,13 @@ public interface FileStorageService {
      * @return The URL of the stored image
      */
     String storeImageAsWebP(MultipartFile file, int quality, boolean fallbackToJpeg) throws IOException;
+
+    /**
+     * Stores a PDF file
+     * @param file The PDF file to store
+     * @return The URL of the stored PDF
+     */
+    FileUploadResponse storePdf(MultipartFile file) throws IOException;
 
     /**
      * Deletes a file from storage

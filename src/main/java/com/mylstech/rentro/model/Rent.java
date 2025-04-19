@@ -5,6 +5,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -21,10 +22,9 @@ public class Rent {
     private Double discountPrice;
     private Double vat;
     @ElementCollection
-    @CollectionTable(name = "rent_benefits",
-            joinColumns = @JoinColumn(name = "rent_id"))
-    @Column(name = "benefits")
-    private List<String> benefits;
-
+    @CollectionTable(name = "benefits",
+            joinColumns = @JoinColumn(name = "rent_id", referencedColumnName = "rentId"))
+    @Column(name = "benefit") // Add this to maintain order and handle IDs
+    private List<String> benefits = new ArrayList<> ();
 
 }

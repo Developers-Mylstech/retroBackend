@@ -23,6 +23,6 @@ public class Sell {
     @ElementCollection
     @CollectionTable(name = "sell_benefits",
             joinColumns = @JoinColumn(name = "sell_id"))
-    @Column(name = "benefits")
+    @Column(name = "benefit")
     private List<String> benefits;
 }

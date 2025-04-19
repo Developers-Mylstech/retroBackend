@@ -72,7 +72,6 @@ public class ProductImagesController {
     @PostMapping("/upload")
     @Operation(summary = "Upload an image")
     public ResponseEntity<FileUploadResponse> uploadImage(
-            @Parameter(description = "Image file to upload", required = true)
             @RequestParam("file") MultipartFile file,
             @RequestParam(value = "quality", defaultValue = "80") int quality,
             @RequestParam(value = "fallbackToJpeg", defaultValue = "true") boolean fallbackToJpeg) {
