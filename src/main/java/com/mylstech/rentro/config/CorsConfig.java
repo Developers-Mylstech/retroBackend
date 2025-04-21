@@ -17,10 +17,10 @@ public class CorsConfig {
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping ( "/**" )
 //                        .allowedOrigins ( "http://testing.rentro.ae", "https://demo.rentro.ae", "http://localhost:5173", "https://yqndqaeqly2o.share.zrok.io" )
-                        .allowedOrigins ( "https://rentro-panel-5qauutl71-ziya-afridis-projects.vercel.app" )
+                        .allowedOrigins ( "*" )
                         .allowedMethods ( "*" )
                         .allowedHeaders ( "*" )
-                        .allowCredentials ( true ); // Only if you’re using cookies/auth headers
+                        .allowCredentials ( false ); // Only if you’re using cookies/auth headers
             }
         };
     }
