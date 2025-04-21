@@ -20,7 +20,7 @@ public class CorsConfig {
                         .allowedOrigins ( "*" )
                         .allowedMethods ( "*" )
                         .allowedHeaders ( "*" )
-                        .allowCredentials ( true ); // Only if you’re using cookies/auth headers
+                        .allowCredentials ( false ); // Only if you’re using cookies/auth headers
             }
         };
     }
