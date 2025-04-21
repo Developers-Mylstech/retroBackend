@@ -16,8 +16,8 @@ public class CorsConfig {
             @Override
             public void addCorsMappings(CorsRegistry registry) {
                 registry.addMapping ( "/**" )
-                        .allowedOrigins ( "*" )
 //                        .allowedOrigins ( "http://testing.rentro.ae", "https://demo.rentro.ae", "http://localhost:5173", "https://yqndqaeqly2o.share.zrok.io" )
+                        .allowedOrigins ( "*" )
                         .allowedMethods ( "*" )
                         .allowedHeaders ( "*" )
                         .allowCredentials ( true ); // Only if you’re using cookies/auth headers
