@@ -3,6 +3,7 @@ package com.mylstech.rentro.controller;
 import com.mylstech.rentro.dto.request.ProductRequest;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.service.ProductService;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -13,6 +14,7 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/v1/products")
 @RequiredArgsConstructor
+@CrossOrigin(origins = "*", allowedHeaders = "*")
 public class ProductController {
 
     private final ProductService productService;
@@ -38,9 +40,9 @@ public class ProductController {
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+    public ResponseEntity<String> deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Product deleted successfully");
     }
 
     // We're keeping these methods for backward compatibility and individual image management

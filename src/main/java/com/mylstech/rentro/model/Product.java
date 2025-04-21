@@ -20,7 +20,7 @@ public class Product {
     private String description;
     private String longDescription;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -32,10 +32,10 @@ public class Product {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private ProductFor productFor;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Category category;
 
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Category subCategory;
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
