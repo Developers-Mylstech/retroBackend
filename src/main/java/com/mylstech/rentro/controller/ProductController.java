@@ -10,6 +10,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -18,20 +20,45 @@ import java.util.List;
 public class ProductController {
 
     private final ProductService productService;
+    private final Logger logger = LoggerFactory.getLogger(ProductController.class);
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        return ResponseEntity.ok(productService.getAllProducts());
+        try {
+            logger.debug("Fetching all products");
+            List<ProductResponse> products = productService.getAllProducts();
+            logger.debug("Found {} products", products.size());
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error fetching all products", e);
+            throw e;
+        }
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        return ResponseEntity.ok(productService.getProductById(id));
+        try {
+            logger.debug("Fetching product with id: {}", id);
+            ProductResponse product = productService.getProductById(id);
+            logger.debug("Found product: {}", product);
+            return ResponseEntity.ok(product);
+        } catch (Exception e) {
+            logger.error("Error fetching product with id: " + id, e);
+            throw e;
+        }
     }
 
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest request) {
-        return new ResponseEntity<>(productService.createProduct(request), HttpStatus.CREATED);
+        try {
+            logger.debug("Creating new product: {}", request);
+            ProductResponse product = productService.createProduct(request);
+            logger.debug("Created product: {}", product);
+            return new ResponseEntity<>(product, HttpStatus.CREATED);
+        } catch (Exception e) {
+            logger.error("Error creating product", e);
+            throw e;
+        }
     }
 
     @PutMapping("/{id}")

@@ -15,12 +15,15 @@ import org.springframework.transaction.annotation.Transactional;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
+    private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final ProductForRepository productForRepository;
@@ -38,16 +41,29 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponse> getAllProducts() {
-        return productRepository.findAll ( ).stream ( )
-                .map ( ProductResponse::new )
-                .toList ( ) ;
+        try {
+            List<Product> products = productRepository.findAll();
+            logger.debug("Found {} products in database", products.size());
+            return products.stream()
+                    .map(ProductResponse::new)
+                    .toList();
+        } catch (Exception e) {
+            logger.error("Error retrieving products from database", e);
+            throw new RuntimeException("Failed to retrieve products", e);
+        }
     }
 
     @Override
     public ProductResponse getProductById(Long id) {
-        Product product = productRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
-        return new ProductResponse ( product );
+        try {
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            logger.debug("Found product with id {}: {}", id, product);
+            return new ProductResponse(product);
+        } catch (Exception e) {
+            logger.error("Error retrieving product with id: " + id, e);
+            throw e;
+        }
     }
 
     @Override
