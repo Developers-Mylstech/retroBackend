@@ -28,7 +28,6 @@ public class FileStorageServiceImpl implements FileStorageService {
 
     @Value("${file.upload-dir:uploads}")
     private String uploadDir;
-    
     @Value("${file.base-url}")
     private String baseUrl;
 
