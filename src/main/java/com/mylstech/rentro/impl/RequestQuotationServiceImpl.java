@@ -35,7 +35,6 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
     @Override
     public RequestQuotationResponse createRequestQuotation(RequestQuotationRequest request) {
         RequestQuotation requestQuotation = request.requestToRequestQuotation();
-        requestQuotation.setVat(vat);
         return new RequestQuotationResponse(requestQuotationRepository.save(requestQuotation));
     }
 
@@ -43,8 +42,22 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
     public RequestQuotationResponse updateRequestQuotation(Long id, RequestQuotationRequest request) {
         RequestQuotation requestQuotation = requestQuotationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RequestQuotation not found with id: " + id));
-        requestQuotation.setActualPrice(request.getActualPrice());
-        requestQuotation.setDiscountPrice(request.getDiscountPrice());
+        if (request.getCompanyName() != null ) {
+            requestQuotation.setCompanyName(request.getCompanyName());
+        }
+        if (request.getName() != null ) {
+            requestQuotation.setName(request.getName());
+        }
+        if (request.getMobile() != null ) {
+            requestQuotation.setMobile(request.getMobile());
+        }
+        if (request.getLocation() != null ) {
+            requestQuotation.setLocation(request.getLocation());
+        }
+        if (request.getProductImages() != null ) {
+            requestQuotation.getProductImages().clear();
+            requestQuotation.setProductImages(request.getProductImages());
+        }
 
         return new RequestQuotationResponse(requestQuotationRepository.save(requestQuotation));
     }

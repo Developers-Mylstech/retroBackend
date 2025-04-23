@@ -105,10 +105,8 @@ public class ProductServiceImpl implements ProductService {
 
             // Handle RequestQuotation entity
             if ( request.getProductFor ( ).getRequestQuotation ( ) != null ) {
-
                 // Create new RequestQuotation entity
                 RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-                requestQuotation.setVat ( vat );
                 requestQuotation = requestQuotationRepository.save ( requestQuotation );
                 productFor.setRequestQuotation ( requestQuotation );
             }
@@ -281,11 +279,9 @@ public class ProductServiceImpl implements ProductService {
                 inventory = new Inventory ( );
                 product.setInventory ( inventory );
             }
-
             if ( request.getInventory ( ).getQuantity ( ) != null ) {
                 inventory.setQuantity ( request.getInventory ( ).getQuantity ( ) );
             }
-
             if ( request.getInventory ( ).getSku ( ) != null ) {
                 inventory.setSku ( request.getInventory ( ).getSku ( ) );
             }
@@ -324,7 +320,7 @@ public class ProductServiceImpl implements ProductService {
 
                 // Create new RequestQuotation entity
                 RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-                requestQuotation.setVat ( vat );
+
                 requestQuotation = requestQuotationRepository.save ( requestQuotation );
                 productFor.setRequestQuotation ( requestQuotation );
             }
