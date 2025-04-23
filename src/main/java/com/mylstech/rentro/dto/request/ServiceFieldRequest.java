@@ -14,10 +14,12 @@ import java.util.List;
 public class ServiceFieldRequest {
     private Double price;
     private List<String> benefits;
+    private Integer limitedTimePeriods;
     
     public ServiceField requestToServiceField() {
         ServiceField serviceField = new ServiceField();
         serviceField.setPrice(price);
+        serviceField.setLimitedTimePeriods(limitedTimePeriods);
         serviceField.setBenefits(benefits != null ? benefits : new ArrayList<> ());
         return serviceField;
     }
