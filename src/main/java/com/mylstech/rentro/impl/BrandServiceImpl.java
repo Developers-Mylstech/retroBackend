@@ -36,7 +36,14 @@ public class BrandServiceImpl implements BrandService {
     @Override
     public BrandResponse updateBrand(Long id, BrandRequest brandDetails) {
         Brand brand = brandRepository.findById ( id ).orElseThrow ( () -> new RuntimeException ( "Brand not found with id:" + id ) );
-        brand.setName ( brandDetails.getName ( ) );
+        if (brand.getName ( ) != null ) {
+            brand.setName ( brandDetails.getName ( ) );
+        }
+        if ( brand.getImages () != null ) {
+            brand.getImages ().clear ();
+            brand.setImages ( brandDetails.getImageUrls () );
+        }
+
         return new BrandResponse ( brandRepository.save ( brand ));
     }
 
