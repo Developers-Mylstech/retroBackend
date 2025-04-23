@@ -21,6 +21,9 @@ public class ProductResponse {
     private String description;
     private String longDescription;
     private String manufacturer;
+    private String supplierName;
+    private String supplierCode;
+    private String modelNo;
     private CategoryResponse category;
     private CategoryResponse subCategory;
     private BrandResponse brand;
@@ -60,7 +63,7 @@ public class ProductResponse {
         if (product.getSpecification () != null && !product.getSpecification ().isEmpty()) {
             this.specifications = product.getSpecification ().stream()
                 .map(SpecificationResponse::new)
-                .collect(Collectors.toList());
+                .toList();
         }
 
         if (product.getProductImages() != null) {
@@ -69,5 +72,8 @@ public class ProductResponse {
         if (product.getKeyFeatures () != null) {
             this.keyFeatures = product.getKeyFeatures ();
         }
+        this.supplierName = product.getSupplierName ();
+        this.supplierCode = product.getSupplierCode ();
+        this.modelNo = product.getModelNo ();
     }
 }

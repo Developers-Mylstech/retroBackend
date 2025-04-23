@@ -165,6 +165,9 @@ public class ProductServiceImpl implements ProductService {
         product.setLongDescription ( request.getLongDescription ( ) );
         product.setManufacturer ( request.getManufacturer () );
         product.setKeyFeatures ( request.getKeyFeatures () );
+        product.setSupplierName ( request.getSupplierName ( ) );
+        product.setSupplierCode ( request.getSupplierCode ( ) );
+        product.setModelNo ( request.getModelNo ( ) );
         // Set category if categoryId is provided
         if ( request.getCategoryId ( ) != null ) {
             Category category = categoryRepository.findById ( request.getCategoryId ( ) )
@@ -235,6 +238,15 @@ public class ProductServiceImpl implements ProductService {
         }
         if ( request.getDescription ( ) != null ) {
             product.setDescription ( request.getDescription ( ) );
+        }
+        if ( request.getSupplierName ( ) != null ) {
+            product.setSupplierName ( request.getSupplierName ( ) );
+        }
+        if ( request.getSupplierCode ( ) != null ) {
+            product.setSupplierCode ( request.getSupplierCode ( ) );
+        }
+        if ( request.getModelNo ( ) != null ) {
+            product.setModelNo ( request.getModelNo ( ) );
         }
 
         if ( request.getLongDescription ( ) != null ) {
