@@ -20,6 +20,8 @@ public class Sell {
     private Double actualPrice;
     private Double discountPrice;
     private Double vat;
+    private Boolean isWarrantyAvailable;
+    private Integer warrantPeriod;
     @ElementCollection
     @CollectionTable(name = "sell_benefits",
             joinColumns = @JoinColumn(name = "sell_id"))
