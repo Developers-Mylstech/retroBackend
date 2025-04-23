@@ -21,6 +21,8 @@ public class Rent {
     private Double monthlyPrice;
     private Double discountPrice;
     private Double vat;
+    private Boolean isWarrantyAvailable;
+    private Integer warrantPeriod;
     @ElementCollection
     @CollectionTable(name = "benefits",
             joinColumns = @JoinColumn(name = "rent_id", referencedColumnName = "rentId"))

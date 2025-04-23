@@ -15,12 +15,17 @@ public class RentRequest {
     private Double monthlyPrice;
     private Double discountPrice;
     private List<String> benefits;
-    
+    private Boolean isWarrantyAvailable;
+    private Integer warrantPeriod;
     public Rent requestToRent() {
         Rent rent = new Rent();
         rent.setMonthlyPrice(monthlyPrice);
         rent.setDiscountPrice(discountPrice);
         rent.setBenefits(benefits != null ? benefits : new ArrayList<>());
+        if (Boolean.TRUE.equals(isWarrantyAvailable) ) {
+            rent.setWarrantPeriod ( warrantPeriod );
+        }
+        rent.setIsWarrantyAvailable(isWarrantyAvailable);
         return rent;
     }
 }
