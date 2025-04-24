@@ -1,4 +1,4 @@
 package com.mylstech.rentro.util;
 
 public enum RequestQuotationStatus {
-CLOSE,WON,LOSS,WAITING,SENT}
+CLOSE,WON,LOSS,WAITING,SENT,NEGOTIATION}
