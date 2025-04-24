@@ -40,26 +40,29 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
 
     @Override
     public RequestQuotationResponse updateRequestQuotation(Long id, RequestQuotationRequest request) {
-        RequestQuotation requestQuotation = requestQuotationRepository.findById(id)
+        RequestQuotation existingRequestQuotation = requestQuotationRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("RequestQuotation not found with id: " + id));
         if (request.getCompanyName() != null ) {
-            requestQuotation.setCompanyName(request.getCompanyName());
+            existingRequestQuotation.setCompanyName(request.getCompanyName());
         }
         if (request.getName() != null ) {
-            requestQuotation.setName(request.getName());
+            existingRequestQuotation.setName(request.getName());
         }
         if (request.getMobile() != null ) {
-            requestQuotation.setMobile(request.getMobile());
+            existingRequestQuotation.setMobile(request.getMobile());
         }
         if (request.getLocation() != null ) {
-            requestQuotation.setLocation(request.getLocation());
+            existingRequestQuotation.setLocation(request.getLocation());
         }
         if (request.getProductImages() != null ) {
-            requestQuotation.getProductImages().clear();
-            requestQuotation.setProductImages(request.getProductImages());
+            existingRequestQuotation.getProductImages().clear();
+            existingRequestQuotation.setProductImages(request.getProductImages());
+        }
+        if(request.getStatus() != null) {
+            existingRequestQuotation.setStatus(request.getStatus());
         }
 
-        return new RequestQuotationResponse(requestQuotationRepository.save(requestQuotation));
+        return new RequestQuotationResponse(requestQuotationRepository.save(existingRequestQuotation));
     }
 
     @Override

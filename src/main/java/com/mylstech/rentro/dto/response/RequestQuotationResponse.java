@@ -1,6 +1,7 @@
 package com.mylstech.rentro.dto.response;
 
 import com.mylstech.rentro.model.RequestQuotation;
+import com.mylstech.rentro.util.RequestQuotationStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,8 @@ public class RequestQuotationResponse {
     private String companyName;
     private String location;
     private List<String> productImages;
+    private RequestQuotationStatus status;
+
     public RequestQuotationResponse(RequestQuotation requestQuotation) {
         this.requestQuotationId = requestQuotation.getRequestQuotationId();
         this.name = requestQuotation.getName();
@@ -24,5 +27,6 @@ public class RequestQuotationResponse {
         this.companyName = requestQuotation.getCompanyName();
         this.location = requestQuotation.getLocation();
         this.productImages = requestQuotation.getProductImages();
+        this.status = requestQuotation.getStatus();
     }
 }
