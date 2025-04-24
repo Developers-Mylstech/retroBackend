@@ -19,6 +19,9 @@ public class ProductRequest {
     private String description;
     private String longDescription;
     private String manufacturer;
+    private String supplierName;
+    private String supplierCode;
+    private String modelNo;
     private Long brandId;
     private List<String> imageUrls;
     private List<SpecificationRequest> specifications;

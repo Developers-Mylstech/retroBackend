@@ -17,6 +17,7 @@ public class ServiceField {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long serviceFieldId;
+    private Integer limitedTimePeriods;
     private Double price;
     @ElementCollection
     @CollectionTable(name = "service_field_benefits",

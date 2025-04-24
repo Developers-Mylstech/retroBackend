@@ -8,22 +8,21 @@ import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
 import com.mylstech.rentro.service.ProductService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 @Service
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
     private final ProductRepository productRepository;
-    private final Logger logger = LoggerFactory.getLogger(ProductServiceImpl.class);
+    private final Logger logger = LoggerFactory.getLogger ( ProductServiceImpl.class );
     private final CategoryRepository categoryRepository;
     private final BrandRepository brandRepository;
     private final ProductForRepository productForRepository;
@@ -33,7 +32,7 @@ public class ProductServiceImpl implements ProductService {
     private final ServiceRepository serviceRepository;
     private final ProductImagesRepository productImagesRepository;
     private final SpecificationFieldRepository specificationFieldRepository;
-   private final ServiceFieldRepository serviceFieldRepository;
+    private final ServiceFieldRepository serviceFieldRepository;
 
 
     @Value("${vat.value}")
@@ -42,26 +41,28 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public List<ProductResponse> getAllProducts() {
         try {
-            List<Product> products = productRepository.findAll();
-            logger.debug("Found {} products in database", products.size());
-            return products.stream()
-                    .map(ProductResponse::new)
-                    .toList();
-        } catch (Exception e) {
-            logger.error("Error retrieving products from database", e);
-            throw new RuntimeException("Failed to retrieve products", e);
+            List<Product> products = productRepository.findAll ( );
+            logger.debug ( "Found {} products in database", products.size ( ) );
+            return products.stream ( )
+                    .map ( ProductResponse::new )
+                    .toList ( );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error retrieving products from database", e );
+            throw new RuntimeException ( "Failed to retrieve products", e );
         }
     }
 
     @Override
     public ProductResponse getProductById(Long id) {
         try {
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
-            logger.debug("Found product with id {}: {}", id, product);
-            return new ProductResponse(product);
-        } catch (Exception e) {
-            logger.error("Error retrieving product with id: " + id, e);
+            Product product = productRepository.findById ( id )
+                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+            logger.debug ( "Found product with id {}: {}", id, product );
+            return new ProductResponse ( product );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error retrieving product with id: " + id, e );
             throw e;
         }
     }
@@ -104,10 +105,8 @@ public class ProductServiceImpl implements ProductService {
 
             // Handle RequestQuotation entity
             if ( request.getProductFor ( ).getRequestQuotation ( ) != null ) {
-
                 // Create new RequestQuotation entity
                 RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-                requestQuotation.setVat ( vat );
                 requestQuotation = requestQuotationRepository.save ( requestQuotation );
                 productFor.setRequestQuotation ( requestQuotation );
             }
@@ -118,7 +117,6 @@ public class ProductServiceImpl implements ProductService {
                 ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
                 if ( serviceRequest.getAmcBasic ( ) != null ) {
                     service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
-
                 }
                 if ( serviceRequest.getAmcGold ( ) != null ) {
                     service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
@@ -155,7 +153,7 @@ public class ProductServiceImpl implements ProductService {
             } );
             specifications = request.getSpecifications ( ).stream ( )
                     .map ( specRequest -> specRequest.requestToSpecification ( ) )
-                    .toList ( ) ;
+                    .toList ( );
         }
 
         // 4. Create the product
@@ -163,8 +161,11 @@ public class ProductServiceImpl implements ProductService {
         product.setName ( request.getName ( ) );
         product.setDescription ( request.getDescription ( ) );
         product.setLongDescription ( request.getLongDescription ( ) );
-        product.setManufacturer ( request.getManufacturer () );
-        product.setKeyFeatures ( request.getKeyFeatures () );
+        product.setManufacturer ( request.getManufacturer ( ) );
+        product.setKeyFeatures ( request.getKeyFeatures ( ) );
+        product.setSupplierName ( request.getSupplierName ( ) );
+        product.setSupplierCode ( request.getSupplierCode ( ) );
+        product.setModelNo ( request.getModelNo ( ) );
         // Set category if categoryId is provided
         if ( request.getCategoryId ( ) != null ) {
             Category category = categoryRepository.findById ( request.getCategoryId ( ) )
@@ -236,6 +237,15 @@ public class ProductServiceImpl implements ProductService {
         if ( request.getDescription ( ) != null ) {
             product.setDescription ( request.getDescription ( ) );
         }
+        if ( request.getSupplierName ( ) != null ) {
+            product.setSupplierName ( request.getSupplierName ( ) );
+        }
+        if ( request.getSupplierCode ( ) != null ) {
+            product.setSupplierCode ( request.getSupplierCode ( ) );
+        }
+        if ( request.getModelNo ( ) != null ) {
+            product.setModelNo ( request.getModelNo ( ) );
+        }
 
         if ( request.getLongDescription ( ) != null ) {
             product.setLongDescription ( request.getLongDescription ( ) );
@@ -269,11 +279,9 @@ public class ProductServiceImpl implements ProductService {
                 inventory = new Inventory ( );
                 product.setInventory ( inventory );
             }
-
             if ( request.getInventory ( ).getQuantity ( ) != null ) {
                 inventory.setQuantity ( request.getInventory ( ).getQuantity ( ) );
             }
-
             if ( request.getInventory ( ).getSku ( ) != null ) {
                 inventory.setSku ( request.getInventory ( ).getSku ( ) );
             }
@@ -312,7 +320,7 @@ public class ProductServiceImpl implements ProductService {
 
                 // Create new RequestQuotation entity
                 RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-                requestQuotation.setVat ( vat );
+
                 requestQuotation = requestQuotationRepository.save ( requestQuotation );
                 productFor.setRequestQuotation ( requestQuotation );
             }
@@ -338,14 +346,14 @@ public class ProductServiceImpl implements ProductService {
             }
 
             // Save the ProductFor entity first
-               productForRepository.save ( productFor );
+            productForRepository.save ( productFor );
         }
 
         // Update specifications if provided
         if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
             List<Specification> specifications = request.getSpecifications ( ).stream ( )
                     .map ( SpecificationRequest::requestToSpecification )
-                    .toList ( ) ;
+                    .toList ( );
             product.setSpecification ( specifications );
         }
 

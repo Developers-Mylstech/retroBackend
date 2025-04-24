@@ -5,6 +5,8 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.List;
+
 @Entity
 @Getter
 @Setter
@@ -15,8 +17,15 @@ public class RequestQuotation {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long requestQuotationId;
-    private Double actualPrice;
-    private Double discountPrice;
-    private Double vat;
+    private String name;
+    private String mobile;
+    private String companyName;
+    private String location;
+    @ElementCollection
+    @CollectionTable(name = "request_quotation_image_urls",
+            joinColumns = @JoinColumn(name = "request_quotation_image_id"))
+    @Column(name = "image_url")
+    private List<String> productImages;
+
 
 }

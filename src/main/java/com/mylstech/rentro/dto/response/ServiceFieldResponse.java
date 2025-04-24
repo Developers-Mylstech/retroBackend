@@ -14,7 +14,7 @@ public class ServiceFieldResponse {
     private Long serviceFieldId;
     private Double price;
     private List<String> benefits;
-
+    private Integer limitedTimePeriods;
     public ServiceFieldResponse(ServiceField serviceField) {
         this.serviceFieldId = serviceField.getServiceFieldId();
         this.price = serviceField.getPrice();

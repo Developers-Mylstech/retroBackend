@@ -16,6 +16,8 @@ public class RentResponse {
     private Double discountPrice;
     private Double vat;
     private List<String> benefits;
+    private Boolean isWarrantyAvailable;
+    private Integer warrantPeriod;
 
     public RentResponse(Rent rent) {
         this.rentId = rent.getRentId();
@@ -23,5 +25,7 @@ public class RentResponse {
         this.discountPrice = rent.getDiscountPrice();
         this.vat = rent.getVat();
         this.benefits = rent.getBenefits();
+        this.isWarrantyAvailable = rent.getIsWarrantyAvailable();
+        this.warrantPeriod = rent.getWarrantPeriod();
     }
 }

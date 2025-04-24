@@ -19,6 +19,9 @@ public class Product {
     private String name;
     private String description;
     private String longDescription;
+    private String supplierName;
+    private String supplierCode;
+    private String modelNo;
 
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
