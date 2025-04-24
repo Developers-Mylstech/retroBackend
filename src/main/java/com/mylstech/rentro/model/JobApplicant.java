@@ -14,7 +14,7 @@ public class JobApplicant {
     private Long jobApplicantId;
     private String name;
     private String email;
-    private Integer phone;
+    private String phone;
     private String resume;
     @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private JobPost jobPost;

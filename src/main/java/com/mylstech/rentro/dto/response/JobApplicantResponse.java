@@ -14,7 +14,7 @@ public class JobApplicantResponse {
     private String email;
     private String resume;
     private Long jobPostId;
-    private Integer phone;
+    private String phone;
     private String jobTitle;
 
     public JobApplicantResponse(JobApplicant jobApplicant) {
