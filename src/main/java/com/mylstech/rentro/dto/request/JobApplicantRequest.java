@@ -13,7 +13,7 @@ public class JobApplicantRequest {
     private String name;
     private String email;
     private String resume;
-    private Integer phone;
+    private String phone;
     private Long jobPostId;
 
     public JobApplicant requestToJobApplicant(JobPost jobPost) {
