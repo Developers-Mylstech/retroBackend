@@ -1,5 +1,6 @@
 package com.mylstech.rentro.model;
 
+import com.mylstech.rentro.util.RequestQuotationStatus;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,11 +22,14 @@ public class RequestQuotation {
     private String mobile;
     private String companyName;
     private String location;
+
     @ElementCollection
     @CollectionTable(name = "request_quotation_image_urls",
             joinColumns = @JoinColumn(name = "request_quotation_image_id"))
     @Column(name = "image_url")
     private List<String> productImages;
 
+    @Enumerated(EnumType.STRING)
+    private RequestQuotationStatus status;
 
 }
