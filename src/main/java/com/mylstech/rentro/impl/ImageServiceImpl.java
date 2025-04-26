@@ -25,6 +25,7 @@ public class ImageServiceImpl implements ImageService {
     private final BrandRepository brandRepository;
     private final CategoryRepository categoryRepository;
     private final JobPostRepository jobPostRepository;
+    private final OurServiceRepository ourServicesRepository;
 
     @Override
     public FileUploadResponse uploadImage(MultipartFile file, int quality, boolean fallbackToJpeg) throws IOException {
@@ -95,6 +96,12 @@ public class ImageServiceImpl implements ImageService {
                 response.setSingleImage(jobPost.getImage());
                 break;
 
+            case "ourservices":
+                OurService ourServices = ourServicesRepository.findById(entityId)
+                        .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + entityId));
+                response.setImageUrls(ourServices.getImageUrl());
+                break;
+
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
@@ -141,6 +148,15 @@ public class ImageServiceImpl implements ImageService {
                                 jp.getImage()))
                         .toList();
 
+            case "ourservices":
+                return ourServicesRepository.findAll().stream()
+                    .map(os -> new EntityImagesResponse(
+                        os.getOurServiceId (),
+                        "ourservices",
+                        os.getImageUrl (),
+                        null))
+                    .toList();
+                
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
@@ -182,6 +198,9 @@ public class ImageServiceImpl implements ImageService {
             case "jobpost":
                 handleJobPostImage(entityId, fileUrl);
                 break;
+            case "ourservices":
+                handleOurServicesImage(entityId, fileUrl);
+                break;
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
@@ -204,6 +223,9 @@ public class ImageServiceImpl implements ImageService {
                 break;
             case "jobpost":
                 deleteJobPostImage(entityId);
+                break;
+            case "ourservices":
+                deleteOurServicesImage(entityId);
                 break;
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
@@ -246,7 +268,6 @@ public class ImageServiceImpl implements ImageService {
     private void handleJobPostImage(Long jobPostId, String fileUrl) {
         JobPost jobPost = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + jobPostId));
-        
         jobPost.setImage(fileUrl);
         jobPostRepository.save(jobPost);
     }
@@ -295,6 +316,29 @@ public class ImageServiceImpl implements ImageService {
             String imageUrl = jobPost.getImage();
             jobPost.setImage(null);
             jobPostRepository.save(jobPost);
+            deleteImageFile(imageUrl);
+        }
+    }
+
+    private void handleOurServicesImage(Long ourServicesId, String fileUrl) {
+        OurService ourServices = ourServicesRepository.findById(ourServicesId)
+                .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
+        
+        if (ourServices.getImageUrl() == null) {
+            ourServices.setImageUrl(new ArrayList<>());
+        }
+        ourServices.getImageUrl().add(fileUrl);
+        ourServicesRepository.save(ourServices);
+    }
+
+    private void deleteOurServicesImage(Long ourServicesId) {
+        OurService ourServices = ourServicesRepository.findById(ourServicesId)
+                .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
+        
+        if (ourServices.getImageUrl() != null && !ourServices.getImageUrl().isEmpty()) {
+            String imageUrl = ourServices.getImageUrl().get(ourServices.getImageUrl().size() - 1);
+            ourServices.getImageUrl().remove(imageUrl);
+            ourServicesRepository.save(ourServices);
             deleteImageFile(imageUrl);
         }
     }
