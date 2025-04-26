@@ -41,14 +41,14 @@ public class CategoryServiceImpl implements CategoryService {
     @Override
     public CategoryResponse createCategory(CategoryRequest request) {
         Category category = request.requestToCategory();
-        
+
         // Set parent category if parentCategoryId is provided
         if (request.getParentCategoryId() != null) {
             Category parentCategory = categoryRepository.findById(request.getParentCategoryId())
                     .orElseThrow(() -> new RuntimeException("Parent category not found with id: " + request.getParentCategoryId()));
             category.setParentCategory(parentCategory);
         }
-        
+
         return new CategoryResponse(categoryRepository.save(category));
     }
 
@@ -56,21 +56,21 @@ public class CategoryServiceImpl implements CategoryService {
     public CategoryResponse updateCategory(Long id, CategoryRequest request) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
-        
+
         if (request.getName() != null) {
             category.setName(request.getName());
         }
-        
+
         // Update parent category if parentCategoryId is provided
         if (request.getParentCategoryId() != null) {
             // Prevent setting a category as its own parent
             if (request.getParentCategoryId().equals(id)) {
                 throw new RuntimeException("A category cannot be its own parent");
             }
-            
+
             Category parentCategory = categoryRepository.findById(request.getParentCategoryId())
                     .orElseThrow(() -> new RuntimeException("Parent category not found with id: " + request.getParentCategoryId()));
-            
+
             // Check for circular reference
             Category current = parentCategory;
             while (current != null) {
@@ -79,13 +79,13 @@ public class CategoryServiceImpl implements CategoryService {
                 }
                 current = current.getParentCategory();
             }
-            
+
             category.setParentCategory(parentCategory);
         } else if (request.getParentCategoryId() == null && category.getParentCategory() != null) {
             // If parentCategoryId is explicitly set to null, remove the parent
             category.setParentCategory(null);
         }
-        
+
         return new CategoryResponse(categoryRepository.save(category));
     }
 
@@ -93,12 +93,12 @@ public class CategoryServiceImpl implements CategoryService {
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
-        
+
         // If the category has subcategories, either delete them or reassign them
         if (category.getSubCategories() != null && !category.getSubCategories().isEmpty()) {
             // Option 1: Delete all subcategories (cascading delete)
             // This is handled by CascadeType.ALL in the entity
-            
+
             // Option 2: Reassign subcategories to the parent of the category being deleted
             // Uncomment the following code to implement this option
             /*
@@ -109,7 +109,7 @@ public class CategoryServiceImpl implements CategoryService {
             }
             */
         }
-        
+
         categoryRepository.delete(category);
     }
 }

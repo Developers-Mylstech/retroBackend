@@ -3,7 +3,6 @@ package com.mylstech.rentro.controller;
 import com.mylstech.rentro.dto.request.ProductRequest;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.service.ProductService;
-import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;

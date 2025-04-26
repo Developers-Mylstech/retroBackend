@@ -1,8 +1,6 @@
 package com.mylstech.rentro.impl;
 
-import com.mylstech.rentro.dto.request.ProductRequest;
-import com.mylstech.rentro.dto.request.ServiceRequest;
-import com.mylstech.rentro.dto.request.SpecificationRequest;
+import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
@@ -16,6 +14,8 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -30,13 +30,37 @@ public class ProductServiceImpl implements ProductService {
     private final RentRepository rentRepository;
     private final RequestQuotationRepository requestQuotationRepository;
     private final ServiceRepository serviceRepository;
-    private final ProductImagesRepository productImagesRepository;
+
     private final SpecificationFieldRepository specificationFieldRepository;
     private final ServiceFieldRepository serviceFieldRepository;
 
 
     @Value("${vat.value}")
     private Double vat;
+
+    private static void addOts(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
+        if ( serviceRequest.getOts ( ) != null ) {
+            service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
+        }
+    }
+
+    private static void addMmc(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
+        if ( serviceRequest.getMmc ( ) != null ) {
+            service.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
+        }
+    }
+
+    private static void addAmcGold(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
+        if ( serviceRequest.getAmcGold ( ) != null ) {
+            service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
+        }
+    }
+
+    private static void addAmcBasic(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
+        if ( serviceRequest.getAmcBasic ( ) != null ) {
+            service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
+        }
+    }
 
     @Override
     public List<ProductResponse> getAllProducts() {
@@ -45,6 +69,7 @@ public class ProductServiceImpl implements ProductService {
             logger.debug ( "Found {} products in database", products.size ( ) );
             return products.stream ( )
                     .map ( ProductResponse::new )
+                    .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
                     .toList ( );
         }
         catch ( Exception e ) {
@@ -115,18 +140,10 @@ public class ProductServiceImpl implements ProductService {
             if ( request.getProductFor ( ).getService ( ) != null ) {
                 com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
                 ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
-                if ( serviceRequest.getAmcBasic ( ) != null ) {
-                    service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
-                }
-                if ( serviceRequest.getAmcGold ( ) != null ) {
-                    service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
-                }
-                if ( serviceRequest.getMmc ( ) != null ) {
-                    service.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
-                }
-                if ( serviceRequest.getOts ( ) != null ) {
-                    service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
-                }
+                addAmcBasic ( serviceRequest, service );
+                addAmcGold ( serviceRequest, service );
+                addMmc ( serviceRequest, service );
+                addOts ( serviceRequest, service );
                 service = serviceRepository.save ( service );
                 productFor.setServices ( service );
             }
@@ -138,21 +155,38 @@ public class ProductServiceImpl implements ProductService {
         // 3. Create specifications
         List<Specification> specifications = null;
         if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
-            List<String> requestNameList = request.getSpecifications ( ).stream ( ).map ( SpecificationRequest::getName ).toList ( );
-            List<String> dbSpecificationFieldList = specificationFieldRepository.findAll ( ).stream ( ).map ( SpecificationField::getName ).toList ( );
-            // Find names in request not present in DB
-            List<String> notFoundInDB = requestNameList.stream ( )
-                    .filter ( name -> ! dbSpecificationFieldList.contains ( name ) )
+            // Get all specification names from the request
+            List<String> requestNameList = request.getSpecifications ( ).stream ( )
+                    .map ( SpecificationRequest::getName )
                     .toList ( );
 
-            // Print them
-            notFoundInDB.forEach ( name -> {
-                SpecificationField field = new SpecificationField ( );
-                field.setName ( name );
-                specificationFieldRepository.save ( field );
-            } );
+            // Get all existing specification fields from DB
+            List<SpecificationField> existingFields = specificationFieldRepository.findAll ( );
+            Map<String, SpecificationField> existingFieldsMap = existingFields.stream ( )
+                    .collect ( Collectors.toMap ( SpecificationField::getName, field -> field ) );
+
+            // Create any missing specification fields
+            requestNameList.stream ( )
+                    .filter ( name -> ! existingFieldsMap.containsKey ( name ) )
+                    .forEach ( name -> {
+                        SpecificationField field = new SpecificationField ( );
+                        field.setName ( name );
+                        SpecificationField savedField = specificationFieldRepository.save ( field );
+                        existingFieldsMap.put ( name, savedField );
+                    } );
+
+            // Create specifications with proper references to specification fields
             specifications = request.getSpecifications ( ).stream ( )
-                    .map ( specRequest -> specRequest.requestToSpecification ( ) )
+                    .filter ( spec -> spec.getName ( ) != null
+                            && ! spec.getName ( ).trim ( ).isEmpty ( )
+                            && spec.getValue ( ) != null
+                            && ! spec.getValue ( ).trim ( ).isEmpty ( ) )
+                    .map ( specRequest -> {
+                        Specification spec = new Specification ( );
+                        spec.setName ( specRequest.getName ( ) );
+                        spec.setValue ( specRequest.getValue ( ) );
+                        return spec;
+                    } )
                     .toList ( );
         }
 
@@ -166,6 +200,7 @@ public class ProductServiceImpl implements ProductService {
         product.setSupplierName ( request.getSupplierName ( ) );
         product.setSupplierCode ( request.getSupplierCode ( ) );
         product.setModelNo ( request.getModelNo ( ) );
+
         // Set category if categoryId is provided
         if ( request.getCategoryId ( ) != null ) {
             Category category = categoryRepository.findById ( request.getCategoryId ( ) )
@@ -201,16 +236,20 @@ public class ProductServiceImpl implements ProductService {
         if ( specifications != null ) {
             product.setSpecification ( specifications );
         }
+        //set Tag N Keyword
+        if ( request.getTagNKeywords ( ) != null ) {
+            product.setTagNKeywords ( request.getTagNKeywords ( ) );
+        }
 
         // 5. Create ProductImages with the provided image URLs
-        ProductImages productImages = new ProductImages ( );
+
         if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
-            productImages.setImageUrls ( new ArrayList<> ( request.getImageUrls ( ) ) );
+
+            product.setImageUrls ( request.getImageUrls ( ) );
+
         } else {
-            productImages.setImageUrls ( new ArrayList<> ( ) );
+            product.setImageUrls ( new ArrayList<> ( ) );
         }
-        product.setProductImages ( productImages );
-        productImages.setProduct ( product );
 
         // 6. Save the product
         Product savedProduct = productRepository.save ( product );
@@ -299,80 +338,164 @@ public class ProductServiceImpl implements ProductService {
             if ( request.getProductFor ( ).getSell ( ) != null ) {
 
                 // Create new Sell entity
-                Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
-                sell.setVat ( vat );
-                sell = sellRepository.save ( sell );
-                productFor.setSell ( sell );
+                Sell existingSell = productFor.getSell ( );
+                if ( existingSell == null ) {
+                    existingSell = new Sell ( );
+                }
+                Sell updatedSell = updateSellFields ( existingSell, request.getProductFor ( ).getSell ( ) );
+                updatedSell.setVat ( vat );
+                updatedSell = sellRepository.save ( updatedSell );
+                productFor.setSell ( updatedSell );
             }
 
             // Handle Rent entity
             if ( request.getProductFor ( ).getRent ( ) != null ) {
-
-                // Create new Rent entity
-                Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
-                rent.setVat ( vat );
-                rent = rentRepository.save ( rent );
-                productFor.setRent ( rent );
+                Rent existingRent = productFor.getRent ( );
+                if ( existingRent == null ) {
+                    existingRent = new Rent ( );
+                }
+                Rent updatedRent = updateRentFields ( existingRent, request.getProductFor ( ).getRent ( ) );
+                updatedRent.setVat ( vat );
+                updatedRent = rentRepository.save ( updatedRent );
+                productFor.setRent ( updatedRent );
             }
 
             // Handle RequestQuotation entity
             if ( request.getProductFor ( ).getRequestQuotation ( ) != null ) {
-
-                // Create new RequestQuotation entity
-                RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-
-                requestQuotation = requestQuotationRepository.save ( requestQuotation );
-                productFor.setRequestQuotation ( requestQuotation );
+                RequestQuotation existingQuotation = productFor.getRequestQuotation ( );
+                if ( existingQuotation == null ) {
+                    existingQuotation = new RequestQuotation ( );
+                }
+                RequestQuotation updatedQuotation = updateRequestQuotationFields ( existingQuotation,
+                        request.getProductFor ( ).getRequestQuotation ( ) );
+                updatedQuotation = requestQuotationRepository.save ( updatedQuotation );
+                productFor.setRequestQuotation ( updatedQuotation );
             }
-
             // Handle Service entity
             if ( request.getProductFor ( ).getService ( ) != null ) {
-                com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
-                ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
-                if ( serviceRequest.getAmcBasic ( ) != null ) {
-                    service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
+                com.mylstech.rentro.model.Service existingService = productFor.getServices ( );
+                if ( existingService == null ) {
+                    existingService = new com.mylstech.rentro.model.Service ( );
                 }
-                if ( serviceRequest.getAmcGold ( ) != null ) {
-                    service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
-                }
-                if ( serviceRequest.getMmc ( ) != null ) {
-                    service.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
-                }
-                if ( serviceRequest.getOts ( ) != null ) {
-                    service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
-                }
-                service = serviceRepository.save ( service );
-                productFor.setServices ( service );
-            }
 
+                ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
+
+                // Handle AMC Basic
+                if ( serviceRequest.getAmcBasic ( ) != null ) {
+                    ServiceField existingAmcBasic = existingService.getAmcBasic ( );
+                    if ( existingAmcBasic == null ) {
+                        existingService.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
+                    } else {
+                        updateServiceFieldEntity ( existingAmcBasic, serviceRequest.getAmcBasic ( ) );
+                    }
+                }
+
+                // Handle AMC Gold
+                if ( serviceRequest.getAmcGold ( ) != null ) {
+                    ServiceField existingAmcGold = existingService.getAmcGold ( );
+                    if ( existingAmcGold == null ) {
+                        existingService.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
+                    } else {
+                        updateServiceFieldEntity ( existingAmcGold, serviceRequest.getAmcGold ( ) );
+                    }
+                }
+
+                // Handle MMC
+                if ( serviceRequest.getMmc ( ) != null ) {
+                    ServiceField existingMmc = existingService.getMmc ( );
+                    if ( existingMmc == null ) {
+                        existingService.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
+                    } else {
+                        updateServiceFieldEntity ( existingMmc, serviceRequest.getMmc ( ) );
+                    }
+                }
+
+                // Handle OTS
+                if ( serviceRequest.getOts ( ) != null ) {
+                    ServiceField existingOts = existingService.getOts ( );
+                    if ( existingOts == null ) {
+                        existingService.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
+                    } else {
+                        updateServiceFieldEntity ( existingOts, serviceRequest.getOts ( ) );
+                    }
+                }
+
+                existingService = serviceRepository.save ( existingService );
+                productFor.setServices ( existingService );
+            }
             // Save the ProductFor entity first
             productForRepository.save ( productFor );
         }
 
         // Update specifications if provided
         if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
-            List<Specification> specifications = request.getSpecifications ( ).stream ( )
-                    .map ( SpecificationRequest::requestToSpecification )
+            // First ensure all specification fields exist in DB
+            List<String> requestNameList = request.getSpecifications ( ).stream ( )
+                    .map ( SpecificationRequest::getName )
                     .toList ( );
-            product.setSpecification ( specifications );
+            List<String> dbSpecificationFieldList = specificationFieldRepository.findAll ( )
+                    .stream ( )
+                    .map ( SpecificationField::getName )
+                    .toList ( );
+
+            // Find names in request not present in DB and create them
+            List<String> notFoundInDB = requestNameList.stream ( )
+                    .filter ( name -> ! dbSpecificationFieldList.contains ( name ) )
+                    .toList ( );
+
+            notFoundInDB.forEach ( name -> {
+                SpecificationField field = new SpecificationField ( );
+                field.setName ( name );
+                specificationFieldRepository.save ( field );
+            } );
+
+            // Get existing specifications
+            List<Specification> existingSpecs = product.getSpecification ( );
+            if ( existingSpecs == null ) {
+                existingSpecs = new ArrayList<> ( );
+            }
+
+            // Update or create specifications
+            List<Specification> updatedSpecs = new ArrayList<> ( );
+            for (SpecificationRequest specRequest : request.getSpecifications ( )) {
+                // Try to find existing specification with same name
+                Specification existingSpec = existingSpecs.stream ( )
+                        .filter ( spec -> spec.getName ( ).equals ( specRequest.getName ( ) ) )
+                        .findFirst ( )
+                        .orElse ( null );
+
+                if ( existingSpec != null ) {
+                    // Update existing specification
+                    if ( specRequest.getValue ( ) != null ) {
+                        existingSpec.setValue ( specRequest.getValue ( ) );
+                    }
+                    updatedSpecs.add ( existingSpec );
+                } else {
+                    // Create new specification
+                    Specification newSpec = specRequest.requestToSpecification ( );
+                    updatedSpecs.add ( newSpec );
+                }
+            }
+
+            product.setSpecification ( updatedSpecs );
         }
 
         // Update image URLs if provided
         if ( request.getImageUrls ( ) != null ) {
-            ProductImages productImages = product.getProductImages ( );
-            if ( productImages == null ) {
-                productImages = new ProductImages ( );
-                productImages.setProduct ( product );
-                product.setProductImages ( productImages );
-            }
-            productImages.setImageUrls ( new ArrayList<> ( request.getImageUrls ( ) ) );
-        }
 
+            product.getImageUrls ( ).clear ( );
+            product.setImageUrls ( new ArrayList<> ( request.getImageUrls ( ) ) );
+        }
+        //update Tag N Keyword
+        if ( request.getTagNKeywords ( ) != null ) {
+            product.setTagNKeywords ( request.getTagNKeywords ( ) );
+        }
         // Save the updated product
         Product updatedProduct = productRepository.save ( product );
 
         return new ProductResponse ( updatedProduct );
     }
+
 
     @Override
     @Transactional
@@ -388,23 +511,10 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
 
-        ProductImages productImages = product.getProductImages ( );
-        if ( productImages == null ) {
-            productImages = new ProductImages ( );
-            productImages.setImageUrls ( new ArrayList<> ( ) );
-            productImages.setProduct ( product );
-            product.setProductImages ( productImages );
+        if ( product.getImageUrls ( ) == null ) {
+            product.setImageUrls ( new ArrayList<> ( ) );
         }
 
-        List<String> imageUrls = productImages.getImageUrls ( );
-        if ( imageUrls == null ) {
-            imageUrls = new ArrayList<> ( );
-            productImages.setImageUrls ( imageUrls );
-        }
-
-        if ( ! imageUrls.contains ( imageUrl ) ) {
-            imageUrls.add ( imageUrl );
-        }
 
         productRepository.save ( product );
 
@@ -417,12 +527,83 @@ public class ProductServiceImpl implements ProductService {
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
 
-        ProductImages productImages = product.getProductImages ( );
-        if ( productImages != null && productImages.getImageUrls ( ) != null ) {
-            productImages.getImageUrls ( ).remove ( imageUrl );
+        if ( product.getImageUrls ( ) != null ) {
+            product.getImageUrls ( ).remove ( imageUrl );
             productRepository.save ( product );
         }
 
         return new ProductResponse ( product );
+    }
+
+    private Rent updateRentFields(Rent existingRent, RentRequest rentRequest) {
+        if ( rentRequest.getMonthlyPrice ( ) != null ) {
+            existingRent.setMonthlyPrice ( rentRequest.getMonthlyPrice ( ) );
+        }
+        if ( rentRequest.getDiscountPrice ( ) != null ) {
+            existingRent.setDiscountPrice ( rentRequest.getDiscountPrice ( ) );
+        }
+        if ( rentRequest.getBenefits ( ) != null ) {
+            existingRent.setBenefits ( rentRequest.getBenefits ( ) );
+        }
+        if ( rentRequest.getIsWarrantyAvailable ( ) != null ) {
+            existingRent.setIsWarrantyAvailable ( rentRequest.getIsWarrantyAvailable ( ) );
+        }
+        if ( rentRequest.getWarrantPeriod ( ) != null ) {
+            existingRent.setWarrantPeriod ( rentRequest.getWarrantPeriod ( ) );
+        }
+        return existingRent;
+    }
+
+    private Sell updateSellFields(Sell existingSell, SellRequest sellRequest) {
+        if ( sellRequest.getActualPrice ( ) != null ) {
+            existingSell.setActualPrice ( sellRequest.getActualPrice ( ) );
+        }
+        if ( sellRequest.getDiscountPrice ( ) != null ) {
+            existingSell.setDiscountPrice ( sellRequest.getDiscountPrice ( ) );
+        }
+        if ( sellRequest.getBenefits ( ) != null ) {
+            existingSell.setBenefits ( sellRequest.getBenefits ( ) );
+        }
+        if ( sellRequest.getIsWarrantyAvailable ( ) != null ) {
+            existingSell.setIsWarrantyAvailable ( sellRequest.getIsWarrantyAvailable ( ) );
+        }
+        if ( sellRequest.getWarrantPeriod ( ) != null ) {
+            existingSell.setWarrantPeriod ( sellRequest.getWarrantPeriod ( ) );
+        }
+        return existingSell;
+    }
+
+    private RequestQuotation updateRequestQuotationFields(RequestQuotation existingQuotation,
+                                                          RequestQuotationRequest quotationRequest) {
+        if ( quotationRequest.getName ( ) != null ) {
+            existingQuotation.setName ( quotationRequest.getName ( ) );
+        }
+        if ( quotationRequest.getMobile ( ) != null ) {
+            existingQuotation.setMobile ( quotationRequest.getMobile ( ) );
+        }
+        if ( quotationRequest.getCompanyName ( ) != null ) {
+            existingQuotation.setCompanyName ( quotationRequest.getCompanyName ( ) );
+        }
+        if ( quotationRequest.getLocation ( ) != null ) {
+            existingQuotation.setLocation ( quotationRequest.getLocation ( ) );
+        }
+        if ( quotationRequest.getProductImages ( ) != null ) {
+            existingQuotation.getProductImages ( ).clear ( );
+            existingQuotation.setProductImages ( quotationRequest.getProductImages ( ) );
+        }
+        return existingQuotation;
+    }
+
+    private void updateServiceFieldEntity(ServiceField existingField, ServiceFieldRequest request) {
+        if ( request.getPrice ( ) != null ) {
+            existingField.setPrice ( request.getPrice ( ) );
+        }
+        if ( request.getLimitedTimePeriods ( ) != null ) {
+            existingField.setLimitedTimePeriods ( request.getLimitedTimePeriods ( ) );
+        }
+        if ( request.getBenefits ( ) != null ) {
+            existingField.getBenefits ( ).clear ( );
+            existingField.setBenefits ( new ArrayList<> ( request.getBenefits ( ) ) );
+        }
     }
 }
