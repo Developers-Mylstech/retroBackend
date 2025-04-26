@@ -1,6 +1,5 @@
 package com.mylstech.rentro.dto.request;
 
-import com.mylstech.rentro.util.StockStatus;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -30,4 +29,5 @@ public class ProductRequest {
     private Long subCategoryId;
     private InventoryRequest inventory;
     private List<String> keyFeatures;
+    private List<String> tagNKeywords;
 }

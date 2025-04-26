@@ -32,6 +32,7 @@ public class ProductResponse {
     private List<SpecificationResponse> specifications;
     private List<String> imageUrls;
     private List<String> keyFeatures;
+    private List<String> tagNKeywords;
 
 
     public ProductResponse(Product product) {
@@ -66,11 +67,14 @@ public class ProductResponse {
                 .toList();
         }
 
-        if (product.getProductImages() != null) {
-            this.imageUrls = product.getProductImages().getImageUrls();
+        if (product.getImageUrls () != null) {
+            this.imageUrls = product.getImageUrls();
         }
         if (product.getKeyFeatures () != null) {
             this.keyFeatures = product.getKeyFeatures ();
+        }
+        if (product.getTagNKeywords () != null) {
+            this.tagNKeywords = product.getTagNKeywords ();
         }
         this.supplierName = product.getSupplierName ();
         this.supplierCode = product.getSupplierCode ();

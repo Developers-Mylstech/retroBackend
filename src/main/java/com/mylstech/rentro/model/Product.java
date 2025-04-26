@@ -1,6 +1,7 @@
 package com.mylstech.rentro.model;
 
 import jakarta.persistence.*;
+import jakarta.validation.constraints.Size;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -18,6 +19,7 @@ public class Product {
     private Long productId;
     private String name;
     private String description;
+    @Size(max = 500)
     private String longDescription;
     private String supplierName;
     private String supplierCode;
@@ -26,8 +28,11 @@ public class Product {
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private ProductImages productImages;
+    @ElementCollection
+    @CollectionTable(name = "product_image_urls",
+            joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "image_url")
+    private List<String> imageUrls;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Specification> specification;
@@ -49,6 +54,12 @@ public class Product {
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "key_feature")
     private List<String> keyFeatures;
+
+    @ElementCollection
+    @CollectionTable(name = "tagNKeywords",
+            joinColumns = @JoinColumn(name = "product_id"))
+    @Column(name = "tagNKeywords")
+    private List<String> tagNKeywords;
 
     private String manufacturer;
 }
