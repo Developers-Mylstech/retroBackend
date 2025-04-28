@@ -55,12 +55,7 @@ public class ProductForServiceImpl implements ProductForService {
 
             productFor.setRent(request.getRent().requestToRent());
         }
-        
-        if (request.getRequestQuotation() != null) {
 
-            productFor.setRequestQuotation(request.getRequestQuotation().requestToRequestQuotation());
-        }
-        
 
         
         return new ProductForResponse(productForRepository.save(productFor));
@@ -80,11 +75,7 @@ public class ProductForServiceImpl implements ProductForService {
 
             productFor.setRent(request.getRent().requestToRent());
         }
-        
-        if (request.getRequestQuotation() != null) {
 
-            productFor.setRequestQuotation(request.getRequestQuotation().requestToRequestQuotation());
-        }
 
         return new ProductForResponse(productForRepository.save(productFor));
     }

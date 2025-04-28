@@ -12,7 +12,6 @@ public class ProductForResponse {
     private Long productForId;
     private SellResponse sell;
     private RentResponse rent;
-    private RequestQuotationResponse requestQuotation;
     private ServiceResponse service;
 
     public ProductForResponse(ProductFor productFor) {
@@ -25,11 +24,7 @@ public class ProductForResponse {
         if (productFor.getRent() != null) {
             this.rent = new RentResponse(productFor.getRent());
         }
-        
-        if (productFor.getRequestQuotation() != null) {
-            this.requestQuotation = new RequestQuotationResponse(productFor.getRequestQuotation());
-        }
-        
+
         if (productFor.getServices() != null) {
             this.service = new ServiceResponse(productFor.getServices());
         }

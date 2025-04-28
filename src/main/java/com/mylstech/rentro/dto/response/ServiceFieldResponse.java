@@ -19,5 +19,6 @@ public class ServiceFieldResponse {
         this.serviceFieldId = serviceField.getServiceFieldId();
         this.price = serviceField.getPrice();
         this.benefits = serviceField.getBenefits();
+        this.limitedTimePeriods = serviceField.getLimitedTimePeriods();
     }
 }

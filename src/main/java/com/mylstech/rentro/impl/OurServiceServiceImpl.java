@@ -120,7 +120,7 @@ public class OurServiceServiceImpl implements OurServiceService {
                             feature.setDescription(featureRequest.getDescription());
                             return feature;
                         })
-                        .collect(Collectors.toList());
+                        .toList();
                 
                 ourService.setFeature(features);
                 logger.debug("Updated features for our service with id: {}", id);

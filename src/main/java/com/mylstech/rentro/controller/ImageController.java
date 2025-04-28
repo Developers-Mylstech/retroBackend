@@ -49,7 +49,7 @@ public class ImageController {
         }
     }
 
-    @Operation(summary = "Get all images for an entity entity type={'product', 'brand', 'category', 'jobpost'} ")
+    @Operation(summary = "Get all images for an entity entity type={'product', 'brand', 'category', 'jobpost','ourservices'} ")
     @GetMapping("/{entityType}/{entityId}")
     public ResponseEntity<EntityImagesResponse> getEntityImages(
             @PathVariable String entityType,
@@ -66,7 +66,7 @@ public class ImageController {
         return ResponseEntity.ok(responses);
     }
 
-    @Operation(summary = "Upload image for any entity")
+    @Operation(summary = "Upload image for any entity type={'product', 'brand', 'category', 'jobpost','ourservices'}")
     @PostMapping("/upload/{entityType}/{entityId}")
     public ResponseEntity<FileUploadResponse> uploadImage(
             @PathVariable String entityType,
@@ -88,7 +88,7 @@ public class ImageController {
         }
     }
 
-    @Operation(summary = "Update image for any entity")
+    @Operation(summary = "Update image for any entity type={'product', 'brand', 'category', 'jobpost','ourservices'}")
     @PutMapping("/update/{entityType}/{entityId}")
     public ResponseEntity<FileUploadResponse> updateImage(
             @PathVariable String entityType,
@@ -114,7 +114,7 @@ public class ImageController {
         }
     }
 
-    @Operation(summary = "Delete image for any entity")
+    @Operation(summary = "Delete image for any entity type={'product', 'brand', 'category', 'jobpost','ourservices'}")
     @DeleteMapping("/delete/{entityType}/{entityId}")
     public ResponseEntity<Void> deleteImage(
             @PathVariable String entityType,

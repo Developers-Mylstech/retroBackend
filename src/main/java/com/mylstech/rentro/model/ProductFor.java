@@ -21,8 +21,8 @@ public class ProductFor {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Rent rent;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    private RequestQuotation requestQuotation;
+//    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+//    private RequestQuotation requestQuotation;
 
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
