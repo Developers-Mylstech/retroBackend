@@ -128,14 +128,6 @@ public class ProductServiceImpl implements ProductService {
                 productFor.setRent ( rent );
             }
 
-            // Handle RequestQuotation entity
-            if ( request.getProductFor ( ).getRequestQuotation ( ) != null ) {
-                // Create new RequestQuotation entity
-                RequestQuotation requestQuotation = request.getProductFor ( ).getRequestQuotation ( ).requestToRequestQuotation ( );
-                requestQuotation = requestQuotationRepository.save ( requestQuotation );
-                productFor.setRequestQuotation ( requestQuotation );
-            }
-
             // Handle Service entity
             if ( request.getProductFor ( ).getService ( ) != null ) {
                 com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
@@ -360,17 +352,7 @@ public class ProductServiceImpl implements ProductService {
                 productFor.setRent ( updatedRent );
             }
 
-            // Handle RequestQuotation entity
-            if ( request.getProductFor ( ).getRequestQuotation ( ) != null ) {
-                RequestQuotation existingQuotation = productFor.getRequestQuotation ( );
-                if ( existingQuotation == null ) {
-                    existingQuotation = new RequestQuotation ( );
-                }
-                RequestQuotation updatedQuotation = updateRequestQuotationFields ( existingQuotation,
-                        request.getProductFor ( ).getRequestQuotation ( ) );
-                updatedQuotation = requestQuotationRepository.save ( updatedQuotation );
-                productFor.setRequestQuotation ( updatedQuotation );
-            }
+
             // Handle Service entity
             if ( request.getProductFor ( ).getService ( ) != null ) {
                 com.mylstech.rentro.model.Service existingService = productFor.getServices ( );
@@ -573,26 +555,26 @@ public class ProductServiceImpl implements ProductService {
         return existingSell;
     }
 
-    private RequestQuotation updateRequestQuotationFields(RequestQuotation existingQuotation,
-                                                          RequestQuotationRequest quotationRequest) {
-        if ( quotationRequest.getName ( ) != null ) {
-            existingQuotation.setName ( quotationRequest.getName ( ) );
-        }
-        if ( quotationRequest.getMobile ( ) != null ) {
-            existingQuotation.setMobile ( quotationRequest.getMobile ( ) );
-        }
-        if ( quotationRequest.getCompanyName ( ) != null ) {
-            existingQuotation.setCompanyName ( quotationRequest.getCompanyName ( ) );
-        }
-        if ( quotationRequest.getLocation ( ) != null ) {
-            existingQuotation.setLocation ( quotationRequest.getLocation ( ) );
-        }
-        if ( quotationRequest.getProductImages ( ) != null ) {
-            existingQuotation.getProductImages ( ).clear ( );
-            existingQuotation.setProductImages ( quotationRequest.getProductImages ( ) );
-        }
-        return existingQuotation;
-    }
+//    private RequestQuotation updateRequestQuotationFields(RequestQuotation existingQuotation,
+//                                                          RequestQuotationRequest quotationRequest) {
+//        if ( quotationRequest.getName ( ) != null ) {
+//            existingQuotation.setName ( quotationRequest.getName ( ) );
+//        }
+//        if ( quotationRequest.getMobile ( ) != null ) {
+//            existingQuotation.setMobile ( quotationRequest.getMobile ( ) );
+//        }
+//        if ( quotationRequest.getCompanyName ( ) != null ) {
+//            existingQuotation.setCompanyName ( quotationRequest.getCompanyName ( ) );
+//        }
+//        if ( quotationRequest.getLocation ( ) != null ) {
+//            existingQuotation.setLocation ( quotationRequest.getLocation ( ) );
+//        }
+//        if ( quotationRequest.getProductImages ( ) != null ) {
+//            existingQuotation.getProductImages ( ).clear ( );
+//            existingQuotation.setProductImages ( quotationRequest.getProductImages ( ) );
+//        }
+//        return existingQuotation;
+//    }
 
     private void updateServiceFieldEntity(ServiceField existingField, ServiceFieldRequest request) {
         if ( request.getPrice ( ) != null ) {
@@ -602,8 +584,12 @@ public class ProductServiceImpl implements ProductService {
             existingField.setLimitedTimePeriods ( request.getLimitedTimePeriods ( ) );
         }
         if ( request.getBenefits ( ) != null ) {
+        /*    List<String> benefits = existingField.getBenefits ( );
+            List<String> benefits1 = request.getBenefits ( );
+            benefits.addAll ( benefits1 );*/
             existingField.getBenefits ( ).clear ( );
             existingField.setBenefits ( new ArrayList<> ( request.getBenefits ( ) ) );
         }
+
     }
 }

@@ -13,11 +13,8 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class ProductForRequest {
     // IDs for existing entities
-
-
     // Full request objects for creating new entities
     private SellRequest sell;
     private RentRequest rent;
-    private RequestQuotationRequest requestQuotation;
     private ServiceRequest service;
 }
