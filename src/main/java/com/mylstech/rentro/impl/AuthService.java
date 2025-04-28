@@ -13,12 +13,17 @@ import com.mylstech.rentro.security.JwtUtil;
 import com.mylstech.rentro.service.OtpService;
 import com.mylstech.rentro.util.Role;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+
+import java.time.Instant;
+import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -31,6 +36,8 @@ public class AuthService {
     private final UserDetailsService userDetailsService;
     private final RefreshTokenService refreshTokenService;
     private final RefreshTokenRepository refreshTokenRepository;
+    @Value("${jwt.refresh.expiration}")
+    private Long refreshTokenDurationMs;
 
     public AuthResponse register(RegisterRequest request) {
         AppUser user = new AppUser();
@@ -160,9 +167,22 @@ public class AuthService {
         // Generate tokens
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
-        
+        RefreshToken refreshToken;
         // Create and store refresh token
-        RefreshToken refreshToken = refreshTokenService.createRefreshToken(user);
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
+        if (existingToken.isPresent()) {
+            // Update existing token
+            refreshToken = existingToken.get();
+            refreshToken.setToken( UUID.randomUUID().toString());
+            refreshToken.setExpiryDate( Instant.now().plusMillis(refreshTokenDurationMs));
+            refreshToken.setRevoked(false);
+            refreshToken = refreshTokenRepository.save(refreshToken);
+        } else {
+            // Create new refresh token
+            refreshToken = refreshTokenService.createRefreshToken(user);
+        }
+
+
         
         return AuthResponse.builder()
                 .accessToken(accessToken)

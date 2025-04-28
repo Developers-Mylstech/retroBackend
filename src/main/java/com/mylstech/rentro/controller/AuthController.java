@@ -28,9 +28,9 @@ public class AuthController {
 
     @Operation(summary = "Initiate authentication with email")
     @PostMapping("/initiate-auth")
-    public ResponseEntity<Void> initiateAuthentication(@RequestBody EmailAuthRequest request) {
+    public ResponseEntity<String> initiateAuthentication(@RequestBody EmailAuthRequest request) {
         authService.initiateAuthentication(request);
-        return ResponseEntity.ok().build();
+        return ResponseEntity.ok().body ("OTP sent to email");
     }
 
     @Operation(summary = "Complete authentication with OTP")
