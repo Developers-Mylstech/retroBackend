@@ -18,6 +18,11 @@ import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+import org.springframework.web.cors.CorsConfiguration;
+import org.springframework.web.cors.CorsConfigurationSource;
+import org.springframework.web.cors.UrlBasedCorsConfigurationSource;
+
+import java.util.List;
 
 @Configuration
 @EnableWebSecurity
@@ -30,47 +35,66 @@ public class SecurityConfig {
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         return http
-            .csrf( AbstractHttpConfigurer::disable)
-            .authorizeHttpRequests(auth -> auth
-                    .requestMatchers ( HttpMethod.GET,"/api/v1/products" ).permitAll ()
-                    .requestMatchers("/api/v1/auth/register",
-                                 "/api/v1/auth/initiate-auth", 
-                                 "/api/v1/auth/complete-auth",
-                                 "/api/v1/auth/verify-otp",
-                                 "/api/v1/auth/resend-otp",
-                        // Swagger UI endpoints
-                        "/swagger-ui/**",
-                        "/swagger-ui.html",
-                        "/v3/api-docs/**",
-                        "/api-docs/**",
-                        "/swagger-resources/**",
-                        "/webjars/**"
-                ).permitAll()
-                .anyRequest().authenticated()
-            )
-            .sessionManagement(session -> session
-                .sessionCreationPolicy(SessionCreationPolicy.STATELESS)
-            )
-            .authenticationProvider(authenticationProvider())
-            .addFilterBefore(jwtAuthFilter, UsernamePasswordAuthenticationFilter.class)
-            .build();
+                .csrf ( AbstractHttpConfigurer::disable )
+                .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
+                .authorizeHttpRequests ( auth -> auth
+                        .requestMatchers ( HttpMethod.GET,"api/v1/products","/api/v1/job-posts" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,"/api/v1/job-applicants","/api/v1/files/upload-pdf" ).permitAll ( )
+                        .requestMatchers ( "/api/v1/auth/register",
+                                "/api/v1/auth/initiate-auth",
+                                "/api/v1/auth/complete-auth",
+                                "/api/v1/auth/admin-login",
+                                "/api/v1/auth/refresh-token",
+                                // Swagger UI endpoints
+                                "/swagger-ui/**",
+                                "/swagger-ui.html",
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**"
+                        ).permitAll ( )
+                        .anyRequest ( ).authenticated ( )
+                )
+                .sessionManagement ( session -> session
+                        .sessionCreationPolicy ( SessionCreationPolicy.STATELESS )
+                )
+
+                .authenticationProvider ( authenticationProvider ( ) )
+                .addFilterBefore ( jwtAuthFilter, UsernamePasswordAuthenticationFilter.class )
+                .build ( );
     }
 
     @Bean
     public AuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
-        authProvider.setUserDetailsService(userDetailsService);
-        authProvider.setPasswordEncoder(passwordEncoder());
+        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider ( );
+        authProvider.setUserDetailsService ( userDetailsService );
+        authProvider.setPasswordEncoder ( passwordEncoder ( ) );
         return authProvider;
     }
 
     @Bean
     public AuthenticationManager authenticationManager(AuthenticationConfiguration config) throws Exception {
-        return config.getAuthenticationManager();
+        return config.getAuthenticationManager ( );
+    }
+
+    @Bean
+    public CorsConfigurationSource corsConfigurationSource() {
+        CorsConfiguration config = new CorsConfiguration ( );
+        config.setAllowedOrigins ( List.of ( "http://localhost:5173",
+                "https://w323ibdvmjcw.share.zrok.io",
+                "https://testing.rentro.ae",
+                "https://demo.panel.rentro.ae" ) ); // You can replace "*" with specific domains
+        config.setAllowedMethods ( List.of ( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );
+        config.setAllowedHeaders ( List.of ( "Authorization", "Content-Type", "skip_zrok_interstitial" ) );
+        config.setAllowCredentials ( true ); // Set to false if you're not supporting cookies/auth headers cross-origin
+
+        UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource ( );
+        source.registerCorsConfiguration ( "/**", config );
+        return source;
     }
 
     @Bean
     public PasswordEncoder passwordEncoder() {
-        return new BCryptPasswordEncoder();
+        return new BCryptPasswordEncoder ( );
     }
 }

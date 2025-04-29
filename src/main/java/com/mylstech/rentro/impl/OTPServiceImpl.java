@@ -27,6 +27,7 @@ public class OTPServiceImpl implements OtpService {
     @Override
     public String generateOTP(String email) {
         String otp = generateSecureOtp();
+        System.out.println("---------------> otp is here "+otp);
         LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(otpExpiryMinutes);
         
         // Store OTP with expiry time

@@ -22,7 +22,7 @@ public class AuthController {
 
     @Operation(summary = "Register a new user")
     @PostMapping("/register")
-    public ResponseEntity<AuthResponse> register(@RequestBody RegisterRequest request) {
+    public ResponseEntity<String> register(@RequestBody RegisterRequest request) {
         return ResponseEntity.ok(authService.register(request));
     }
 
@@ -37,6 +37,12 @@ public class AuthController {
     @PostMapping("/complete-auth")
     public ResponseEntity<AuthResponse> completeAuthentication(@RequestBody OtpVerificationRequest request) {
         return ResponseEntity.ok(authService.completeAuthentication(request));
+    }
+
+    @Operation(summary = "Authenticate admin with email and password")
+    @PostMapping("/admin-login")
+    public ResponseEntity<AuthResponse> authenticate(@RequestBody AuthRequest request) {
+        return ResponseEntity.ok(authService.authenticate(request));
     }
 
     @Operation(summary = "Refresh access token")

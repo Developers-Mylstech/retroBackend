@@ -39,7 +39,7 @@ public class AuthService {
     @Value("${jwt.refresh.expiration}")
     private Long refreshTokenDurationMs;
 
-    public AuthResponse register(RegisterRequest request) {
+    public String register(RegisterRequest request) {
         AppUser user = new AppUser();
         user.setName(request.getName());
         user.setEmail(request.getEmail());
@@ -47,17 +47,21 @@ public class AuthService {
         user.setPhone(request.getPhone());
         user.setRole(Role.CUSTOMER);
         user.setVerified(false);
-        
-        appUserRepository.save(user);
-        
-        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
-        String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-        
-        return AuthResponse.builder()
-                .accessToken(accessToken)
-                .refreshToken(refreshToken)
-                .build();
+
+        AppUser saveUser = appUserRepository.save ( user );
+
+        otpService.generateOTP(saveUser.getEmail());
+         return "Otp sent to "+saveUser.getEmail ();
+
+//
+//        UserDetails userDetails = userDetailsService.loadUserByUsername(saveUser.getEmail());
+//        String accessToken = jwtUtil.generateAccessToken(userDetails);
+//        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
+//
+//        return AuthResponse.builder()
+//                .accessToken(accessToken)
+//                .refreshToken(refreshToken)
+//                .build();
     }
 
     public AuthResponse authenticate(AuthRequest request) {
