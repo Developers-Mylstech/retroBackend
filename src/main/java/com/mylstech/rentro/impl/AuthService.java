@@ -1,9 +1,6 @@
 package com.mylstech.rentro.impl;
 
-import com.mylstech.rentro.dto.request.AuthRequest;
-import com.mylstech.rentro.dto.request.EmailAuthRequest;
-import com.mylstech.rentro.dto.request.OtpVerificationRequest;
-import com.mylstech.rentro.dto.request.RegisterRequest;
+import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.AuthResponse;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.model.RefreshToken;
@@ -50,7 +47,7 @@ public class AuthService {
 
         AppUser saveUser = appUserRepository.save ( user );
 
-        otpService.generateOTP(saveUser.getEmail());
+        otpService.generateOTPViaEmail (saveUser.getEmail());
          return "Otp sent to "+saveUser.getEmail ();
 
 //
@@ -71,37 +68,56 @@ public class AuthService {
                         request.getPassword()
                 )
         );
-        
-        UserDetails userDetails = userDetailsService.loadUserByUsername(request.getEmail());
+        AppUser user=appUserRepository.findByEmail ( request.getEmail () ).orElseThrow ( ()->new RuntimeException ( "email not found" ) );
+
+        UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
-        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-        
+
+
+        RefreshToken refreshToken;
+        // Create and store refresh token
+        Optional<RefreshToken> existingToken = refreshTokenRepository.findByUser(user);
+        if (existingToken.isPresent()) {
+            // Update existing token
+            refreshToken = existingToken.get();
+            refreshToken.setToken( UUID.randomUUID().toString());
+            refreshToken.setExpiryDate( Instant.now().plusMillis(refreshTokenDurationMs));
+            refreshToken.setRevoked(false);
+            refreshToken = refreshTokenRepository.save(refreshToken);
+        } else {
+            // Create new refresh token
+            refreshToken = refreshTokenService.createRefreshToken(user);
+        }
+
         return AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(refreshToken)
+                .refreshToken(refreshToken.getToken ())
                 .build();
     }
 
     public AuthResponse refreshToken(String refreshTokenStr) {
         // Find and validate the refresh token
-        RefreshToken refreshToken = refreshTokenService.verifyExpiration(
-                refreshTokenRepository.findByToken(refreshTokenStr)
-                        .orElseThrow(() -> new RuntimeException("Refresh token not found"))
-        );
-        
+        RefreshToken refreshToken = refreshTokenRepository.findByToken(refreshTokenStr)
+                .orElseThrow(() -> new RuntimeException("Refresh token not found"));
+
+        // Verify token is not expired
+        refreshToken = refreshTokenService.verifyExpiration(refreshToken);
+
         AppUser user = refreshToken.getUser();
         
         // Generate new access token
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         
-        // Optional: Implement token rotation by revoking the old token and creating a new one
-        refreshTokenService.revokeToken(refreshTokenStr);
-        RefreshToken newRefreshToken = refreshTokenService.createRefreshToken(user);
+        // Update existing refresh token instead of creating a new one
+//        refreshToken.setToken(UUID.randomUUID().toString());
+//        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
+//        refreshToken.setRevoked(false);
+//        refreshToken = refreshTokenRepository.save(refreshToken);
         
         return AuthResponse.builder()
                 .accessToken(accessToken)
-                .refreshToken(newRefreshToken.getToken())
+                .refreshToken(refreshToken.getToken())
                 .build();
     }
 
@@ -141,13 +157,13 @@ public class AuthService {
                 .build();
     }
 
-    public void initiateAuthentication(EmailAuthRequest request) {
+    public void initiateAuthenticationWithEmail(EmailAuthRequest request) {
         // Check if user exists
         AppUser user = appUserRepository.findByEmail(request.getEmail())
                 .orElseThrow(() -> new RuntimeException("User not found"));
         
         // Generate and send OTP
-        otpService.generateOTP(user.getEmail());
+        otpService.generateOTPViaEmail (user.getEmail());
     }
 
     public AuthResponse completeAuthentication(OtpVerificationRequest request) {
@@ -196,5 +212,13 @@ public class AuthService {
 
     public void logout(String refreshToken) {
         refreshTokenService.revokeToken(refreshToken);
+    }
+
+    public void initiateAuthenticationWithPhoneNo(PhoneAuthRequest request) {
+        AppUser user = appUserRepository.findByPhone(request.getPhoneNo ())
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        // Generate and send OTP
+        otpService.generateOTPViaPhoneNo (user.getPhone ());
     }
 }

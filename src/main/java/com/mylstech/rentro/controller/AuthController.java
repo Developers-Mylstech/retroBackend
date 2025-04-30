@@ -1,9 +1,6 @@
 package com.mylstech.rentro.controller;
 
-import com.mylstech.rentro.dto.request.AuthRequest;
-import com.mylstech.rentro.dto.request.RegisterRequest;
-import com.mylstech.rentro.dto.request.EmailAuthRequest;
-import com.mylstech.rentro.dto.request.OtpVerificationRequest;
+import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.AuthResponse;
 import com.mylstech.rentro.impl.AuthService;
 import io.swagger.v3.oas.annotations.Operation;
@@ -28,8 +25,15 @@ public class AuthController {
 
     @Operation(summary = "Initiate authentication with email")
     @PostMapping("/initiate-auth")
-    public ResponseEntity<String> initiateAuthentication(@RequestBody EmailAuthRequest request) {
-        authService.initiateAuthentication(request);
+    public ResponseEntity<String> initiateAuthenticationWithEmail(@RequestBody EmailAuthRequest request) {
+        authService.initiateAuthenticationWithEmail (request);
+        return ResponseEntity.ok().body ("OTP sent to email");
+    }
+
+    @Operation(summary = "Initiate authentication with phoneNo")
+    @PostMapping("/initiate-auth-phoneNo")
+    public ResponseEntity<String> initiateAuthenticationWithPhoneNo(@RequestBody PhoneAuthRequest request) {
+        authService.initiateAuthenticationWithPhoneNo (request);
         return ResponseEntity.ok().body ("OTP sent to email");
     }
 
@@ -47,8 +51,8 @@ public class AuthController {
 
     @Operation(summary = "Refresh access token")
     @PostMapping("/refresh-token")
-    public ResponseEntity<AuthResponse> refreshToken(@RequestBody String refreshToken) {
-        return ResponseEntity.ok(authService.refreshToken(refreshToken));
+    public ResponseEntity<AuthResponse> refreshToken(@RequestBody RefreshTokenRequest refreshToken) {
+        return ResponseEntity.ok(authService.refreshToken(refreshToken.getRefreshToken ()));
     }
 
     @Operation(summary = "Register a new admin")

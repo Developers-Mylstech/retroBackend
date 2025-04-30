@@ -38,10 +38,13 @@ public class SecurityConfig {
                 .csrf ( AbstractHttpConfigurer::disable )
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
-                        .requestMatchers ( HttpMethod.GET,"api/v1/products","/api/v1/job-posts" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.GET,"api/v1/products","/api/v1/job-posts","/api/v1/our-services" ).permitAll ( )
                         .requestMatchers ( HttpMethod.POST,"/api/v1/job-applicants","/api/v1/files/upload-pdf" ).permitAll ( )
                         .requestMatchers ( "/api/v1/auth/register",
+                                "/uploads/**",
+                                "/api/v1/auth/register-admin",
                                 "/api/v1/auth/initiate-auth",
+                                "/api/v1/auth/initiate-auth-phoneNo",
                                 "/api/v1/auth/complete-auth",
                                 "/api/v1/auth/admin-login",
                                 "/api/v1/auth/refresh-token",
@@ -80,8 +83,9 @@ public class SecurityConfig {
     @Bean
     public CorsConfigurationSource corsConfigurationSource() {
         CorsConfiguration config = new CorsConfiguration ( );
-        config.setAllowedOrigins ( List.of ( "http://localhost:5173",
-                "https://w323ibdvmjcw.share.zrok.io",
+        config.setAllowedOrigins ( List.of (
+                "http://localhost:5173",
+                "https://guqsff2ya7r9.share.zrok.io",
                 "https://testing.rentro.ae",
                 "https://demo.panel.rentro.ae" ) ); // You can replace "*" with specific domains
         config.setAllowedMethods ( List.of ( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );
