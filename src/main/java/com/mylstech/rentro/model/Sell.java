@@ -1,5 +1,6 @@
 package com.mylstech.rentro.model;
 
+import com.mylstech.rentro.util.UNIT;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,6 +22,9 @@ public class Sell {
     private Double discountPrice;
     private Double vat;
     private Boolean isWarrantyAvailable;
+    @Enumerated(EnumType.STRING)
+    private UNIT discountUnit;
+    private Double discountValue;
     private Integer warrantPeriod;
     @ElementCollection
     @CollectionTable(name = "sell_benefits",

@@ -1,6 +1,7 @@
 package com.mylstech.rentro.dto.response;
 
 import com.mylstech.rentro.model.Sell;
+import com.mylstech.rentro.util.UNIT;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,8 +17,9 @@ public class SellResponse {
     private Double discountPrice;
     private Double vat;
     private List<String> benefits;
-    private Boolean isWarrantyAvailable;
     private Integer warrantPeriod;
+    private UNIT discountUnit;
+    private Double discountValue;
 
     public SellResponse(Sell sell) {
         this.sellId = sell.getSellId ( );
@@ -25,7 +27,8 @@ public class SellResponse {
         this.discountPrice = sell.getDiscountPrice ( );
         this.vat = sell.getVat ( );
         this.benefits = sell.getBenefits ( );
-       this.isWarrantyAvailable = sell.getIsWarrantyAvailable ( );
        this.warrantPeriod = sell.getWarrantPeriod ( );
+       this.discountUnit = sell.getDiscountUnit ( );
+       this.discountValue = sell.getDiscountValue ( );
     }
 }

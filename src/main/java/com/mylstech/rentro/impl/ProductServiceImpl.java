@@ -5,6 +5,7 @@ import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
 import com.mylstech.rentro.service.ProductService;
+import com.mylstech.rentro.util.UNIT;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -113,7 +114,6 @@ public class ProductServiceImpl implements ProductService {
 
                 // Create new Sell entity
                 Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
-                sell.setVat ( vat );
                 sell = sellRepository.save ( sell );
                 productFor.setSell ( sell );
             }
@@ -123,7 +123,6 @@ public class ProductServiceImpl implements ProductService {
 
                 // Create new Rent entity
                 Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
-                rent.setVat ( vat );
                 rent = rentRepository.save ( rent );
                 productFor.setRent ( rent );
             }
@@ -521,18 +520,27 @@ public class ProductServiceImpl implements ProductService {
         if ( rentRequest.getMonthlyPrice ( ) != null ) {
             existingRent.setMonthlyPrice ( rentRequest.getMonthlyPrice ( ) );
         }
-        if ( rentRequest.getDiscountPrice ( ) != null ) {
-            existingRent.setDiscountPrice ( rentRequest.getDiscountPrice ( ) );
+        if ( rentRequest.getDiscountUnit ( ) == UNIT.AED ) {
+            existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) - rentRequest.getDiscountValue ( ) );
+            existingRent.setDiscountUnit ( UNIT.AED );
+            existingRent.setDiscountValue ( rentRequest.getDiscountValue ( ) );
+        } else if ( rentRequest.getDiscountUnit ( ) == UNIT.PERCENTAGE ) {
+            existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) -
+                    (existingRent.getMonthlyPrice ( ) * (rentRequest.getDiscountValue ( )
+                                                                    / 100)) );
+            existingRent.setDiscountUnit ( UNIT.PERCENTAGE );
+            existingRent.setDiscountValue ( rentRequest.getDiscountValue ( ) );
         }
+        if (rentRequest.getIsVatIncluded () ) {
+            existingRent.setVat (vat);
+        } else if (! rentRequest.getIsVatIncluded () ) {
+            existingRent.setVat (0.0);
+        }
+
         if ( rentRequest.getBenefits ( ) != null ) {
             existingRent.setBenefits ( rentRequest.getBenefits ( ) );
         }
-        if ( rentRequest.getIsWarrantyAvailable ( ) != null ) {
-            existingRent.setIsWarrantyAvailable ( rentRequest.getIsWarrantyAvailable ( ) );
-        }
-        if ( rentRequest.getWarrantPeriod ( ) != null ) {
-            existingRent.setWarrantPeriod ( rentRequest.getWarrantPeriod ( ) );
-        }
+
         return existingRent;
     }
 
@@ -540,16 +548,19 @@ public class ProductServiceImpl implements ProductService {
         if ( sellRequest.getActualPrice ( ) != null ) {
             existingSell.setActualPrice ( sellRequest.getActualPrice ( ) );
         }
-        if ( sellRequest.getDiscountPrice ( ) != null ) {
-            existingSell.setDiscountPrice ( sellRequest.getDiscountPrice ( ) );
-        }
         if ( sellRequest.getBenefits ( ) != null ) {
             existingSell.setBenefits ( sellRequest.getBenefits ( ) );
         }
-        if ( sellRequest.getIsWarrantyAvailable ( ) != null ) {
-            existingSell.setIsWarrantyAvailable ( sellRequest.getIsWarrantyAvailable ( ) );
+        if(sellRequest.getDiscountUnit () == UNIT.AED){
+            existingSell.setDiscountUnit(UNIT.AED);
+            existingSell.setDiscountPrice(existingSell.getActualPrice ()- sellRequest.getDiscountValue ( ) );
+            existingSell.setDiscountValue( sellRequest.getDiscountValue ( ) );
+        } else if (sellRequest.getDiscountUnit () == UNIT.PERCENTAGE) {
+            existingSell.setDiscountUnit(UNIT.PERCENTAGE);
+            existingSell.setDiscountPrice(existingSell.getActualPrice ()-(existingSell.getActualPrice () * (sellRequest.getDiscountValue ( ) / 100)));
+            existingSell.setDiscountValue( sellRequest.getDiscountValue ( ) );
         }
-        if ( sellRequest.getWarrantPeriod ( ) != null ) {
+        if ( sellRequest.getWarrantPeriod ( ) != null && sellRequest.getWarrantPeriod ( ) > 0 ) {
             existingSell.setWarrantPeriod ( sellRequest.getWarrantPeriod ( ) );
         }
         return existingSell;
@@ -584,9 +595,6 @@ public class ProductServiceImpl implements ProductService {
             existingField.setLimitedTimePeriods ( request.getLimitedTimePeriods ( ) );
         }
         if ( request.getBenefits ( ) != null ) {
-        /*    List<String> benefits = existingField.getBenefits ( );
-            List<String> benefits1 = request.getBenefits ( );
-            benefits.addAll ( benefits1 );*/
             existingField.getBenefits ( ).clear ( );
             existingField.setBenefits ( new ArrayList<> ( request.getBenefits ( ) ) );
         }

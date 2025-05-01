@@ -52,7 +52,6 @@ public class ProductForServiceImpl implements ProductForService {
         }
         
         if (request.getRent() != null) {
-
             productFor.setRent(request.getRent().requestToRent());
         }
 

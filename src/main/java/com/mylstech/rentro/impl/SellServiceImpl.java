@@ -43,7 +43,7 @@ public class SellServiceImpl implements SellService {
         Sell sell = sellRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Sell not found with id: " + id));
         sell.setActualPrice(request.getActualPrice());
-        sell.setDiscountPrice(request.getDiscountPrice());
+
 
         return new SellResponse(sellRepository.save(sell));
     }

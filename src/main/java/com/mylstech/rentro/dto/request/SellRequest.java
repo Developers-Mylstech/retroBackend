@@ -1,6 +1,7 @@
 package com.mylstech.rentro.dto.request;
 
 import com.mylstech.rentro.model.Sell;
+import com.mylstech.rentro.util.UNIT;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,23 +14,32 @@ import java.util.List;
 @AllArgsConstructor
 public class SellRequest {
     private Double actualPrice;
-    private Double discountPrice;
+    private UNIT discountUnit;
+    private Double discountValue;
     private List<String> benefits;
-    private Boolean isWarrantyAvailable;
+    private Boolean isVatIncluded;
     private Integer warrantPeriod;
 
     public Sell requestToSell() {
         Sell sell = new Sell();
         sell.setActualPrice(actualPrice);
-        sell.setDiscountPrice(discountPrice);
+        if(discountUnit == UNIT.AED){
+            sell.setDiscountUnit(UNIT.AED);
+            sell.setDiscountPrice(actualPrice-discountValue);
+            sell.setDiscountValue(discountValue);
+        } else if (discountUnit == UNIT.PERCENTAGE) {
+            sell.setDiscountUnit(UNIT.PERCENTAGE);
+            sell.setDiscountPrice(actualPrice-(actualPrice * (discountValue / 100)));
+            sell.setDiscountValue(discountValue);
+        }
+        sell.setVat ( Boolean.TRUE.equals(isVatIncluded)? 5.0 : 0.0);
         sell.setBenefits(benefits != null ? benefits : new ArrayList<> ());
-        if (Boolean.TRUE.equals(this.isWarrantyAvailable) ) {
-            sell.setWarrantPeriod(warrantPeriod);
+        if (warrantPeriod<= 0)  {
+            sell.setWarrantPeriod(0);
         }
         else {
-            sell.setWarrantPeriod (0);
+            sell.setWarrantPeriod (warrantPeriod);
         }
-            sell.setIsWarrantyAvailable(isWarrantyAvailable);
         return sell;
     }
 }

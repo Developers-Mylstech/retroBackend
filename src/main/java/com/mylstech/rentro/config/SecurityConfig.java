@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
                         .requestMatchers ( HttpMethod.GET,"api/v1/products","/api/v1/job-posts","/api/v1/our-services" ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST,"/api/v1/job-applicants","/api/v1/files/upload-pdf" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,"/api/v1/job-applicants","/api/v1/files/upload-pdf","/api/v1/request-quotations" ).permitAll ( )
                         .requestMatchers ( "/api/v1/auth/register",
                                 "/uploads/**",
                                 "/api/v1/auth/register-admin",
@@ -85,8 +85,10 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration ( );
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
-                "https://guqsff2ya7r9.share.zrok.io",
+                "https://secyn9nmkcgd.share.zrok.io",
                 "https://testing.rentro.ae",
+                "https://rentro.ae",
+                "https://panel.rentro.ae",
                 "https://demo.panel.rentro.ae" ) ); // You can replace "*" with specific domains
         config.setAllowedMethods ( List.of ( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );
         config.setAllowedHeaders ( List.of ( "Authorization", "Content-Type", "skip_zrok_interstitial" ) );

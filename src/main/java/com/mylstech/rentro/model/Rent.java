@@ -1,5 +1,6 @@
 package com.mylstech.rentro.model;
 
+import com.mylstech.rentro.util.UNIT;
 import jakarta.persistence.*;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,8 +22,10 @@ public class Rent {
     private Double monthlyPrice;
     private Double discountPrice;
     private Double vat;
-    private Boolean isWarrantyAvailable;
-    private Integer warrantPeriod;
+    @Enumerated(EnumType.STRING)
+    private UNIT discountUnit;
+    private Double discountValue;
+
     @ElementCollection
     @CollectionTable(name = "benefits",
             joinColumns = @JoinColumn(name = "rent_id", referencedColumnName = "rentId"))

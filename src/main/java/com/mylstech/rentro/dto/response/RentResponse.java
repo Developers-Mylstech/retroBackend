@@ -1,6 +1,7 @@
 package com.mylstech.rentro.dto.response;
 
 import com.mylstech.rentro.model.Rent;
+import com.mylstech.rentro.util.UNIT;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -13,19 +14,20 @@ import java.util.List;
 public class RentResponse {
     private Long rentId;
     private Double monthlyPrice;
-    private Double discountPrice;
+    private Double discountedPrice;
     private Double vat;
     private List<String> benefits;
-    private Boolean isWarrantyAvailable;
-    private Integer warrantPeriod;
+    private Double discountValue;
+    private UNIT discountUnit;
+
 
     public RentResponse(Rent rent) {
         this.rentId = rent.getRentId();
         this.monthlyPrice = rent.getMonthlyPrice();
-        this.discountPrice = rent.getDiscountPrice();
+        this.discountedPrice = rent.getDiscountPrice();
         this.vat = rent.getVat();
         this.benefits = rent.getBenefits();
-        this.isWarrantyAvailable = rent.getIsWarrantyAvailable();
-        this.warrantPeriod = rent.getWarrantPeriod();
+        this.discountValue = rent.getDiscountValue();
+        this.discountUnit = rent.getDiscountUnit();
     }
 }

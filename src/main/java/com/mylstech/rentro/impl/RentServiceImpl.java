@@ -5,6 +5,7 @@ import com.mylstech.rentro.dto.response.RentResponse;
 import com.mylstech.rentro.model.Rent;
 import com.mylstech.rentro.repository.RentRepository;
 import com.mylstech.rentro.service.RentService;
+import com.mylstech.rentro.util.UNIT;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
@@ -35,7 +36,6 @@ public class RentServiceImpl implements RentService {
     @Override
     public RentResponse createRent(RentRequest request) {
         Rent rent = request.requestToRent();
-        rent.setVat(vat);
         return new RentResponse(rentRepository.save(rent));
     }
 
@@ -43,8 +43,25 @@ public class RentServiceImpl implements RentService {
     public RentResponse updateRent(Long id, RentRequest request) {
         Rent rent = rentRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Rent not found with id: " + id));
-        rent.setMonthlyPrice(request.getMonthlyPrice());
-        rent.setDiscountPrice(request.getDiscountPrice());
+        if ( request.getMonthlyPrice ( ) != null ) {
+            rent.setMonthlyPrice ( request.getMonthlyPrice ( ) );
+        }
+        if ( request.getDiscountUnit ( ) == UNIT.AED ) {
+            rent.setDiscountPrice ( rent.getMonthlyPrice ( ) - request.getDiscountValue ( ) );
+        } else if ( request.getDiscountUnit ( ) == UNIT.PERCENTAGE ) {
+            rent.setDiscountPrice ( rent.getMonthlyPrice ( ) -
+                    (rent.getMonthlyPrice ( ) * (request.getDiscountValue ( )
+                            / 100)) );
+        }
+        if (request.getIsVatIncluded () ) {
+            rent.setVat (vat);
+        } else if (! request.getIsVatIncluded () ) {
+            rent.setVat (0.0);
+        }
+
+        if ( request.getBenefits ( ) != null ) {
+            rent.setBenefits ( request.getBenefits ( ) );
+        }
            return new RentResponse(rentRepository.save(rent));
     }
 
