@@ -19,6 +19,7 @@ public class SellRequest {
     private List<String> benefits;
     private Boolean isVatIncluded;
     private Integer warrantPeriod;
+    private String discountPrice;
 
     public Sell requestToSell() {
         Sell sell = new Sell();
@@ -32,7 +33,11 @@ public class SellRequest {
             sell.setDiscountPrice(actualPrice-(actualPrice * (discountValue / 100)));
             sell.setDiscountValue(discountValue);
         }
-        sell.setVat ( Boolean.TRUE.equals(isVatIncluded)? 5.0 : 0.0);
+        if ( getIsVatIncluded ( ).booleanValue ( ) ) {
+            sell.setVat ( 5.0 );
+        } else {
+            sell.setVat ( 0.0 );
+        }
         sell.setBenefits(benefits != null ? benefits : new ArrayList<> ());
         if (warrantPeriod<= 0)  {
             sell.setWarrantPeriod(0);

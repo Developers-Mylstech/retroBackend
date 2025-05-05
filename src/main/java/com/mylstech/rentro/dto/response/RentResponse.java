@@ -14,7 +14,7 @@ import java.util.List;
 public class RentResponse {
     private Long rentId;
     private Double monthlyPrice;
-    private Double discountedPrice;
+    private Double discountPrice;
     private Double vat;
     private List<String> benefits;
     private Double discountValue;
@@ -24,7 +24,7 @@ public class RentResponse {
     public RentResponse(Rent rent) {
         this.rentId = rent.getRentId();
         this.monthlyPrice = rent.getMonthlyPrice();
-        this.discountedPrice = rent.getDiscountPrice();
+        this.discountPrice = rent.getDiscountPrice();
         this.vat = rent.getVat();
         this.benefits = rent.getBenefits();
         this.discountValue = rent.getDiscountValue();

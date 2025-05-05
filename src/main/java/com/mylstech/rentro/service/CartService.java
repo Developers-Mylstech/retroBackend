@@ -37,4 +37,6 @@ public interface CartService {
      * @return the empty cart response
      */
     CartResponse clearCart();
+
+    CartResponse getUserCart();
 }

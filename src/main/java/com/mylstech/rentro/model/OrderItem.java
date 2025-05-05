@@ -12,29 +12,36 @@ import java.time.LocalDateTime;
 @Entity
 @Getter
 @Setter
-@NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "cart_items")
-public class CartItem {
+@NoArgsConstructor
+@Table(name = "order_items")
+public class OrderItem {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long cartItemId;
+    private Long orderItemId;
     
-    @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "cart_id")
-    private Cart cart;
+    @ManyToOne
+    @JoinColumn(name = "order_id")
+    private Order order;
     
-    @ManyToOne(fetch = FetchType.LAZY)
+    @ManyToOne
     @JoinColumn(name = "product_id")
     private Product product;
+    
+    private String productName;
+    
+    private String productImage;
     
     @Enumerated(EnumType.STRING)
     private ProductType productType;
     
     private Integer quantity;
-
+    
+    private Integer rentPeriod;
     
     private Double price;
+    
+    private Double totalPrice;
     
     private LocalDateTime createdAt;
     
@@ -44,10 +51,18 @@ public class CartItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
+        
+        // Calculate total price
+        if (totalPrice == null) {
+            totalPrice = price * quantity;
+        }
     }
     
     @PreUpdate
     protected void onUpdate() {
         updatedAt = LocalDateTime.now();
+        
+        // Recalculate total price on update
+        totalPrice = price * quantity;
     }
 }

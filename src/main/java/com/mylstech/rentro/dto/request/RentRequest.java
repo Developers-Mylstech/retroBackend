@@ -32,7 +32,11 @@ public class RentRequest {
             rent.setDiscountPrice(monthlyPrice-(monthlyPrice * (discountValue / 100)));
             rent.setDiscountValue(discountValue);
         }
-        rent.setVat ( Boolean.TRUE.equals(isVatIncluded)? 5.0 : 0.0);
+        if ( getIsVatIncluded ( ).booleanValue ( ) ) {
+            rent.setVat ( 5.0 );
+        } else {
+            rent.setVat ( 0.0 );
+        }
         rent.setBenefits(benefits != null ? benefits : new ArrayList<>());
         return rent;
     }

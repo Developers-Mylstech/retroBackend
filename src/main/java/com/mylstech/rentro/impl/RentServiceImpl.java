@@ -55,8 +55,14 @@ public class RentServiceImpl implements RentService {
         }
         if (request.getIsVatIncluded () ) {
             rent.setVat (vat);
+            rent.setDiscountPrice ( rent.getMonthlyPrice ( ) -
+                    (rent.getMonthlyPrice ( ) * (rent.getVat ()
+                            / 100)) );
         } else if (! request.getIsVatIncluded () ) {
             rent.setVat (0.0);
+        }
+        if ( request.getDiscountValue ( ) != null ) {
+            rent.setDiscountValue ( request.getDiscountValue ( ) );
         }
 
         if ( request.getBenefits ( ) != null ) {

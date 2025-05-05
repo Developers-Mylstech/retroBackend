@@ -20,26 +20,16 @@ public class CartItemRequest {
     
     @NotNull(message = "Product type is required")
     private ProductType productType;
-    @Min(value = 1, message = "Rent period must be at least 1")
-    private Integer rentPeriod;
+    
+//    @Min(value = 1, message = "Rent period must be at least 1")
+//    private Integer rentPeriod;
+    
     @Min(value = 1, message = "Quantity must be at least 1")
-    private Integer sellQuantity;
+    private Integer quantity;
     
+
     /**
-     * Validates that the appropriate fields are provided based on product type
-     * @return true if validation passes, false otherwise
-     */
-    public boolean isValid() {
-        if (productType == ProductType.RENT) {
-            return rentPeriod != null && rentPeriod > 0;
-        } else if (productType == ProductType.SELL) {
-            return sellQuantity != null && sellQuantity > 0;
-        }
-        return false;
-    }
-    
-    /**
-     * Converts request to CartItem entity
+     * Converts request to CartItem entity with proper price calculation
      * @param product the product to add to cart
      * @return CartItem entity
      */
@@ -48,15 +38,13 @@ public class CartItemRequest {
         cartItem.setProduct(product);
         cartItem.setProductType(productType);
         
-        // Set quantity based on product type
-        if (productType == ProductType.SELL) {
-            cartItem.setSellQuantity (sellQuantity);
-            // Reset rent period for sell items
-            cartItem.setRentPeriod(null);
-        } else if (productType == ProductType.RENT) {
-            cartItem.setSellQuantity (1); // For rent, quantity is always 1
-            cartItem.setRentPeriod(rentPeriod);
-        }
+        // Set quantity for both SELL and RENT
+        cartItem.setQuantity(quantity);
+        
+
+        // Calculate price
+
+        
         return cartItem;
     }
 }

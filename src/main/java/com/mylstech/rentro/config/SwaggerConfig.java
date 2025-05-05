@@ -27,9 +27,9 @@ public class SwaggerConfig {
                                 .email("support@rentro.ae")
                                 .url("https://rentro.ae"))
                         .license(new License().name("Rentro License")))
-                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://secyn9nmkcgd.share.zrok.io"))
+                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://6vhl0cb2s6cl.share.zrok.io"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080/"))
-                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://demo.rentro.ae:8081"))
+                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://demo.rentro.ae"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://proud-expression-production-6ebc.up.railway.app"))
                 // Security scheme definition
                 .components(new Components()

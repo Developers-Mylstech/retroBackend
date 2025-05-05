@@ -3,8 +3,6 @@ package com.mylstech.rentro.service;
 import com.mylstech.rentro.dto.request.cart.CartItemRequest;
 import com.mylstech.rentro.dto.response.cart.CartItemResponse;
 
-import java.util.List;
-
 public interface CartItemService {
     
 
@@ -20,7 +18,7 @@ public interface CartItemService {
      * @param request the cart item request
      * @return the created cart item response
      */
-    CartItemResponse addItemToCart(CartItemRequest request);
+    CartItemResponse addToCart(CartItemRequest request);
     
     /**
      * Update an existing cart item
@@ -36,5 +34,16 @@ public interface CartItemService {
      */
     void removeCartItem(Long id);
     
+    /**
+     * Recalculate prices for all cart items
+     * This is useful when product prices change
+     */
+    void recalculateAllPrices();
 
+    /**
+     * Recalculate price for a specific cart item
+     * @param cartItemId the ID of the cart item to recalculate
+     * @return the updated cart item
+     */
+    CartItemResponse recalculatePrice(Long cartItemId);
 }

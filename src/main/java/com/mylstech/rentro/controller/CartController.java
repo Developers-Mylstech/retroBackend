@@ -31,9 +31,7 @@ public class CartController {
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addItemToCart(@Valid @RequestBody CartItemRequest request) {
         try {
-            if (!request.isValid()) {
-                return ResponseEntity.badRequest().build();
-            }
+
             CartResponse cart = cartService.addItemToCart(request);
             return new ResponseEntity<>(cart, HttpStatus.CREATED);
         } catch (Exception e) {
@@ -45,11 +43,7 @@ public class CartController {
     public ResponseEntity<CartResponse> addItemsToCart(@Valid @RequestBody List<CartItemRequest> requests) {
         try {
             // Validate all requests
-            for (CartItemRequest request : requests) {
-                if (!request.isValid()) {
-                    return ResponseEntity.badRequest().build();
-                }
-            }
+
             CartResponse cart = cartService.addItemsToCart(requests);
             return new ResponseEntity<>(cart, HttpStatus.CREATED);
         } catch (Exception e) {

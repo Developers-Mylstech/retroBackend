@@ -7,9 +7,12 @@ import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.repository.CartItemRepository;
 import com.mylstech.rentro.repository.ProductRepository;
 import com.mylstech.rentro.service.CartItemService;
+import com.mylstech.rentro.util.ProductType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+
+import java.util.List;
 
 @Service
 @RequiredArgsConstructor
@@ -26,71 +29,91 @@ public class CartItemServiceImpl implements CartItemService {
 
     @Override
     @Transactional
-    public CartItemResponse addItemToCart(CartItemRequest request) {
-        // Find the product
-        Product product = productRepository.findById ( request.getProductId ( ) )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + request.getProductId ( ) ) );
+    public CartItemResponse addToCart(CartItemRequest request) {
+        Product product = productRepository.findById(request.getProductId())
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + request.getProductId()));
 
-        CartItem cartItem = new CartItem ( );
-        cartItem.setProduct ( product );
-
-        // Update quantity or rent period based on product type
-        switch (request.getProductType ( )) {
-            case SELL:
-                cartItem.setSellQuantity ( request.getSellQuantity ( ) );
-                cartItem.setRentPeriod ( null );
-                cartItem.setPrice ( product.getProductFor ( ).getSell ( ).getActualPrice ( )* cartItem.getSellQuantity ( ) );
-                break;
-            case RENT:
-                cartItem.setRentPeriod ( request.getRentPeriod ( ) );
-                cartItem.setSellQuantity ( 0 );
-                cartItem.setPrice ( product.getProductFor ( ).getRent ( ).getMonthlyPrice ( )* cartItem.getRentPeriod ( ) );
-                break;
-            default:
-                throw new IllegalArgumentException ( "Unsupported product type: " + request.getProductType ( ) );
+        // Validate product configuration
+        if (product.getProductFor() == null) {
+            throw new IllegalArgumentException("Product is not properly configured for purchase or rental");
         }
 
-        cartItem.setProductType ( request.getProductType ( ) );
-        cartItem = cartItemRepository.save ( cartItem );
-        return new CartItemResponse ( cartItem );
+        // Validate product type compatibility
+        if (request.getProductType() == ProductType.SELL && product.getProductFor().getSell() == null) {
+            throw new IllegalArgumentException("Product is not available for purchase: " + product.getProductId());
+        }
+
+        if (request.getProductType() == ProductType.RENT && product.getProductFor().getRent() == null) {
+            throw new IllegalArgumentException("Product is not available for rent: " + product.getProductId());
+        }
+
+        CartItem cartItem = new CartItem();
+        cartItem.setProduct(product);
+        cartItem.setProductType(request.getProductType());
+
+        // Set quantity for both SELL and RENT
+        cartItem.setQuantity(request.getQuantity());
+
+        // Update rent period based on product type
+        if (request.getProductType() == ProductType.RENT) {
+
+            
+            // Calculate price for rent item
+            double monthlyPrice = product.getProductFor().getRent().getDiscountPrice();
+            if (monthlyPrice <= 0) {
+                monthlyPrice = product.getProductFor().getRent().getMonthlyPrice();
+            }
+            cartItem.setPrice(monthlyPrice * request.getQuantity() *1);
+        } else  if (request.getProductType() == ProductType.SELL){
+
+            
+            // Calculate price for sell item
+            double unitPrice = product.getProductFor().getSell().getDiscountPrice();
+            if (unitPrice <= 0) {
+                unitPrice = product.getProductFor().getSell().getActualPrice();
+            }
+            cartItem.setPrice(unitPrice * request.getQuantity());
+        }
+
+        CartItem savedCartItem = cartItemRepository.save(cartItem);
+        return new CartItemResponse(savedCartItem);
     }
 
     @Override
     @Transactional
-    public CartItemResponse updateCartItem(Long cartItemId, CartItemRequest request) {
-
-        // Find the cart item
-        CartItem cartItem = cartItemRepository.findById ( cartItemId )
-                .orElseThrow ( () -> new RuntimeException ( "Cart item not found with id: " + cartItemId ) );
-
-        // Find the product if it's different
-        if ( ! cartItem.getProduct ( ).getProductId ( ).equals ( request.getProductId ( ) ) ) {
-            Product product = productRepository.findById ( request.getProductId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + request.getProductId ( ) ) );
-            cartItem.setProduct ( product );
-        }
+    public CartItemResponse updateCartItem(Long id, CartItemRequest request) {
+        CartItem cartItem = cartItemRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + id));
 
         // Update cart item properties
-        cartItem.setProductType ( request.getProductType ( ) );
+        cartItem.setProductType(request.getProductType());
+        
+        // Set quantity for both SELL and RENT
+        cartItem.setQuantity(request.getQuantity());
 
-        // Update quantity or rent period based on product type
-        switch (request.getProductType ( )) {
-            case SELL:
-                cartItem.setSellQuantity ( request.getSellQuantity ( ) );
-                cartItem.setRentPeriod ( null );
-                cartItem.setPrice ( cartItem.getProduct ().getProductFor ( ).getSell ( ).getActualPrice ( )* cartItem.getSellQuantity ( ) );
-                break;
-            case RENT:
-                cartItem.setRentPeriod ( request.getRentPeriod ( ) );
-                cartItem.setSellQuantity ( 0 );
-                cartItem.setPrice ( cartItem.getProduct ().getProductFor ( ).getRent ( ).getMonthlyPrice ( )* cartItem.getRentPeriod ( ) );
-                break;
-            default:
-                throw new IllegalArgumentException ( "Unsupported product type: " + request.getProductType ( ) );
+        // Update rent period based on product type
+        if (request.getProductType() == ProductType.RENT) {
+
+            
+            // Calculate price for rent item
+            double monthlyPrice = cartItem.getProduct().getProductFor().getRent().getDiscountPrice();
+            if (monthlyPrice <= 0) {
+                monthlyPrice = cartItem.getProduct().getProductFor().getRent().getMonthlyPrice();
+            }
+            cartItem.setPrice(monthlyPrice * request.getQuantity() * 1);
+        } else  if (request.getProductType() == ProductType.SELL){
+
+            
+            // Calculate price for sell item
+            double unitPrice = cartItem.getProduct().getProductFor().getSell().getDiscountPrice();
+            if (unitPrice <= 0) {
+                unitPrice = cartItem.getProduct().getProductFor().getSell().getActualPrice();
+            }
+            cartItem.setPrice(unitPrice * request.getQuantity());
         }
 
-        cartItem = cartItemRepository.save ( cartItem );
-        return new CartItemResponse ( cartItem );
+        CartItem updatedCartItem = cartItemRepository.save(cartItem);
+        return new CartItemResponse(updatedCartItem);
     }
 
     @Override
@@ -104,5 +127,52 @@ public class CartItemServiceImpl implements CartItemService {
 
     }
 
+    @Override
+    @Transactional
+    public void recalculateAllPrices() {
+        List<CartItem> cartItems = cartItemRepository.findAll();
+        for (CartItem cartItem : cartItems) {
+            recalculateCartItemPrice(cartItem);
+            cartItemRepository.save(cartItem);
+        }
+    }
 
+    @Override
+    @Transactional
+    public CartItemResponse recalculatePrice(Long cartItemId) {
+        CartItem cartItem = cartItemRepository.findById(cartItemId)
+                .orElseThrow(() -> new RuntimeException("Cart item not found with id: " + cartItemId));
+        
+        recalculateCartItemPrice(cartItem);
+        CartItem updatedCartItem = cartItemRepository.save(cartItem);
+        return new CartItemResponse(updatedCartItem);
+    }
+
+    /**
+     * Helper method to recalculate the price of a cart item
+     */
+    private void recalculateCartItemPrice(CartItem cartItem) {
+        if (cartItem.getProduct() == null || cartItem.getProduct().getProductFor() == null) {
+            cartItem.setPrice(0.0);
+            return;
+        }
+        
+        if (cartItem.getProductType() == ProductType.SELL && 
+                cartItem.getProduct().getProductFor().getSell() != null) {
+            double unitPrice = cartItem.getProduct().getProductFor().getSell().getDiscountPrice();
+            if (unitPrice <= 0) {
+                unitPrice = cartItem.getProduct().getProductFor().getSell().getActualPrice();
+            }
+            cartItem.setPrice(unitPrice * cartItem.getQuantity());
+        } else if (cartItem.getProductType() == ProductType.RENT && 
+                   cartItem.getProduct().getProductFor().getRent() != null) {
+            double monthlyPrice = cartItem.getProduct().getProductFor().getRent().getDiscountPrice();
+            if (monthlyPrice <= 0) {
+                monthlyPrice = cartItem.getProduct().getProductFor().getRent().getMonthlyPrice();
+            }
+            cartItem.setPrice(monthlyPrice * cartItem.getQuantity() );
+        } else {
+            cartItem.setPrice(0.0);
+        }
+    }
 }
