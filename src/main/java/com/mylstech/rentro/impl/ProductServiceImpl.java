@@ -1,10 +1,16 @@
 package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.*;
+import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
+import com.mylstech.rentro.service.CheckOutService;
+import com.mylstech.rentro.service.ImageService;
 import com.mylstech.rentro.service.ProductService;
+import com.mylstech.rentro.util.CHECKOUT_STATUS;
+import com.mylstech.rentro.util.ProductType;
+import com.mylstech.rentro.util.SecurityUtils;
 import com.mylstech.rentro.util.UNIT;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -34,7 +40,13 @@ public class ProductServiceImpl implements ProductService {
 
     private final SpecificationFieldRepository specificationFieldRepository;
     private final ServiceFieldRepository serviceFieldRepository;
-
+    private final AddressRepository addressRepository;
+    private final SecurityUtils securityUtils;
+    private final CartItemRepository cartItemRepository;
+    private final CartRepository cartRepository;
+    private final CheckOutRepository checkOutRepository;
+    private final CheckOutService checkOutService;
+    private final ImageService imageService;
 
     @Value("${vat.value}")
     private Double vat;
@@ -334,7 +346,6 @@ public class ProductServiceImpl implements ProductService {
                     existingSell = new Sell ( );
                 }
                 Sell updatedSell = updateSellFields ( existingSell, request.getProductFor ( ).getSell ( ) );
-                updatedSell.setVat ( vat );
                 updatedSell = sellRepository.save ( updatedSell );
                 productFor.setSell ( updatedSell );
             }
@@ -346,7 +357,6 @@ public class ProductServiceImpl implements ProductService {
                     existingRent = new Rent ( );
                 }
                 Rent updatedRent = updateRentFields ( existingRent, request.getProductFor ( ).getRent ( ) );
-                updatedRent.setVat ( vat );
                 updatedRent = rentRepository.save ( updatedRent );
                 productFor.setRent ( updatedRent );
             }
@@ -464,9 +474,10 @@ public class ProductServiceImpl implements ProductService {
         // Update image URLs if provided
         if ( request.getImageUrls ( ) != null ) {
 
-            product.getImageUrls ( ).clear ( );
+            product.getImageUrls().clear();
             product.setImageUrls ( new ArrayList<> ( request.getImageUrls ( ) ) );
         }
+
         //update Tag N Keyword
         if ( request.getTagNKeywords ( ) != null ) {
             product.setTagNKeywords ( request.getTagNKeywords ( ) );
@@ -527,14 +538,17 @@ public class ProductServiceImpl implements ProductService {
         } else if ( rentRequest.getDiscountUnit ( ) == UNIT.PERCENTAGE ) {
             existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) -
                     (existingRent.getMonthlyPrice ( ) * (rentRequest.getDiscountValue ( )
-                                                                    / 100)) );
+                            / 100)) );
             existingRent.setDiscountUnit ( UNIT.PERCENTAGE );
             existingRent.setDiscountValue ( rentRequest.getDiscountValue ( ) );
         }
-        if (rentRequest.getIsVatIncluded () ) {
-            existingRent.setVat (vat);
-        } else if (! rentRequest.getIsVatIncluded () ) {
-            existingRent.setVat (0.0);
+        if ( rentRequest.getIsVatIncluded ( ) ) {
+            existingRent.setVat ( vat );
+            existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) +
+                    (existingRent.getMonthlyPrice ( ) * (existingRent.getVat ( )
+                            / 100)) );
+        } else if ( ! rentRequest.getIsVatIncluded ( ) ) {
+            existingRent.setVat ( 0.0 );
         }
 
         if ( rentRequest.getBenefits ( ) != null ) {
@@ -551,14 +565,22 @@ public class ProductServiceImpl implements ProductService {
         if ( sellRequest.getBenefits ( ) != null ) {
             existingSell.setBenefits ( sellRequest.getBenefits ( ) );
         }
-        if(sellRequest.getDiscountUnit () == UNIT.AED){
-            existingSell.setDiscountUnit(UNIT.AED);
-            existingSell.setDiscountPrice(existingSell.getActualPrice ()- sellRequest.getDiscountValue ( ) );
-            existingSell.setDiscountValue( sellRequest.getDiscountValue ( ) );
-        } else if (sellRequest.getDiscountUnit () == UNIT.PERCENTAGE) {
-            existingSell.setDiscountUnit(UNIT.PERCENTAGE);
-            existingSell.setDiscountPrice(existingSell.getActualPrice ()-(existingSell.getActualPrice () * (sellRequest.getDiscountValue ( ) / 100)));
-            existingSell.setDiscountValue( sellRequest.getDiscountValue ( ) );
+        if ( sellRequest.getDiscountUnit ( ) == UNIT.AED ) {
+            existingSell.setDiscountUnit ( UNIT.AED );
+            existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) - sellRequest.getDiscountValue ( ) );
+            existingSell.setDiscountValue ( sellRequest.getDiscountValue ( ) );
+        } else if ( sellRequest.getDiscountUnit ( ) == UNIT.PERCENTAGE ) {
+            existingSell.setDiscountUnit ( UNIT.PERCENTAGE );
+            existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) - (existingSell.getActualPrice ( ) * (sellRequest.getDiscountValue ( ) / 100)) );
+            existingSell.setDiscountValue ( sellRequest.getDiscountValue ( ) );
+        }
+        if ( sellRequest.getIsVatIncluded ( ) ) {
+            existingSell.setVat ( vat );
+            existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) +
+                    (existingSell.getActualPrice ( ) * (existingSell.getVat ( )
+                            / 100)) );
+        } else if ( ! sellRequest.getIsVatIncluded ( ) ) {
+            existingSell.setVat ( 0.0 );
         }
         if ( sellRequest.getWarrantPeriod ( ) != null && sellRequest.getWarrantPeriod ( ) > 0 ) {
             existingSell.setWarrantPeriod ( sellRequest.getWarrantPeriod ( ) );
@@ -566,26 +588,6 @@ public class ProductServiceImpl implements ProductService {
         return existingSell;
     }
 
-//    private RequestQuotation updateRequestQuotationFields(RequestQuotation existingQuotation,
-//                                                          RequestQuotationRequest quotationRequest) {
-//        if ( quotationRequest.getName ( ) != null ) {
-//            existingQuotation.setName ( quotationRequest.getName ( ) );
-//        }
-//        if ( quotationRequest.getMobile ( ) != null ) {
-//            existingQuotation.setMobile ( quotationRequest.getMobile ( ) );
-//        }
-//        if ( quotationRequest.getCompanyName ( ) != null ) {
-//            existingQuotation.setCompanyName ( quotationRequest.getCompanyName ( ) );
-//        }
-//        if ( quotationRequest.getLocation ( ) != null ) {
-//            existingQuotation.setLocation ( quotationRequest.getLocation ( ) );
-//        }
-//        if ( quotationRequest.getProductImages ( ) != null ) {
-//            existingQuotation.getProductImages ( ).clear ( );
-//            existingQuotation.setProductImages ( quotationRequest.getProductImages ( ) );
-//        }
-//        return existingQuotation;
-//    }
 
     private void updateServiceFieldEntity(ServiceField existingField, ServiceFieldRequest request) {
         if ( request.getPrice ( ) != null ) {
@@ -599,5 +601,179 @@ public class ProductServiceImpl implements ProductService {
             existingField.setBenefits ( new ArrayList<> ( request.getBenefits ( ) ) );
         }
 
+    }
+
+    @Override
+    public List<ProductResponse> getProductsByType(ProductType productType) {
+        try {
+            List<Product> products;
+
+            // Query products based on the product type
+            switch (productType) {
+                case SELL:
+                    logger.debug ( "Fetching products available for SELL" );
+                    products = productRepository.findByProductForSellNotNull ( );
+                    break;
+                case RENT:
+                    logger.debug ( "Fetching products available for RENT" );
+                    products = productRepository.findByProductForRentNotNull ( );
+                    break;
+                case SERVICE:
+                    logger.debug ( "Fetching products available for SERVICE" );
+                    products = productRepository.findByProductForServicesNotNull ( );
+                    break;
+                default:
+                    logger.warn ( "Unknown product type: {}", productType );
+                    throw new IllegalArgumentException ( "Unknown product type: " + productType );
+            }
+
+            logger.debug ( "Found {} products of type {}", products.size ( ), productType );
+
+            return products.stream ( )
+                    .map ( ProductResponse::new )
+                    .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
+                    .toList ( );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error retrieving products by type: " + productType, e );
+            throw new RuntimeException ( "Failed to retrieve products by type: " + productType, e );
+        }
+    }
+
+    @Override
+    @Transactional
+    public CheckOutResponse buyNow(Long productId, BuyNowRequest request) {
+        logger.debug("Processing buy now request for product ID: {}", productId);
+
+        if (!request.isValid()) {
+            throw new IllegalArgumentException("Invalid buy now request");
+        }
+
+        try {
+            // Get the current user
+            AppUser currentUser = securityUtils.getCurrentUser();
+
+            // Find the product
+            Product product = productRepository.findById(productId)
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+
+            // Validate product configuration
+            if (product.getProductFor() == null) {
+                throw new IllegalArgumentException("Product is not properly configured for purchase or rental");
+            }
+
+            // Validate product type compatibility
+            if (request.getProductType() == ProductType.SELL &&
+                    (product.getProductFor().getSell() == null)) {
+                throw new IllegalArgumentException("This product is not available for purchase");
+            }
+
+            if (request.getProductType() == ProductType.RENT &&
+                    (product.getProductFor().getRent() == null)) {
+                throw new IllegalArgumentException("This product is not available for rent");
+            }
+
+            // Create a temporary cart for this purchase
+            Cart cart = new Cart();
+            cart.setUser(currentUser);
+            cart.setTemporary(true); // Mark as temporary cart
+
+            // Save the cart first to ensure it has an ID
+            cart = cartRepository.save(cart);
+            logger.debug("Created temporary cart with ID: {}", cart.getCartId());
+
+            // Create the cart item
+            CartItem cartItem = new CartItem();
+            cartItem.setProduct(product);
+            cartItem.setProductType(request.getProductType());
+
+            // Set quantity and rent period based on product type
+            if (request.getProductType() == ProductType.SELL) {
+                cartItem.setQuantity(request.getQuantity());
+
+
+                // Calculate price for sell item
+                double unitPrice = product.getProductFor().getSell().getDiscountPrice();
+                if (unitPrice <= 0) {
+                    unitPrice = product.getProductFor().getSell().getActualPrice();
+                }
+                if (product.getProductFor().getSell().getVat() != null) {
+                    unitPrice = unitPrice + (unitPrice * (product.getProductFor().getSell().getVat() / 100));
+                }
+                cartItem.setPrice(unitPrice * cartItem.getQuantity());
+            } else if (request.getProductType() == ProductType.RENT) {
+                cartItem.setQuantity(request.getQuantity());
+
+
+                // Calculate price for rent item
+                double monthlyPrice = product.getProductFor().getRent().getDiscountPrice();
+                if (monthlyPrice <= 0) {
+                    monthlyPrice = product.getProductFor().getRent().getMonthlyPrice();
+                }
+                if (product.getProductFor().getRent().getVat() != null) {
+                    monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor().getRent().getVat() / 100));
+                }
+                cartItem.setPrice(monthlyPrice * cartItem.getQuantity() );
+            }
+
+            // Add to cart using the helper method
+            cart.addItem(cartItem);
+
+            // Calculate total price for cart
+            cart.calculateTotalPrice();
+
+            // Save the cart again with the item
+            cart = cartRepository.save(cart);
+            logger.debug("Updated cart with item, total price: {}", cart.getTotalPrice());
+
+            // Handle address
+            Address deliveryAddress = null;
+
+            // If addressId is provided, use that address
+            if (request.getAddressId() != null) {
+                deliveryAddress = addressRepository.findById(request.getAddressId())
+                        .orElseThrow(() -> new RuntimeException("Address not found with id: " + request.getAddressId()));
+
+                // Verify address belongs to current user
+                if (!deliveryAddress.getUser().getUserId().equals(currentUser.getUserId())) {
+                    throw new RuntimeException("You don't have permission to use this address");
+                }
+            }
+            // If inline address is provided, create a new address
+            else if (request.getAddress() != null) {
+                AddressRequest addressRequest = request.getAddress();
+                deliveryAddress = addressRequest.toAddress();
+                deliveryAddress.setUser(currentUser);
+                deliveryAddress = addressRepository.save(deliveryAddress);
+            }
+
+            // Create checkout
+            CheckOut checkOut = new CheckOut();
+            checkOut.setCart(cart);
+            checkOut.setName(request.getName());
+            checkOut.setMobile(request.getMobile());
+            checkOut.setEmail(request.getEmail());
+            checkOut.setDeliveryDate(request.getDeliveryDate().toLocalDate ());
+            checkOut.setPaymentOption(request.getPaymentOption());
+            checkOut.setStatus(CHECKOUT_STATUS.PENDING);
+
+            if (deliveryAddress != null) {
+                checkOut.setDeliveryAddress(deliveryAddress);
+                checkOut.setHomeAddress(deliveryAddress.getFormattedAddress());
+            }
+
+            // Save checkout
+            CheckOut savedCheckOut = checkOutRepository.save(checkOut);
+            logger.debug("Created checkout with ID: {}", savedCheckOut.getCheckoutId());
+
+            // Place order immediately
+            CheckOutResponse checkOutResponse = checkOutService.placeOrder(savedCheckOut.getCheckoutId());
+            logger.debug("Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId());
+
+            return checkOutResponse;
+        } catch (Exception e) {
+            logger.error("Error processing buy now request: {}", e.getMessage(), e);
+            throw e;
+        }
     }
 }
