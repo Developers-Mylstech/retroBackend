@@ -251,9 +251,8 @@ public class ProductServiceImpl implements ProductService {
             product.setImageUrls ( request.getImageUrls ( ) );
 
         } else {
-            product.setImageUrls ( new ArrayList<> ( ) );
+            product.setImageUrls(new ArrayList<>());
         }
-
         // 6. Save the product
         Product savedProduct = productRepository.save ( product );
 
