@@ -1,8 +1,11 @@
 package com.mylstech.rentro.controller;
 
+import com.mylstech.rentro.dto.request.BuyNowRequest;
 import com.mylstech.rentro.dto.request.ProductRequest;
+import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.service.ProductService;
+import com.mylstech.rentro.util.ProductType;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -11,6 +14,9 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
 
 @RestController
 @RequestMapping("/api/v1/products")
@@ -84,5 +90,67 @@ public class ProductController {
             @PathVariable Long id,
             @RequestBody String imageUrl) {
         return ResponseEntity.ok(productService.removeImageFromProduct(id, imageUrl));
+    }
+
+    @Operation(summary = "Get products by type", description = "Retrieve products filtered by type (SELL, RENT, SERVICE)")
+    @GetMapping("/by-type/{productType}")
+    public ResponseEntity<List<ProductResponse>> getProductsByType(@PathVariable ProductType productType) {
+        try {
+            logger.debug("Fetching products by type: {}", productType);
+            List<ProductResponse> products = productService.getProductsByType(productType);
+            logger.debug("Found {} products of type {}", products.size(), productType);
+            return ResponseEntity.ok(products);
+        } catch (Exception e) {
+            logger.error("Error fetching products by type: " + productType, e);
+            throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Filter products", 
+        description = "Filter products by various criteria. Currently supports filtering by type (SELL, RENT, SERVICE)"
+    )
+    @GetMapping("/filter")
+    public ResponseEntity<List<ProductResponse>> filterProducts(
+            @RequestParam(required = false) ProductType type) {
+        try {
+            if (type != null) {
+                logger.debug("Filtering products by type: {}", type);
+                List<ProductResponse> products = productService.getProductsByType(type);
+                logger.debug("Found {} products of type {}", products.size(), type);
+                return ResponseEntity.ok(products);
+            } else {
+                // If no type is specified, return all products
+                logger.debug("No filter specified, returning all products");
+                return getAllProducts();
+            }
+        } catch (Exception e) {
+            logger.error("Error filtering products", e);
+            throw e;
+        }
+    }
+
+    @Operation(
+        summary = "Buy Now", 
+        description = "Purchase a product immediately and proceed to checkout"
+    )
+    @ApiResponses(value = {
+        @ApiResponse(responseCode = "200", description = "Successfully created checkout"),
+        @ApiResponse(responseCode = "400", description = "Invalid request parameters"),
+        @ApiResponse(responseCode = "404", description = "Product not found")
+    })
+    @PostMapping("/{id}/buy-now")
+    public ResponseEntity<CheckOutResponse> buyNow(
+            @PathVariable Long id,
+            @RequestBody BuyNowRequest request) {
+        try {
+            logger.debug("Buy now request for product ID: {}", id);
+            CheckOutResponse response = productService.buyNow(id, request);
+            logger.debug("Created checkout with ID: {}", response.getCheckoutId());
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error processing buy now request for product ID: " + id, e);
+            throw e;
+        }
     }
 }
