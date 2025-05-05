@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.BrandRequest;
 import com.mylstech.rentro.dto.response.BrandResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Brand;
 import com.mylstech.rentro.repository.BrandRepository;
 import com.mylstech.rentro.service.BrandService;
@@ -23,9 +24,9 @@ public class BrandServiceImpl implements BrandService {
 
     @Override
     public BrandResponse getBrandById(Long id) {
-        Brand brand = brandRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Brand not found with id: " + id ) );
-        return new BrandResponse ( brand );
+        Brand brand = brandRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException ("Brand", "id", id));
+        return new BrandResponse(brand);
     }
 
     @Override

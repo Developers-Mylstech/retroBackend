@@ -3,6 +3,7 @@ package com.mylstech.rentro.impl;
 import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.ProductResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
 import com.mylstech.rentro.service.CheckOutService;
@@ -94,13 +95,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse getProductById(Long id) {
         try {
-            Product product = productRepository.findById ( id )
-                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new ResourceNotFoundException ("Product", "id", id));
             logger.debug ( "Found product with id {}: {}", id, product );
             return new ProductResponse ( product );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error retrieving product with id: " + id, e );
+        } catch (ResourceNotFoundException e) {
+            throw e;  // Let it propagate to be handled by GlobalExceptionHandler
+        } catch (Exception e) {
+            logger.error("Error retrieving product with id: " + id, e);
             throw e;
         }
     }

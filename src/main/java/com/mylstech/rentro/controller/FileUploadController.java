@@ -34,15 +34,7 @@ public class FileUploadController {
         }
         catch ( IOException e ) {
             return ResponseEntity.status ( HttpStatus.BAD_REQUEST )
-                    .body ( new FileUploadResponse (
-                            null,
-                            null,
-                            null,
-                            null,
-                            0,
-                            e.getMessage ( ),
-                            LocalDateTime.now ( ).plusHours ( 24 )
-                    ) );
+                    .body ( new FileUploadResponse ());
         }
     }
 }
