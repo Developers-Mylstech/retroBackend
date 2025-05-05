@@ -11,7 +11,7 @@ import com.mylstech.rentro.repository.CartRepository;
 import com.mylstech.rentro.repository.CheckOutRepository;
 import com.mylstech.rentro.service.CheckOutService;
 import com.mylstech.rentro.service.OrderService;
-import com.mylstech.rentro.util.CHECKOUT_STATUS;
+
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -95,8 +95,11 @@ public class CheckOutServiceImpl implements CheckOutService {
         }
 
         // Update checkout fields
-        if ( request.getName ( ) != null ) {
-            checkOut.setName ( request.getName ( ) );
+        if ( request.getFirstName ( ) != null ) {
+            checkOut.setFirstName ( request.getFirstName ( ) );
+        }
+        if ( request.getLastName ( ) != null ) {
+            checkOut.setLastName ( request.getLastName ( ) );
         }
 
         if ( request.getMobile ( ) != null ) {
@@ -127,9 +130,6 @@ public class CheckOutServiceImpl implements CheckOutService {
             checkOut.setPaymentOption ( request.getPaymentOption ( ) );
         }
 
-        if ( request.getStatus ( ) != null ) {
-            checkOut.setStatus ( request.getStatus ( ) );
-        }
 
         // Save and return the updated checkout
         CheckOut updatedCheckOut = checkOutRepository.save ( checkOut );
@@ -159,32 +159,9 @@ public class CheckOutServiceImpl implements CheckOutService {
                 .toList ( );
     }
 
-    @Override
-    public List<CheckOutResponse> getCheckOutsByStatus(CHECKOUT_STATUS status) {
-        logger.debug ( "Fetching checkouts with status: {}", status );
-        return checkOutRepository.findByStatus ( status ).stream ( )
-                .map ( CheckOutResponse::new )
-                .toList ( );
-    }
 
-    @Override
-    @Transactional
-    public CheckOutResponse updateCheckOutStatus(Long id, CHECKOUT_STATUS status) {
-        logger.debug ( "Updating status of checkout with ID: {} to {}", id, status );
 
-        // Find the checkout
-        CheckOut checkOut = checkOutRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + id ) );
 
-        // Update status
-        checkOut.setStatus ( status );
-
-        // Save and return the updated checkout
-        CheckOut updatedCheckOut = checkOutRepository.save ( checkOut );
-        logger.debug ( "Updated status of checkout with ID: {} to {}", id, status );
-
-        return new CheckOutResponse ( updatedCheckOut );
-    }
 
     @Override
     @Transactional
@@ -195,13 +172,9 @@ public class CheckOutServiceImpl implements CheckOutService {
         CheckOut checkout = checkOutRepository.findById ( checkoutId )
                 .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + checkoutId ) );
 
-        // Validate checkout status
-        if ( checkout.getStatus ( ) != CHECKOUT_STATUS.PENDING ) {
-            throw new RuntimeException ( "Checkout is not in PENDING status" );
-        }
 
-        // Update checkout status
-        checkout.setStatus ( CHECKOUT_STATUS.PROCESSING );
+
+
         CheckOut updatedCheckout = checkOutRepository.save ( checkout );
 
         // Create order from checkout

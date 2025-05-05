@@ -40,7 +40,6 @@ public class OrderServiceImpl implements OrderService {
         
         order.setUser(cart.getUser());
         order.setDeliveryAddress(checkout.getDeliveryAddress());
-        order.setDeliveryDate(checkout.getDeliveryDate().atStartOfDay ());
         order.setPaymentMethod(checkout.getPaymentOption().toString());
         
         // Generate order number

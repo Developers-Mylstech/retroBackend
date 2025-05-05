@@ -9,7 +9,6 @@ import com.mylstech.rentro.repository.*;
 import com.mylstech.rentro.service.CheckOutService;
 import com.mylstech.rentro.service.ImageService;
 import com.mylstech.rentro.service.ProductService;
-import com.mylstech.rentro.util.CHECKOUT_STATUS;
 import com.mylstech.rentro.util.ProductType;
 import com.mylstech.rentro.util.SecurityUtils;
 import com.mylstech.rentro.util.UNIT;
@@ -751,12 +750,11 @@ public class ProductServiceImpl implements ProductService {
             // Create checkout
             CheckOut checkOut = new CheckOut();
             checkOut.setCart(cart);
-            checkOut.setName(request.getName());
+            checkOut.setFirstName ( request.getFirstName ( ) );
+            checkOut.setLastName ( request.getLastName ( ) );
             checkOut.setMobile(request.getMobile());
             checkOut.setEmail(request.getEmail());
-            checkOut.setDeliveryDate(request.getDeliveryDate().toLocalDate ());
             checkOut.setPaymentOption(request.getPaymentOption());
-            checkOut.setStatus(CHECKOUT_STATUS.PENDING);
 
             if (deliveryAddress != null) {
                 checkOut.setDeliveryAddress(deliveryAddress);

@@ -2,9 +2,7 @@ package com.mylstech.rentro.controller;
 
 import com.mylstech.rentro.dto.request.CheckOutRequest;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
-import com.mylstech.rentro.model.CheckOut;
 import com.mylstech.rentro.service.CheckOutService;
-import com.mylstech.rentro.util.CHECKOUT_STATUS;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -24,171 +22,142 @@ import java.util.List;
 @RequiredArgsConstructor
 @Tag(name = "Checkout", description = "Checkout management APIs")
 public class CheckOutController {
-    private static final Logger logger = LoggerFactory.getLogger(CheckOutController.class);
-    
+    private static final Logger logger = LoggerFactory.getLogger ( CheckOutController.class );
+
     private final CheckOutService checkOutService;
-    
+
     @Operation(summary = "Get all checkouts", description = "Retrieve a list of all checkouts")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved checkouts")
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved checkouts")
     })
     @GetMapping
     public ResponseEntity<List<CheckOutResponse>> getAllCheckOuts() {
         try {
-            logger.debug("Fetching all checkouts");
-            List<CheckOutResponse> checkOuts = checkOutService.getAllCheckOuts();
-            logger.debug("Found {} checkouts", checkOuts.size());
-            return ResponseEntity.ok(checkOuts);
-        } catch (Exception e) {
-            logger.error("Error fetching all checkouts", e);
-            throw e;
+            logger.debug ( "Fetching all checkouts" );
+            List<CheckOutResponse> checkOuts = checkOutService.getAllCheckOuts ( );
+            logger.debug ( "Found {} checkouts", checkOuts.size ( ) );
+            return ResponseEntity.ok ( checkOuts );
         }
-    }
-    
-    @Operation(summary = "Get checkout by ID", description = "Retrieve a checkout by its ID")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved checkout"),
-        @ApiResponse(responseCode = "404", description = "Checkout not found")
-    })
-    @GetMapping("/{id}")
-    public ResponseEntity<CheckOutResponse> getCheckOutById(@PathVariable Long id) {
-        try {
-            logger.debug("Fetching checkout with ID: {}", id);
-            CheckOutResponse checkOut = checkOutService.getCheckOutById(id);
-            logger.debug("Found checkout with ID: {}", id);
-            return ResponseEntity.ok(checkOut);
-        } catch (Exception e) {
-            logger.error("Error fetching checkout with ID: " + id, e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Create checkout", description = "Create a new checkout. Delivery date must be at least 1 hour in the future.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "201", description = "Checkout created successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request parameters or delivery date not in the future"),
-        @ApiResponse(responseCode = "404", description = "Cart not found")
-    })
-    @PostMapping
-    public ResponseEntity<CheckOutResponse> createCheckOut(@Valid @RequestBody CheckOutRequest request) {
-        try {
-            logger.debug("Creating new checkout: {}", request);
-            CheckOutResponse checkOut = checkOutService.createCheckOut(request);
-            logger.debug("Created checkout with ID: {}", checkOut.getCheckoutId());
-            return new ResponseEntity<>(checkOut, HttpStatus.CREATED);
-        } catch (Exception e) {
-            logger.error("Error creating checkout", e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Update checkout", description = "Update an existing checkout. If delivery date is provided, it must be at least 1 hour in the future.")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Checkout updated successfully"),
-        @ApiResponse(responseCode = "400", description = "Invalid request parameters or delivery date not in the future"),
-        @ApiResponse(responseCode = "404", description = "Checkout not found")
-    })
-    @PutMapping("/{id}")
-    public ResponseEntity<CheckOutResponse> updateCheckOut(
-            @PathVariable Long id, 
-            @Valid @RequestBody CheckOutRequest request) {
-        try {
-            logger.debug("Updating checkout with ID: {}", id);
-            CheckOutResponse checkOut = checkOutService.updateCheckOut(id, request);
-            logger.debug("Updated checkout with ID: {}", id);
-            return ResponseEntity.ok(checkOut);
-        } catch (Exception e) {
-            logger.error("Error updating checkout with ID: " + id, e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Delete checkout", description = "Delete a checkout")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "204", description = "Checkout deleted successfully"),
-        @ApiResponse(responseCode = "404", description = "Checkout not found")
-    })
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> deleteCheckOut(@PathVariable Long id) {
-        try {
-            logger.debug("Deleting checkout with ID: {}", id);
-            checkOutService.deleteCheckOut(id);
-            logger.debug("Deleted checkout with ID: {}", id);
-            return ResponseEntity.noContent().build();
-        } catch (Exception e) {
-            logger.error("Error deleting checkout with ID: " + id, e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Get checkouts by user ID", description = "Retrieve checkouts for a specific user")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved checkouts")
-    })
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<CheckOutResponse>> getCheckOutsByUserId(@PathVariable Long userId) {
-        try {
-            logger.debug("Fetching checkouts for user with ID: {}", userId);
-            List<CheckOutResponse> checkOuts = checkOutService.getCheckOutsByUserId(userId);
-            logger.debug("Found {} checkouts for user with ID: {}", checkOuts.size(), userId);
-            return ResponseEntity.ok(checkOuts);
-        } catch (Exception e) {
-            logger.error("Error fetching checkouts for user with ID: " + userId, e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Get checkouts by status", description = "Retrieve a list of checkouts with the given status")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully retrieved checkouts")
-    })
-    @GetMapping("/status/{status}")
-    public ResponseEntity<List<CheckOutResponse>> getCheckOutsByStatus(@PathVariable CHECKOUT_STATUS status) {
-        try {
-            logger.debug("Fetching checkouts with status: {}", status);
-            List<CheckOutResponse> checkOuts = checkOutService.getCheckOutsByStatus(status);
-            logger.debug("Found {} checkouts with status: {}", checkOuts.size(), status);
-            return ResponseEntity.ok(checkOuts);
-        } catch (Exception e) {
-            logger.error("Error fetching checkouts with status: " + status, e);
-            throw e;
-        }
-    }
-    
-    @Operation(summary = "Update checkout status", description = "Update the status of an existing checkout")
-    @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Checkout status updated successfully"),
-        @ApiResponse(responseCode = "404", description = "Checkout not found")
-    })
-    @PatchMapping("/{id}/status")
-    public ResponseEntity<CheckOutResponse> updateCheckOutStatus(
-            @PathVariable Long id, 
-            @RequestParam CHECKOUT_STATUS status) {
-        try {
-            logger.debug("Updating status of checkout with ID: {} to {}", id, status);
-            CheckOutResponse checkOut = checkOutService.updateCheckOutStatus(id, status);
-            logger.debug("Updated status of checkout with ID: {} to {}", id, status);
-            return ResponseEntity.ok(checkOut);
-        } catch (Exception e) {
-            logger.error("Error updating status of checkout with ID: " + id, e);
+        catch ( Exception e ) {
+            logger.error ( "Error fetching all checkouts", e );
             throw e;
         }
     }
 
+    @Operation(summary = "Get checkout by ID", description = "Retrieve a checkout by its ID")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved checkout"),
+            @ApiResponse(responseCode = "404", description = "Checkout not found")
+    })
+    @GetMapping("/{id}")
+    public ResponseEntity<CheckOutResponse> getCheckOutById(@PathVariable Long id) {
+        try {
+            logger.debug ( "Fetching checkout with ID: {}", id );
+            CheckOutResponse checkOut = checkOutService.getCheckOutById ( id );
+            logger.debug ( "Found checkout with ID: {}", id );
+            return ResponseEntity.ok ( checkOut );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error fetching checkout with ID: " + id, e );
+            throw e;
+        }
+    }
+
+    @Operation(summary = "Create checkout", description = "Create a new checkout. Delivery date must be at least 1 hour in the future.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "201", description = "Checkout created successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters or delivery date not in the future"),
+            @ApiResponse(responseCode = "404", description = "Cart not found")
+    })
+    @PostMapping
+    public ResponseEntity<CheckOutResponse> createCheckOut(@Valid @RequestBody CheckOutRequest request) {
+        try {
+            logger.debug ( "Creating new checkout: {}", request );
+            CheckOutResponse checkOut = checkOutService.createCheckOut ( request );
+            logger.debug ( "Created checkout with ID: {}", checkOut.getCheckoutId ( ) );
+            return new ResponseEntity<> ( checkOut, HttpStatus.CREATED );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error creating checkout", e );
+            throw e;
+        }
+    }
+
+    @Operation(summary = "Update checkout", description = "Update an existing checkout. If delivery date is provided, it must be at least 1 hour in the future.")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Checkout updated successfully"),
+            @ApiResponse(responseCode = "400", description = "Invalid request parameters or delivery date not in the future"),
+            @ApiResponse(responseCode = "404", description = "Checkout not found")
+    })
+    @PutMapping("/{id}")
+    public ResponseEntity<CheckOutResponse> updateCheckOut(
+            @PathVariable Long id,
+            @Valid @RequestBody CheckOutRequest request) {
+        try {
+            logger.debug ( "Updating checkout with ID: {}", id );
+            CheckOutResponse checkOut = checkOutService.updateCheckOut ( id, request );
+            logger.debug ( "Updated checkout with ID: {}", id );
+            return ResponseEntity.ok ( checkOut );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error updating checkout with ID: " + id, e );
+            throw e;
+        }
+    }
+
+    @Operation(summary = "Delete checkout", description = "Delete a checkout")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "204", description = "Checkout deleted successfully"),
+            @ApiResponse(responseCode = "404", description = "Checkout not found")
+    })
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteCheckOut(@PathVariable Long id) {
+        try {
+            logger.debug ( "Deleting checkout with ID: {}", id );
+            checkOutService.deleteCheckOut ( id );
+            logger.debug ( "Deleted checkout with ID: {}", id );
+            return ResponseEntity.noContent ( ).build ( );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error deleting checkout with ID: " + id, e );
+            throw e;
+        }
+    }
+
+    @Operation(summary = "Get checkouts by user ID", description = "Retrieve checkouts for a specific user")
+    @ApiResponses(value = {
+            @ApiResponse(responseCode = "200", description = "Successfully retrieved checkouts")
+    })
+    @GetMapping("/user/{userId}")
+    public ResponseEntity<List<CheckOutResponse>> getCheckOutsByUserId(@PathVariable Long userId) {
+        try {
+            logger.debug ( "Fetching checkouts for user with ID: {}", userId );
+            List<CheckOutResponse> checkOuts = checkOutService.getCheckOutsByUserId ( userId );
+            logger.debug ( "Found {} checkouts for user with ID: {}", checkOuts.size ( ), userId );
+            return ResponseEntity.ok ( checkOuts );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error fetching checkouts for user with ID: " + userId, e );
+            throw e;
+        }
+    }
+
+
     @Operation(summary = "Place order", description = "Place an order from a checkoutID")
     @ApiResponses(value = {
-        @ApiResponse(responseCode = "200", description = "Successfully placed order"),
-        @ApiResponse(responseCode = "404", description = "Checkout not found")
+            @ApiResponse(responseCode = "200", description = "Successfully placed order"),
+            @ApiResponse(responseCode = "404", description = "Checkout not found")
     })
     @PostMapping("/{id}/place-order")
     public ResponseEntity<CheckOutResponse> placeOrder(@PathVariable("id") Long checkoutId) {
         try {
-            logger.debug("Placing order for checkout with ID: {}", checkoutId);
-            CheckOutResponse response = checkOutService.placeOrder(checkoutId);
-            logger.debug("Placed order for checkout with ID: {}", checkoutId);
-            return ResponseEntity.ok(response);
-        } catch (Exception e) {
-            logger.error("Error placing order for checkout with ID: " + checkoutId, e);
+            logger.debug ( "Placing order for checkout with ID: {}", checkoutId );
+            CheckOutResponse response = checkOutService.placeOrder ( checkoutId );
+            logger.debug ( "Placed order for checkout with ID: {}", checkoutId );
+            return ResponseEntity.ok ( response );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error placing order for checkout with ID: " + checkoutId, e );
             throw e;
         }
     }

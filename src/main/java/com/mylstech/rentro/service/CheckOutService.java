@@ -2,7 +2,7 @@ package com.mylstech.rentro.service;
 
 import com.mylstech.rentro.dto.request.CheckOutRequest;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
-import com.mylstech.rentro.util.CHECKOUT_STATUS;
+
 
 import java.util.List;
 
@@ -48,21 +48,7 @@ public interface CheckOutService {
      */
     List<CheckOutResponse> getCheckOutsByUserId(Long userId);
     
-    /**
-     * Get checkouts by status
-     * @param status checkout status
-     * @return list of checkouts with the given status
-     */
-    List<CheckOutResponse> getCheckOutsByStatus(CHECKOUT_STATUS status);
-    
-    /**
-     * Update checkout status
-     * @param id checkout ID
-     * @param status new status
-     * @return updated checkout
-     */
-    CheckOutResponse updateCheckOutStatus(Long id, CHECKOUT_STATUS status);
-    
+
     /**
      * Place an order from a checkout
      * @param checkoutId checkout ID

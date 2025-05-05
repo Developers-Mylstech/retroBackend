@@ -29,8 +29,9 @@ public class BuyNowRequest {
     
     // Customer details
     @NotBlank(message = "Name is required")
-    private String name;
-    
+    private String firstName;
+    private String lastName;
+
     @NotBlank(message = "Mobile number is required")
     private String mobile;
     
