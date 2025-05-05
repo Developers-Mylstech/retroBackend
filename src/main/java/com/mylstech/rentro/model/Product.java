@@ -32,6 +32,7 @@ public class Product {
     @CollectionTable(name = "product_image_urls",
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
+    @Access(AccessType.PROPERTY)
     private List<String> imageUrls;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -53,12 +54,14 @@ public class Product {
     @CollectionTable(name = "key_features",
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "key_feature")
+    @Access(AccessType.PROPERTY)
     private List<String> keyFeatures;
 
     @ElementCollection
     @CollectionTable(name = "tagNKeywords",
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "tagNKeywords")
+    @Access(AccessType.PROPERTY)
     private List<String> tagNKeywords;
 
     private String manufacturer;
