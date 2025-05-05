@@ -4,15 +4,17 @@ import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.service.FileStorageService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.Parameter;
-import io.swagger.v3.oas.annotations.parameters.RequestBody;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.util.StringUtils;
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/files")
@@ -28,16 +30,19 @@ public class FileUploadController {
             @RequestParam("file") MultipartFile file) {
         try {
 
-            return ResponseEntity.ok(fileStorageService.storePdf(file));
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.BAD_REQUEST)
-                    .body(new FileUploadResponse(
-                        null,
-                        null,
-                        null,
-                        0,
-                        e.getMessage()
-                    ));
+            return ResponseEntity.ok ( fileStorageService.storePdf ( file ) );
+        }
+        catch ( IOException e ) {
+            return ResponseEntity.status ( HttpStatus.BAD_REQUEST )
+                    .body ( new FileUploadResponse (
+                            null,
+                            null,
+                            null,
+                            null,
+                            0,
+                            e.getMessage ( ),
+                            LocalDateTime.now ( ).plusHours ( 24 )
+                    ) );
         }
     }
 }
