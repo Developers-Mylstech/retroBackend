@@ -73,6 +73,7 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
         logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
+        this.placeOrder ( savedCheckOut.getCheckoutId () );
         return new CheckOutResponse ( savedCheckOut );
     }
 
@@ -116,9 +117,9 @@ public class CheckOutServiceImpl implements CheckOutService {
                     .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
 
             // Verify address belongs to current user
-            if ( ! address.getUser ( ).getUserId ( ).equals ( checkOut.getCart ( ).getUser ( ).getUserId ( ) ) ) {
-                throw new RuntimeException ( "You don't have permission to use this address" );
-            }
+//            if ( ! address.getUser ( ).getUserId ( ).equals ( checkOut.getCart ( ).getUser ( ).getUserId ( ) ) ) {
+//                throw new RuntimeException ( "You don't have permission to use this address" );
+//            }
 
             checkOut.setDeliveryAddress ( address );
             // Update homeAddress with formatted address
