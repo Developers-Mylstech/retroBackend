@@ -43,12 +43,7 @@ public enum ORDER_STATUS {
      * Payment failed
      */
     PAYMENT_FAILED,
-    
-    /**
-     * Order has been returned
-     */
-    RETURNED,
-    
+
     /**
      * Order is completed
      */
