@@ -112,6 +112,16 @@ public class FileStorageServiceImpl implements FileStorageService {
     }
 
     @Override
+    public String getUploadDir() {
+        return uploadDir;
+    }
+
+    @Override
+    public String getBaseUrl() {
+        return baseUrl;
+    }
+
+    @Override
     public FileUploadResponse storePdf(MultipartFile file) throws IOException {
         // Validate file type
         String contentType = file.getContentType();

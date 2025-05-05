@@ -27,4 +27,8 @@ public interface FileStorageService {
      * @param filePath The path of the file to delete
      */
     void deleteFile(String filePath) throws IOException;
+
+    String getUploadDir();
+
+    String getBaseUrl();
 }
