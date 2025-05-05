@@ -54,7 +54,9 @@ public class SecurityConfig {
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**"
+                                "/webjars/**",
+                                "/api/v1/payments/create-payment-intent",
+                                "/api/v1/payments/confirm/**"
                         ).permitAll ( )
                         .anyRequest ( ).authenticated ( )
                 )

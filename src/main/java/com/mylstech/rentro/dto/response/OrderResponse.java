@@ -18,6 +18,7 @@ public class OrderResponse {
     private String orderNumber;
     private Long userId;
     private String userName;
+    private String userMobile;
     private List<OrderItemResponse> items;
     private Double totalAmount;
     private ORDER_STATUS status;
@@ -42,7 +43,7 @@ public class OrderResponse {
         this.items = order.getItems().stream()
                 .map(OrderItemResponse::new)
                 .collect(Collectors.toList());
-                
+        this.userMobile=order.getCheckout ().getMobile ().isEmpty ()?" ":order.getCheckout ().getMobile ();
         this.totalAmount = order.getTotalAmount();
         this.status = order.getStatus();
         
