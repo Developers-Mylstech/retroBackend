@@ -36,7 +36,8 @@ public class AddressServiceImpl implements AddressService {
         AppUser currentUser = securityUtils.getCurrentUser();
         return addressRepository.findByUserOrderByIsDefaultDesc(currentUser).stream()
                 .map(AddressResponse::new)
-                .collect(Collectors.toList());
+                .sorted ( (a1, a2) -> a2.getAddressId ( ).compareTo ( a1.getAddressId ( ) ) )
+                .toList();
     }
     
     @Override

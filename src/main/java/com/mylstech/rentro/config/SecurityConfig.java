@@ -87,7 +87,7 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration ( );
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
-                "https://6vhl0cb2s6cl.share.zrok.io",
+                "https://6zzqukbrihp2.share.zrok.io",
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://panel.rentro.ae",
