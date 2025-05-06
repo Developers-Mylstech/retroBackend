@@ -24,6 +24,7 @@ public class CheckOutResponse {
     private PAYMENT_OPTION paymentOption;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
+    private Long orderId;
 
     public CheckOutResponse(CheckOut checkOut) {
         this.checkoutId = checkOut.getCheckoutId ( );

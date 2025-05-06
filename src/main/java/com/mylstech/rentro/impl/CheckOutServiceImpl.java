@@ -73,8 +73,7 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
         logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
-        this.placeOrder ( savedCheckOut.getCheckoutId () );
-        return new CheckOutResponse ( savedCheckOut );
+        return placeOrder ( savedCheckOut.getCheckoutId ( ) );
     }
 
 
@@ -190,6 +189,8 @@ public class CheckOutServiceImpl implements CheckOutService {
             logger.debug ( "Detected temporary cart from buy now, will be deleted separately" );
         }
 
-        return new CheckOutResponse ( updatedCheckout );
+        CheckOutResponse checkOutResponse = new CheckOutResponse ( updatedCheckout );
+        checkOutResponse.setOrderId ( orderResponse.getOrderId () );
+        return checkOutResponse;
     }
 }
