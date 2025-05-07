@@ -21,7 +21,6 @@ public class CheckOutResponse {
     private String email;
     private String homeAddress;
     private AddressResponse deliveryAddress;
-    private PAYMENT_OPTION paymentOption;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
     private Long orderId;
@@ -39,7 +38,7 @@ public class CheckOutResponse {
         if ( checkOut.getDeliveryAddress ( ) != null ) {
             this.deliveryAddress = new AddressResponse ( checkOut.getDeliveryAddress ( ) );
         }
-        this.paymentOption = checkOut.getPaymentOption ( );
+
         this.createdAt = checkOut.getCreatedAt ( );
         this.updatedAt = checkOut.getUpdatedAt ( );
     }

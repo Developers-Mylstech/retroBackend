@@ -23,7 +23,7 @@ public class PaymentController {
     @PostMapping("/create-payment-intent")
     @Operation(summary = "Create a payment intent with Stripe")
     public ResponseEntity<PaymentResponse> createPaymentIntent(@RequestBody StripePaymentRequest request) {
-        logger.debug("Creating payment intent for order: {}", request.getOrderId());
+        logger.debug("Creating payment intent for order: {}", request.getCheckoutId ());
         PaymentResponse response = stripeService.createPaymentIntent(request);
         return ResponseEntity.ok(response);
     }

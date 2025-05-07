@@ -6,6 +6,7 @@ import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
+import com.mylstech.rentro.service.CartService;
 import com.mylstech.rentro.service.CheckOutService;
 import com.mylstech.rentro.service.ImageService;
 import com.mylstech.rentro.service.ProductService;
@@ -47,6 +48,7 @@ public class ProductServiceImpl implements ProductService {
     private final CheckOutRepository checkOutRepository;
     private final CheckOutService checkOutService;
     private final ImageService imageService;
+    private final CartService cartService;
 
     @Value("${vat.value}")
     private Double vat;
@@ -754,13 +756,12 @@ public class ProductServiceImpl implements ProductService {
             checkOut.setLastName ( request.getLastName ( ) );
             checkOut.setMobile(request.getMobile());
             checkOut.setEmail(request.getEmail());
-            checkOut.setPaymentOption(request.getPaymentOption());
+
 
             if (deliveryAddress != null) {
                 checkOut.setDeliveryAddress(deliveryAddress);
                 checkOut.setHomeAddress(deliveryAddress.getFormattedAddress());
             }
-
             // Save checkout
             CheckOut savedCheckOut = checkOutRepository.save(checkOut);
             logger.debug("Created checkout with ID: {}", savedCheckOut.getCheckoutId());
@@ -768,7 +769,7 @@ public class ProductServiceImpl implements ProductService {
             // Place order immediately
             CheckOutResponse checkOutResponse = checkOutService.placeOrder(savedCheckOut.getCheckoutId());
             logger.debug("Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId());
-
+            cartService.clearCart();
             return checkOutResponse;
         } catch (Exception e) {
             logger.error("Error processing buy now request: {}", e.getMessage(), e);

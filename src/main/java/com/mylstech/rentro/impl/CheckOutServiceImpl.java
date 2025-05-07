@@ -9,6 +9,7 @@ import com.mylstech.rentro.model.CheckOut;
 import com.mylstech.rentro.repository.AddressRepository;
 import com.mylstech.rentro.repository.CartRepository;
 import com.mylstech.rentro.repository.CheckOutRepository;
+import com.mylstech.rentro.service.CartService;
 import com.mylstech.rentro.service.CheckOutService;
 import com.mylstech.rentro.service.OrderService;
 
@@ -25,6 +26,7 @@ import java.util.List;
 public class CheckOutServiceImpl implements CheckOutService {
     private final CheckOutRepository checkOutRepository;
     private final CartRepository cartRepository;
+    private final CartService cartService;
     private final OrderService orderService;
     private final AddressRepository addressRepository;
     private final Logger logger = LoggerFactory.getLogger ( CheckOutServiceImpl.class );
@@ -126,11 +128,6 @@ public class CheckOutServiceImpl implements CheckOutService {
         }
 
 
-        if ( request.getPaymentOption ( ) != null ) {
-            checkOut.setPaymentOption ( request.getPaymentOption ( ) );
-        }
-
-
         // Save and return the updated checkout
         CheckOut updatedCheckOut = checkOutRepository.save ( checkOut );
         logger.debug ( "Updated checkout with ID: {}", updatedCheckOut.getCheckoutId ( ) );
@@ -173,8 +170,6 @@ public class CheckOutServiceImpl implements CheckOutService {
                 .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + checkoutId ) );
 
 
-
-
         CheckOut updatedCheckout = checkOutRepository.save ( checkout );
 
         // Create order from checkout
@@ -188,7 +183,6 @@ public class CheckOutServiceImpl implements CheckOutService {
         if ( cart != null && cart.isTemporary ( ) ) {
             logger.debug ( "Detected temporary cart from buy now, will be deleted separately" );
         }
-
         CheckOutResponse checkOutResponse = new CheckOutResponse ( updatedCheckout );
         checkOutResponse.setOrderId ( orderResponse.getOrderId () );
         return checkOutResponse;

@@ -1,6 +1,6 @@
 package com.mylstech.rentro.model;
 
-import com.mylstech.rentro.util.PAYMENT_OPTION;
+
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -36,10 +36,6 @@ public class CheckOut {
     private Address deliveryAddress;
 
     private String homeAddress;
-
-
-    @Enumerated(EnumType.STRING)
-    private PAYMENT_OPTION paymentOption;
 
     private LocalDateTime createdAt;
 

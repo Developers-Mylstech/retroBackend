@@ -11,6 +11,7 @@ public class PaymentResponse {
     private String paymentId;
     private String clientSecret;
     private String status;
+    private Double totalAmount;
     private boolean success;
     private String message;
 }

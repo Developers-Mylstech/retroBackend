@@ -40,7 +40,7 @@ public class OrderServiceImpl implements OrderService {
         
         order.setUser(cart.getUser());
         order.setDeliveryAddress(checkout.getDeliveryAddress());
-        order.setPaymentMethod(checkout.getPaymentOption().toString());
+
         
         // Generate order number
         order.setOrderNumber("ORD-" + System.currentTimeMillis());

@@ -2,7 +2,7 @@ package com.mylstech.rentro.dto.request;
 
 import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CheckOut;
-import com.mylstech.rentro.util.PAYMENT_OPTION;
+
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -34,8 +34,6 @@ public class CheckOutRequest {
     private Long addressId;
 
 
-    @NotNull(message = "Payment option is required")
-    private PAYMENT_OPTION paymentOption;
 
 
     /**
@@ -52,7 +50,7 @@ public class CheckOutRequest {
         checkOut.setMobile ( mobile );
         checkOut.setEmail ( email );
 
-        checkOut.setPaymentOption ( paymentOption );
+
 
 
         return checkOut;
