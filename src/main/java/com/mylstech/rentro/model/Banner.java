@@ -9,13 +9,14 @@ import lombok.Setter;
 @Entity
 @Getter
 @Setter
-@Table(name ="clients")
+@Table(name ="banners")
 @NoArgsConstructor
 @AllArgsConstructor
-public class Client {
+public class Banner {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long clientId;
-    private String name;
+    private Long bannerId;
+    private String title;
     private String imageUrl;
+
 }

@@ -1,18 +1,22 @@
 package com.mylstech.rentro.dto.request;
 
 import com.mylstech.rentro.model.Client;
+import lombok.AllArgsConstructor;
 import lombok.Data;
+import lombok.NoArgsConstructor;
 
 @Data
+@NoArgsConstructor
+@AllArgsConstructor
 public class ClientRequest {
-    private Long clientId;
+
     private String name;
     private String imageUrl;
 
     public Client requestToClient() {
         Client client = new Client ( );
-        setName ( name );
-        setImageUrl ( imageUrl );
+        client.setName ( name );
+        client.setImageUrl ( imageUrl );
         return client;
     }
 }

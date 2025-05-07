@@ -28,9 +28,7 @@ public class ClientServiceImpl implements ClientService {
 
     @Override
     public ClientResponse createClient(ClientRequest request) {
-        Client client = request.requestToClient ( );
-        Client save = clientRepository.save ( client );
-        return new ClientResponse ( save );
+        return new ClientResponse ( clientRepository.save ( request.requestToClient ( ) ) );
     }
 
     @Override
