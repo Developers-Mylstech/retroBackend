@@ -26,19 +26,14 @@ public class CheckOut {
 
     private String firstName;
     private String lastName;
-
     private String mobile;
-
     private String email;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "address_id")
     private Address deliveryAddress;
-
     private String homeAddress;
-
     private LocalDateTime createdAt;
-
     private LocalDateTime updatedAt;
 
     @PrePersist
