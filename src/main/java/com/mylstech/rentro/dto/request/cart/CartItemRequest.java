@@ -20,10 +20,8 @@ public class CartItemRequest {
     
     @NotNull(message = "Product type is required")
     private ProductType productType;
-    
-//    @Min(value = 1, message = "Rent period must be at least 1")
-//    private Integer rentPeriod;
-    
+
+
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity;
     
@@ -40,9 +38,6 @@ public class CartItemRequest {
         
         // Set quantity for both SELL and RENT
         cartItem.setQuantity(quantity);
-        
-
-        // Calculate price
 
         
         return cartItem;

@@ -16,8 +16,16 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Find products available for rent
     @Query("SELECT p FROM Product p WHERE p.productFor.rent IS NOT NULL")
     List<Product> findByProductForRentNotNull();
-    
-    // Find products available for service
-    @Query("SELECT p FROM Product p WHERE p.productFor.services IS NOT NULL")
-    List<Product> findByProductForServicesNotNull();
+
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.ots IS NOT NULL")
+    List<Product> findByProductForServicesOtsNotNull();
+
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.mmc IS NOT NULL")
+    List<Product> findByProductForServicesMmcNotNull();
+
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcBasic IS NOT NULL")
+    List<Product> findByProductForServicesAmcBasicNotNull();
+
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcGold IS NOT NULL")
+    List<Product> findByProductForServicesAmcGoldNotNull();
 }

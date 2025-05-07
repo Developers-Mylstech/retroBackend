@@ -23,10 +23,7 @@ public class BuyNowRequest {
     
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity = 1;
-    
-    @Min(value = 1, message = "Rent period must be at least 1")
-    private Integer rentPeriod;
-    
+
     // Customer details
     @NotBlank(message = "Name is required")
     private String firstName;
@@ -45,22 +42,14 @@ public class BuyNowRequest {
     // Or allow inline address creation
     private AddressRequest address;
     
-    // Delivery details
-    @NotNull(message = "Delivery date is required")
-    @FutureDateTime(message = "Delivery date must be at least 1 hour in the future", minHours = 1)
-    private LocalDateTime deliveryDate;
-    
-    @NotNull(message = "Payment option is required")
-    private PAYMENT_OPTION paymentOption;
-    
+
+
     /**
      * Validates that the appropriate fields are provided based on product type
      */
     public boolean isValid() {
-        if (productType == ProductType.RENT) {
-            return rentPeriod != null && rentPeriod > 0 && quantity != null && quantity > 0;
-        } else if (productType == ProductType.SELL) {
-            return quantity != null && quantity > 0;
+        if (productType == ProductType.RENT || productType == ProductType.SELL) {
+           return quantity != null && quantity > 0;
         }
         return false;
     }

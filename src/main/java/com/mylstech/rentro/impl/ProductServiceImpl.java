@@ -620,9 +620,21 @@ public class ProductServiceImpl implements ProductService {
                     logger.debug ( "Fetching products available for RENT" );
                     products = productRepository.findByProductForRentNotNull ( );
                     break;
-                case SERVICE:
-                    logger.debug ( "Fetching products available for SERVICE" );
-                    products = productRepository.findByProductForServicesNotNull ( );
+                case OTS:
+                    logger.debug ( "Fetching products available for OTS" );
+                    products = productRepository.findByProductForServicesOtsNotNull ( );
+                    break;
+                case MMC:
+                    logger.debug ( "Fetching products available for MMC" );
+                    products = productRepository.findByProductForServicesMmcNotNull ( );
+                    break;
+                case AMC_GOLD:
+                    logger.debug ( "Fetching products available for AMC_GOLD" );
+                    products = productRepository.findByProductForServicesAmcGoldNotNull ( );
+                    break;
+                case AMC_BASIC:
+                    logger.debug ( "Fetching products available for AMC_BASIC" );
+                    products = productRepository.findByProductForServicesAmcBasicNotNull ();
                     break;
                 default:
                     logger.warn ( "Unknown product type: {}", productType );
@@ -717,6 +729,17 @@ public class ProductServiceImpl implements ProductService {
                 }
                 cartItem.setPrice(monthlyPrice * cartItem.getQuantity() );
             }
+            else if ( request.getProductType ()==ProductType.OTS ) {
+                cartItem.setPrice ( product.getProductFor ().getServices ().getOts ( ).getPrice ( ) );
+            }else if ( request.getProductType ()==ProductType.MMC ) {
+                cartItem.setPrice ( product.getProductFor ().getServices ().getMmc ( ).getPrice ( ) );
+
+            }else if ( request.getProductType ()==ProductType.AMC_GOLD ) {
+                cartItem.setPrice ( product.getProductFor ().getServices ().getAmcBasic ( ).getPrice ( ) );
+
+            }else if ( request.getProductType ()==ProductType.AMC_BASIC ) {
+                cartItem.setPrice ( product.getProductFor ().getServices ().getAmcGold ( ).getPrice ( ) );
+            }
 
             // Add to cart using the helper method
             cart.addItem(cartItem);
@@ -769,7 +792,7 @@ public class ProductServiceImpl implements ProductService {
             // Place order immediately
             CheckOutResponse checkOutResponse = checkOutService.placeOrder(savedCheckOut.getCheckoutId());
             logger.debug("Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId());
-            cartService.clearCart();
+
             return checkOutResponse;
         } catch (Exception e) {
             logger.error("Error processing buy now request: {}", e.getMessage(), e);
