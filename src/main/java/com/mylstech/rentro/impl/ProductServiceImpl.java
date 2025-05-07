@@ -658,10 +658,10 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public CheckOutResponse buyNow(Long productId, BuyNowRequest request) {
         logger.debug("Processing buy now request for product ID: {}", productId);
-
-        if (!request.isValid()) {
-            throw new IllegalArgumentException("Invalid buy now request");
-        }
+//
+//        if (!request.isValid()) {
+//            throw new IllegalArgumentException("Invalid buy now request");
+//        }
 
         try {
             // Get the current user
