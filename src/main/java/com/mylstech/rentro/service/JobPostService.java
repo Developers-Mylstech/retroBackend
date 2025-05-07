@@ -11,4 +11,6 @@ public interface JobPostService {
     JobPostResponse createJobPost(JobPostRequest request);
     JobPostResponse updateJobPost(Long id, JobPostRequest request);
     void deleteJobPost(Long id);
+
+    void updateJobPostCount();
 }

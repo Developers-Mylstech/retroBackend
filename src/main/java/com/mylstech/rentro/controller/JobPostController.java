@@ -42,4 +42,10 @@ public class JobPostController {
         jobPostService.deleteJobPost(id);
         return ResponseEntity.noContent().build();
     }
+
+    @GetMapping("/updateJobApplicantCount")
+    public ResponseEntity<Void> updateJobApplicantsCount(){
+        jobPostService.updateJobPostCount();
+        return ResponseEntity.noContent ().build ();
+    }
 }

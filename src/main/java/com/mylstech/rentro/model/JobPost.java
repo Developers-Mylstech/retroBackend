@@ -17,10 +17,17 @@ public class JobPost {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long jobPostId;
+
+    @Column(unique = true)
+    private String jobCode;
+
     private String jobTitle;
     private String jobDescription;
     private String requirements;
     private Boolean isActive;
+    @Column(columnDefinition = "integer default 0")
+    private Integer totalApplicants;
+
     @Size(max = 500)
     private String image;
 }

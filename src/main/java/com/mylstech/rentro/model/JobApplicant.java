@@ -16,6 +16,6 @@ public class JobApplicant {
     private String email;
     private String phone;
     private String resume;
-    @ManyToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @ManyToOne(cascade = CascadeType.REMOVE, fetch = FetchType.LAZY)
     private JobPost jobPost;
 }

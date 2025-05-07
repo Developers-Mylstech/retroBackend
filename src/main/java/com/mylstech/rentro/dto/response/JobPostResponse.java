@@ -10,11 +10,13 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class JobPostResponse {
     private Long jobPostId;
+    private String jobCode;
     private String jobTitle;
     private String jobDescription;
     private String requirements;
     private Boolean isActive;
     private String image;
+    private Integer totalApplicants;
 
     public JobPostResponse(JobPost jobPost) {
         this.jobPostId = jobPost.getJobPostId();
@@ -23,5 +25,7 @@ public class JobPostResponse {
         this.requirements = jobPost.getRequirements();
         this.isActive = jobPost.getIsActive();
         this.image = jobPost.getImage();
+        this.totalApplicants=jobPost.getTotalApplicants ();
+        this.jobCode=jobPost.getJobCode ();
     }
 }

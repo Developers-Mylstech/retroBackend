@@ -44,7 +44,10 @@ public class JobApplicantServiceImpl implements JobApplicantService {
     public JobApplicantResponse createJobApplicant(JobApplicantRequest request) {
         JobPost jobPost = jobPostRepository.findById(request.getJobPostId())
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + request.getJobPostId()));
-        
+        // Increment total applicants count
+        jobPost.setTotalApplicants(jobPost.getTotalApplicants() + 1);
+        jobPostRepository.save(jobPost);
+
         JobApplicant jobApplicant = request.requestToJobApplicant(jobPost);
         return new JobApplicantResponse(jobApplicantRepository.save(jobApplicant));
     }
