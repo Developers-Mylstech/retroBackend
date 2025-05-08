@@ -5,6 +5,7 @@ import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
 import com.mylstech.rentro.service.FileStorageService;
+import com.mylstech.rentro.service.ImageEntityService;
 import com.mylstech.rentro.service.ImageService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
@@ -26,6 +27,7 @@ public class ImageServiceImpl implements ImageService {
     private final CategoryRepository categoryRepository;
     private final JobPostRepository jobPostRepository;
     private final OurServiceRepository ourServicesRepository;
+    private final ImageEntityService imageEntityService;
 
     @Override
     public FileUploadResponse uploadImage(MultipartFile file, int quality, boolean fallbackToJpeg) throws IOException {
@@ -183,6 +185,9 @@ public class ImageServiceImpl implements ImageService {
             contentType,
             file.getSize()
         );
+
+        // Save image record
+        imageEntityService.saveImage(fileUrl);
 
         // Associate the image URL with the appropriate entity
         switch (entityType.toLowerCase()) {

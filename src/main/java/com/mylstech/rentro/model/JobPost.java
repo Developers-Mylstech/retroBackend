@@ -28,6 +28,29 @@ public class JobPost {
     @Column(columnDefinition = "integer default 0")
     private Integer totalApplicants;
 
+    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "image_id")
+    private Image image;
+
     @Size(max = 500)
-    private String image;
+    @Column(name = "image_url")
+    @Deprecated
+    private String imageUrl;
+
+    // Helper methods for backward compatibility
+    public String getImage() {
+        return this.image != null ? this.image.getImageUrl() : null;
+    }
+
+    public void setImage(String imageUrl) {
+        if (imageUrl == null) {
+            this.image = null;
+            return;
+        }
+        
+        if (this.image == null) {
+            this.image = new Image();
+        }
+        this.image.setImageUrl(imageUrl);
+    }
 }

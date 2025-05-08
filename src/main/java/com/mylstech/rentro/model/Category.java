@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,10 +30,16 @@ public class Category {
     @JsonBackReference
     private Category parentCategory;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "category_id")
+    private List<Image> images = new ArrayList<>();
+
+    // Keep the old field for backward compatibility during migration
     @ElementCollection
     @CollectionTable(name = "category_image_urls",
             joinColumns = @JoinColumn(name = "category_image_id"))
     @Column(name = "image_url")
+    @Deprecated
     private List<String> imageUrls;
 
 }

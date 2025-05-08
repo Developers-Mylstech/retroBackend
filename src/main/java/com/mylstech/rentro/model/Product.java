@@ -6,7 +6,9 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -28,11 +30,17 @@ public class Product {
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "product_id")
+    private List<Image> images = new ArrayList<> ();
+
+    // Keep the old field for backward compatibility during migration
     @ElementCollection
     @CollectionTable(name = "product_image_urls",
             joinColumns = @JoinColumn(name = "product_id"))
     @Column(name = "image_url")
     @Access(AccessType.PROPERTY)
+    @Deprecated
     private List<String> imageUrls;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -65,4 +73,39 @@ public class Product {
     private List<String> tagNKeywords;
 
     private String manufacturer;
+
+    // Helper methods for backward compatibility
+    public List<String> getImageUrls() {
+        if (images == null || images.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return images.stream()
+                .map(Image::getImageUrl)
+                .collect(Collectors.toList());
+    }
+
+    public void setImageUrls(List<String> urls) {
+        if (urls == null) {
+            return;
+        }
+        
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        
+        // Convert URLs to Image entities
+        for (String url : urls) {
+            Image image = new Image();
+            image.setImageUrl(url);
+            this.images.add(image);
+        }
+    }
+
+    // Helper method to add an image
+    public void addImage(Image image) {
+        if (this.images == null) {
+            this.images = new ArrayList<>();
+        }
+        this.images.add(image);
+    }
 }

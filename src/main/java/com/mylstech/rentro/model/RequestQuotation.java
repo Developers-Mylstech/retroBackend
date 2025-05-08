@@ -6,6 +6,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,10 +24,16 @@ public class RequestQuotation {
     private String companyName;
     private String location;
 
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "request_quotation_id")
+    private List<Image> images = new ArrayList<>();
+
+    // Keep the old field for backward compatibility during migration
     @ElementCollection
     @CollectionTable(name = "request_quotation_image_urls",
             joinColumns = @JoinColumn(name = "request_quotation_image_id"))
     @Column(name = "image_url")
+    @Deprecated
     private List<String> productImages;
 
     @Enumerated(EnumType.STRING)

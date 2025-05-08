@@ -7,6 +7,7 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -23,10 +24,14 @@ public class OurService {
     private String detailedHeading;
     @Size(max = 500)
     private String detailedDescription;
+    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
+    @JoinColumn(name = "our_service_id")
+    private List<Image> images = new ArrayList<>();
     @ElementCollection
     @CollectionTable(name = "our_services_image_urls",
             joinColumns = @JoinColumn(name = "our_service_id"))
     @Column(name = "image_url")
+    @Deprecated
     private List<String> imageUrl;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feature> feature;
