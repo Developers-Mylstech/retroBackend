@@ -27,7 +27,7 @@ public class SwaggerConfig {
                                 .email("support@rentro.ae")
                                 .url("https://rentro.ae"))
                         .license(new License().name("Rentro License")))
-                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://gdd9l66gwhvb.share.zrok.io"))
+                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://jpuzq32mjlzb.share.zrok.io"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080/"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://demo.rentro.ae"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://proud-expression-production-6ebc.up.railway.app"))
