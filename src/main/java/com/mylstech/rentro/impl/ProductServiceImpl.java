@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -49,6 +50,7 @@ public class ProductServiceImpl implements ProductService {
     private final CheckOutService checkOutService;
     private final ImageService imageService;
     private final CartService cartService;
+    private final ImageRepository imageRepository;
 
     @Value("${vat.value}")
     private Double vat;
@@ -247,19 +249,32 @@ public class ProductServiceImpl implements ProductService {
             product.setTagNKeywords ( request.getTagNKeywords ( ) );
         }
 
-        // 5. Create ProductImages with the provided image URLs
-
-        if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
-
-            product.setImageUrls ( request.getImageUrls ( ) );
-
+        // Set images using imageIds if provided
+        if (request.getImageIds() != null && !request.getImageIds().isEmpty()) {
+            List<Image> images = imageRepository.findAllById(request.getImageIds());
+            product.setImages(new ArrayList<>(images));
         } else {
-            product.setImageUrls(new ArrayList<>());
+            product.setImages(new ArrayList<>());
         }
-        // 6. Save the product
-        Product savedProduct = productRepository.save ( product );
+        
+        // For backward compatibility - handle imageUrls if provided
+        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
+            // Convert URLs to Image entities if they don't exist yet
+            for (String url : request.getImageUrls()) {
+                Image image = imageRepository.findByImageUrl(url)
+                        .orElseGet(() -> {
+                            Image newImage = new Image();
+                            newImage.setImageUrl(url);
+                            return imageRepository.save(newImage);
+                        });
+                product.getImages().add(image);
+            }
+        }
 
-        return new ProductResponse ( savedProduct );
+        // Save the product
+        Product savedProduct = productRepository.save(product);
+
+        return new ProductResponse(savedProduct);
     }
 
     @Override
@@ -473,11 +488,35 @@ public class ProductServiceImpl implements ProductService {
             product.setSpecification ( updatedSpecs );
         }
 
-        // Update image URLs if provided
-        if ( request.getImageUrls ( ) != null ) {
-
-            product.getImageUrls().clear();
-            product.setImageUrls ( new ArrayList<> ( request.getImageUrls ( ) ) );
+        // Update images if imageIds are provided
+        if (request.getImageIds() != null) {
+            // Clear existing images
+            product.getImages().clear();
+            
+            // Add new images
+            if (!request.getImageIds().isEmpty()) {
+                List<Image> images = imageRepository.findAllById(request.getImageIds());
+                product.getImages().addAll(images);
+            }
+        }
+        
+        // For backward compatibility - handle imageUrls if provided
+        if (request.getImageUrls() != null) {
+            // Clear existing images if we're explicitly setting new ones
+            if (request.getImageIds() == null) {
+                product.getImages().clear();
+            }
+            
+            // Add images from URLs
+            for (String url : request.getImageUrls()) {
+                Image image = imageRepository.findByImageUrl(url)
+                        .orElseGet(() -> {
+                            Image newImage = new Image();
+                            newImage.setImageUrl(url);
+                            return imageRepository.save(newImage);
+                        });
+                product.getImages().add(image);
+            }
         }
 
         //update Tag N Keyword

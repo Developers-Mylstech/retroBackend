@@ -14,25 +14,11 @@ import java.io.IOException;
 import java.util.List;
 
 @RestController
-@RequestMapping("/api/v1/images-new")
+@RequestMapping("/api/v1/image-entities")
 @RequiredArgsConstructor
 public class ImageEntityController {
-
     private final ImageEntityService imageEntityService;
-
-    @Operation(summary = "Get all images")
-    @GetMapping
-    public ResponseEntity<List<Image>> getAllImages() {
-        return ResponseEntity.ok(imageEntityService.getAllImages());
-    }
-
-    @Operation(summary = "Get image by ID")
-    @GetMapping("/{imageId}")
-    public ResponseEntity<Image> getImageById(@PathVariable Long imageId) {
-        return ResponseEntity.ok(imageEntityService.getImageById(imageId));
-    }
-
-    @Operation(summary = "Upload image and get URL with image object")
+    @Operation(summary = "Upload image and get image entity with ID")
     @PostMapping("/upload")
     public ResponseEntity<FileUploadResponse> uploadImage(
             @RequestParam("file") MultipartFile file,
@@ -46,7 +32,7 @@ public class ImageEntityController {
         }
     }
 
-    @Operation(summary = "Upload multiple images and get URLs with image objects")
+    @Operation(summary = "Upload multiple images and get image entities with IDs")
     @PostMapping("/batch-upload")
     public ResponseEntity<List<FileUploadResponse>> uploadMultipleImages(
             @RequestParam("files") MultipartFile[] files,
@@ -60,14 +46,21 @@ public class ImageEntityController {
         }
     }
 
-    @Operation(summary = "Save image URL")
-    @PostMapping
-    public ResponseEntity<Image> saveImage(@RequestParam String imageUrl) {
-        Image savedImage = imageEntityService.saveImage(imageUrl);
-        return new ResponseEntity<>(savedImage, HttpStatus.CREATED);
+    @Operation(summary = "Get all images")
+    @GetMapping
+    public ResponseEntity<List<Image>> getAllImages() {
+        List<Image> images = imageEntityService.getAllImages();
+        return ResponseEntity.ok(images);
     }
 
-    @Operation(summary = "Delete image")
+    @Operation(summary = "Get image by ID")
+    @GetMapping("/{imageId}")
+    public ResponseEntity<Image> getImageById(@PathVariable Long imageId) {
+        Image image = imageEntityService.getImageById(imageId);
+        return ResponseEntity.ok(image);
+    }
+
+    @Operation(summary = "Delete image by ID")
     @DeleteMapping("/{imageId}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
         try {

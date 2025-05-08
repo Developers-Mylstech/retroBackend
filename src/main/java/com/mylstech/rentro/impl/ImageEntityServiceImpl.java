@@ -1,6 +1,7 @@
 package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.response.FileUploadResponse;
+import com.mylstech.rentro.dto.response.ImageDTO;
 import com.mylstech.rentro.model.Image;
 import com.mylstech.rentro.repository.ImageRepository;
 import com.mylstech.rentro.service.FileStorageService;
@@ -41,13 +42,14 @@ public class ImageEntityServiceImpl implements ImageEntityService {
         String contentType = fileUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
         
         // Save the image entity
-        saveImage(fileUrl);
+        Image savedImage = saveImage(fileUrl);
         
         return new FileUploadResponse(
             fileName,
             fileUrl,
             contentType,
-            file.getSize()
+            file.getSize(),
+            new ImageDTO (savedImage)
         );
     }
 
@@ -81,10 +83,15 @@ public class ImageEntityServiceImpl implements ImageEntityService {
         Image image = imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found with id: " + imageId));
         
-        // Delete the physical file
-        fileStorageService.deleteFile(image.getFilePath());
+        // Delete the file from storage
+        try {
+            fileStorageService.deleteImage(image.getImageUrl());
+        } catch (IOException e) {
+            // Log error but continue with database deletion
+            e.printStackTrace();
+        }
         
-        // Delete the database record
+        // Delete from database
         imageRepository.delete(image);
     }
 

@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -33,7 +34,7 @@ public class ProductResponse {
     private List<String> imageUrls;
     private List<String> keyFeatures;
     private List<String> tagNKeywords;
-
+    private List<ImageDTO> images;
 
     public ProductResponse(Product product) {
         this.productId = product.getProductId();
@@ -67,8 +68,17 @@ public class ProductResponse {
                 .toList();
         }
 
-        if (product.getImageUrls () != null) {
-            this.imageUrls = product.getImageUrls();
+
+        // For backward compatibility
+        this.imageUrls = product.getImageUrls();
+        
+        // New image entity integration
+        if (product.getImages() != null) {
+            this.images = product.getImages().stream()
+                    .map(image -> new ImageDTO(image.getImageId(), image.getImageUrl()))
+                    .collect(Collectors.toList());
+        } else {
+            this.images = new ArrayList<>();
         }
         if (product.getKeyFeatures () != null) {
             this.keyFeatures = product.getKeyFeatures ();

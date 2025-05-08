@@ -30,4 +30,5 @@ public class ProductRequest {
     private InventoryRequest inventory;
     private List<String> keyFeatures;
     private List<String> tagNKeywords;
+    private List<Long> imageIds;
 }
