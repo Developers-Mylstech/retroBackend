@@ -76,7 +76,8 @@ public class ProductResponse {
         if (product.getImages() != null) {
             this.images = product.getImages().stream()
                     .map(image -> new ImageDTO(image.getImageId(), image.getImageUrl()))
-                    .collect(Collectors.toList());
+                  .toList();
+            System.out.println ("images-------in response-----------: " + images.stream ().map ( ImageDTO::getImageUrl ).toList () );
         } else {
             this.images = new ArrayList<>();
         }

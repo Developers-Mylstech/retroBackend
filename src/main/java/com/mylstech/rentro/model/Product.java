@@ -30,10 +30,15 @@ public class Product {
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "product_id")
-    private List<Image> images = new ArrayList<> ();
-
+    // Many-to-many relationship with Image
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "product_images",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "image_id")
+    )
+    private List<Image> images = new ArrayList<>();
+    
     // Keep the old field for backward compatibility during migration
     @ElementCollection
     @CollectionTable(name = "product_image_urls",
@@ -95,9 +100,16 @@ public class Product {
         
         // Convert URLs to Image entities
         for (String url : urls) {
-            Image image = new Image();
-            image.setImageUrl(url);
-            this.images.add(image);
+            // Check if we already have this URL to avoid duplicates
+            boolean urlExists = this.images.stream()
+                    .anyMatch(img -> img.getImageUrl().equals(url));
+                    
+            if (!urlExists) {
+                Image image = new Image();
+                image.setImageUrl(url);
+                image.addProduct(this); // Add this product to the image
+                this.images.add(image);
+            }
         }
     }
 
@@ -106,6 +118,26 @@ public class Product {
         if (this.images == null) {
             this.images = new ArrayList<>();
         }
-        this.images.add(image);
+        
+        // Check if we already have this image to avoid duplicates
+        boolean imageExists = this.images.stream()
+                .anyMatch(img -> img.getImageId() != null && 
+                                 img.getImageId().equals(image.getImageId()));
+                                 
+        if (!imageExists) {
+            this.images.add(image);
+            image.addProduct(this); // Add this product to the image
+        }
+    }
+    
+    // Helper method to remove an image
+    public void removeImage(Image image) {
+        if (this.images != null) {
+            this.images.remove(image);
+            // Remove this product from the image's products list
+            if (image.getProducts() != null) {
+                image.getProducts().remove(this);
+            }
+        }
     }
 }

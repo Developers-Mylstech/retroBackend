@@ -5,6 +5,7 @@ import com.mylstech.rentro.dto.request.ProductRequest;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.util.ProductType;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
@@ -16,9 +17,15 @@ public interface ProductService {
     void deleteProduct(Long id);
     
     // Additional methods for managing product images
-    ProductResponse addImageToProduct(Long productId, String imageUrl);
-    ProductResponse removeImageFromProduct(Long productId, String imageUrl);
-    
+    ProductResponse addImageToProduct(Long productId, Long imageId);
+    ProductResponse removeImageFromProduct(Long productId, Long imageId);
+
+//    @Transactional
+//    ProductResponse addImageToProduct(Long productId, String imageUrl);
+
+//    @Transactional
+//    ProductResponse removeImageFromProduct(Long productId, String imageUrl);
+
     // New method to get products by type
     List<ProductResponse> getProductsByType(ProductType productType);
     

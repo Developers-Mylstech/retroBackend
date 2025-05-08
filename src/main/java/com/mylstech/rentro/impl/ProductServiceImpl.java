@@ -17,7 +17,6 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -98,14 +97,16 @@ public class ProductServiceImpl implements ProductService {
     @Override
     public ProductResponse getProductById(Long id) {
         try {
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new ResourceNotFoundException ("Product", "id", id));
+            Product product = productRepository.findById ( id )
+                    .orElseThrow ( () -> new ResourceNotFoundException ( "Product", "id", id ) );
             logger.debug ( "Found product with id {}: {}", id, product );
             return new ProductResponse ( product );
-        } catch (ResourceNotFoundException e) {
+        }
+        catch ( ResourceNotFoundException e ) {
             throw e;  // Let it propagate to be handled by GlobalExceptionHandler
-        } catch (Exception e) {
-            logger.error("Error retrieving product with id: " + id, e);
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error retrieving product with id: " + id, e );
             throw e;
         }
     }
@@ -249,32 +250,50 @@ public class ProductServiceImpl implements ProductService {
             product.setTagNKeywords ( request.getTagNKeywords ( ) );
         }
 
+        // Initialize images list
+        product.setImages ( new ArrayList<> ( ) );
+
         // Set images using imageIds if provided
-        if (request.getImageIds() != null && !request.getImageIds().isEmpty()) {
-            List<Image> images = imageRepository.findAllById(request.getImageIds());
-            product.setImages(new ArrayList<>(images));
-        } else {
-            product.setImages(new ArrayList<>());
+        if ( request.getImageIds ( ) != null && ! request.getImageIds ( ).isEmpty ( ) ) {
+            List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
+            logger.debug ( "Found {} images by IDs", images.size ( ) );
+
+            // Add each image individually to maintain bidirectional relationship
+            for (Image image : images) {
+                product.addImage ( image );
+            }
         }
-        
+
         // For backward compatibility - handle imageUrls if provided
-        if (request.getImageUrls() != null && !request.getImageUrls().isEmpty()) {
-            // Convert URLs to Image entities if they don't exist yet
-            for (String url : request.getImageUrls()) {
-                Image image = imageRepository.findByImageUrl(url)
-                        .orElseGet(() -> {
-                            Image newImage = new Image();
-                            newImage.setImageUrl(url);
-                            return imageRepository.save(newImage);
-                        });
-                product.getImages().add(image);
+        if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
+            for (String url : request.getImageUrls ( )) {
+                // Check if this URL already exists in our images list to avoid duplicates
+                boolean urlAlreadyExists = product.getImages ( ).stream ( )
+                        .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
+
+                if ( ! urlAlreadyExists ) {
+                    // Try to find existing image entity with this URL
+                    Image image = imageRepository.findByImageUrl ( url )
+                            .orElseGet ( () -> {
+                                Image newImage = new Image ( );
+                                newImage.setImageUrl ( url );
+                                return imageRepository.save ( newImage );
+                            } );
+                    product.addImage ( image );
+                }
             }
         }
 
         // Save the product
-        Product savedProduct = productRepository.save(product);
+        Product savedProduct = productRepository.save ( product );
 
-        return new ProductResponse(savedProduct);
+        if ( logger.isDebugEnabled ( ) ) {
+            logger.debug ( "Saved product with ID: {} and {} images",
+                    savedProduct.getProductId ( ),
+                    savedProduct.getImages ( ).size ( ) );
+        }
+
+        return new ProductResponse ( savedProduct );
     }
 
     @Override
@@ -489,33 +508,56 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Update images if imageIds are provided
-        if (request.getImageIds() != null) {
-            // Clear existing images
-            product.getImages().clear();
-            
+        if ( request.getImageIds ( ) != null ) {
+            // Create a copy of the current images to safely remove them
+            List<Image> currentImages = new ArrayList<> ( product.getImages ( ) );
+
+            // Remove all current images from the product
+            for (Image image : currentImages) {
+                product.removeImage ( image );
+            }
+
             // Add new images
-            if (!request.getImageIds().isEmpty()) {
-                List<Image> images = imageRepository.findAllById(request.getImageIds());
-                product.getImages().addAll(images);
+            if ( ! request.getImageIds ( ).isEmpty ( ) ) {
+                List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
+                logger.debug ( "Found {} images by IDs for update", images.size ( ) );
+
+                // Add each image individually to maintain bidirectional relationship
+                for (Image image : images) {
+                    product.addImage ( image );
+                }
             }
         }
-        
+
         // For backward compatibility - handle imageUrls if provided
-        if (request.getImageUrls() != null) {
-            // Clear existing images if we're explicitly setting new ones
-            if (request.getImageIds() == null) {
-                product.getImages().clear();
+        if ( request.getImageUrls ( ) != null ) {
+            // Clear existing images if we're explicitly setting new ones and imageIds wasn't provided
+            if ( request.getImageIds ( ) == null ) {
+                // Create a copy of the current images to safely remove them
+                List<Image> currentImages = new ArrayList<> ( product.getImages ( ) );
+
+                // Remove all current images from the product
+                for (Image image : currentImages) {
+                    product.removeImage ( image );
+                }
             }
-            
+
             // Add images from URLs
-            for (String url : request.getImageUrls()) {
-                Image image = imageRepository.findByImageUrl(url)
-                        .orElseGet(() -> {
-                            Image newImage = new Image();
-                            newImage.setImageUrl(url);
-                            return imageRepository.save(newImage);
-                        });
-                product.getImages().add(image);
+            for (String url : request.getImageUrls ( )) {
+                // Check if this URL already exists in our images list to avoid duplicates
+                boolean urlAlreadyExists = product.getImages ( ).stream ( )
+                        .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
+
+                if ( ! urlAlreadyExists ) {
+                    // Try to find existing image entity with this URL
+                    Image image = imageRepository.findByImageUrl ( url )
+                            .orElseGet ( () -> {
+                                Image newImage = new Image ( );
+                                newImage.setImageUrl ( url );
+                                return imageRepository.save ( newImage );
+                            } );
+                    product.addImage ( image );
+                }
             }
         }
 
@@ -526,6 +568,12 @@ public class ProductServiceImpl implements ProductService {
         // Save the updated product
         Product updatedProduct = productRepository.save ( product );
 
+        if ( logger.isDebugEnabled ( ) ) {
+            logger.debug ( "Updated product with ID: {} and {} images",
+                    updatedProduct.getProductId ( ),
+                    updatedProduct.getImages ( ).size ( ) );
+        }
+
         return new ProductResponse ( updatedProduct );
     }
 
@@ -533,39 +581,106 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public void deleteProduct(Long id) {
-        Product product = productRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
-        productRepository.delete ( product );
+        try {
+            logger.debug ( "Attempting to delete product with id: {}", id );
+
+            Product product = productRepository.findById ( id )
+                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+
+            // First, remove all image associations
+            if ( product.getImages ( ) != null && ! product.getImages ( ).isEmpty ( ) ) {
+                logger.debug ( "Removing {} image associations from product", product.getImages ( ).size ( ) );
+
+                // Create a copy to avoid ConcurrentModificationException
+                List<Image> imagesToRemove = new ArrayList<> ( product.getImages ( ) );
+
+                // Remove each image association
+                for (Image image : imagesToRemove) {
+                    product.removeImage ( image );
+                }
+
+                // Save the product to update the associations
+                product = productRepository.save ( product );
+            }
+
+            // Now delete the product
+            productRepository.delete ( product );
+            logger.debug ( "Successfully deleted product with id: {}", id );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error deleting product with id: " + id, e );
+            throw new RuntimeException ( "Failed to delete product with id: " + id, e );
+        }
     }
 
     @Override
     @Transactional
-    public ProductResponse addImageToProduct(Long productId, String imageUrl) {
+    public ProductResponse addImageToProduct(Long productId, Long imageId) {
+        logger.debug ( "Adding image {} to product {}", imageId, productId );
+
+        // Find the product
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
 
-        if ( product.getImageUrls ( ) == null ) {
-            product.setImageUrls ( new ArrayList<> ( ) );
+        // Find the image
+        Image image = imageRepository.findById ( imageId )
+                .orElseThrow ( () -> new RuntimeException ( "Image not found with id: " + imageId ) );
+
+        // Check if the product already has this image
+        boolean hasImage = product.getImages ( ).stream ( )
+                .anyMatch ( img -> img.getImageId ( ).equals ( imageId ) );
+
+        if ( hasImage ) {
+            logger.warn ( "Image {} is already associated with product {}", imageId, productId );
+            return new ProductResponse ( product ); // Return unchanged
         }
 
+        // Add the image to the product
+        product.addImage ( image );
 
-        productRepository.save ( product );
+        // Save the product
+        Product updatedProduct = productRepository.save ( product );
+        logger.debug ( "Successfully added image {} to product {}", imageId, productId );
 
-        return new ProductResponse ( product );
+        return new ProductResponse ( updatedProduct );
     }
 
     @Override
     @Transactional
-    public ProductResponse removeImageFromProduct(Long productId, String imageUrl) {
+    public ProductResponse removeImageFromProduct(Long productId, Long imageId) {
+        logger.debug ( "Removing image {} from product {}", imageId, productId );
+
+        // Find the product
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
 
-        if ( product.getImageUrls ( ) != null ) {
-            product.getImageUrls ( ).remove ( imageUrl );
-            productRepository.save ( product );
+        // Find the image
+        Image image = imageRepository.findById ( imageId )
+                .orElseThrow ( () -> new RuntimeException ( "Image not found with id: " + imageId ) );
+
+        // Check if the product has this image
+        boolean hasImage = product.getImages ( ).stream ( )
+                .anyMatch ( img -> img.getImageId ( ).equals ( imageId ) );
+
+        if ( ! hasImage ) {
+            logger.warn ( "Image {} is not associated with product {}", imageId, productId );
+            throw new RuntimeException ( "Image is not associated with this product" );
         }
 
-        return new ProductResponse ( product );
+        // Remove the image from the product
+        product.removeImage ( image );
+
+        // Save the product
+        Product updatedProduct = productRepository.save ( product );
+        logger.debug ( "Successfully removed image {} from product {}", imageId, productId );
+
+        // Check if the image is now orphaned (not associated with any products)
+        if ( image.getProducts ( ) == null || image.getProducts ( ).isEmpty ( ) ) {
+            logger.debug ( "Image {} is now orphaned, marking for potential cleanup", imageId );
+            // You could delete it here or leave it for the cleanup job
+        }
+
+        return new ProductResponse ( updatedProduct );
     }
 
     private Rent updateRentFields(Rent existingRent, RentRequest rentRequest) {
@@ -583,12 +698,12 @@ public class ProductServiceImpl implements ProductService {
             existingRent.setDiscountUnit ( UNIT.PERCENTAGE );
             existingRent.setDiscountValue ( rentRequest.getDiscountValue ( ) );
         }
-        if ( rentRequest.getIsVatIncluded ( ) ) {
+        if ( Boolean.TRUE.equals(rentRequest.getIsVatIncluded ( )) ) {
             existingRent.setVat ( vat );
             existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) +
                     (existingRent.getMonthlyPrice ( ) * (existingRent.getVat ( )
                             / 100)) );
-        } else if ( ! rentRequest.getIsVatIncluded ( ) ) {
+        } else if ( Boolean.FALSE.equals ( rentRequest.getIsVatIncluded ( )) ) {
             existingRent.setVat ( 0.0 );
         }
 
@@ -673,7 +788,7 @@ public class ProductServiceImpl implements ProductService {
                     break;
                 case AMC_BASIC:
                     logger.debug ( "Fetching products available for AMC_BASIC" );
-                    products = productRepository.findByProductForServicesAmcBasicNotNull ();
+                    products = productRepository.findByProductForServicesAmcBasicNotNull ( );
                     break;
                 default:
                     logger.warn ( "Unknown product type: {}", productType );
@@ -696,7 +811,7 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public CheckOutResponse buyNow(Long productId, BuyNowRequest request) {
-        logger.debug("Processing buy now request for product ID: {}", productId);
+        logger.debug ( "Processing buy now request for product ID: {}", productId );
 //
 //        if (!request.isValid()) {
 //            throw new IllegalArgumentException("Invalid buy now request");
@@ -704,137 +819,137 @@ public class ProductServiceImpl implements ProductService {
 
         try {
             // Get the current user
-            AppUser currentUser = securityUtils.getCurrentUser();
+            AppUser currentUser = securityUtils.getCurrentUser ( );
 
             // Find the product
-            Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+            Product product = productRepository.findById ( productId )
+                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
 
             // Validate product configuration
-            if (product.getProductFor() == null) {
-                throw new IllegalArgumentException("Product is not properly configured for purchase or rental");
+            if ( product.getProductFor ( ) == null ) {
+                throw new IllegalArgumentException ( "Product is not properly configured for purchase or rental" );
             }
 
             // Validate product type compatibility
-            if (request.getProductType() == ProductType.SELL &&
-                    (product.getProductFor().getSell() == null)) {
-                throw new IllegalArgumentException("This product is not available for purchase");
+            if ( request.getProductType ( ) == ProductType.SELL &&
+                    (product.getProductFor ( ).getSell ( ) == null) ) {
+                throw new IllegalArgumentException ( "This product is not available for purchase" );
             }
 
-            if (request.getProductType() == ProductType.RENT &&
-                    (product.getProductFor().getRent() == null)) {
-                throw new IllegalArgumentException("This product is not available for rent");
+            if ( request.getProductType ( ) == ProductType.RENT &&
+                    (product.getProductFor ( ).getRent ( ) == null) ) {
+                throw new IllegalArgumentException ( "This product is not available for rent" );
             }
 
             // Create a temporary cart for this purchase
-            Cart cart = new Cart();
-            cart.setUser(currentUser);
-            cart.setTemporary(true); // Mark as temporary cart
+            Cart cart = new Cart ( );
+            cart.setUser ( currentUser );
+            cart.setTemporary ( true ); // Mark as temporary cart
 
             // Save the cart first to ensure it has an ID
-            cart = cartRepository.save(cart);
-            logger.debug("Created temporary cart with ID: {}", cart.getCartId());
+            cart = cartRepository.save ( cart );
+            logger.debug ( "Created temporary cart with ID: {}", cart.getCartId ( ) );
 
             // Create the cart item
-            CartItem cartItem = new CartItem();
-            cartItem.setProduct(product);
-            cartItem.setProductType(request.getProductType());
+            CartItem cartItem = new CartItem ( );
+            cartItem.setProduct ( product );
+            cartItem.setProductType ( request.getProductType ( ) );
 
             // Set quantity and rent period based on product type
-            if (request.getProductType() == ProductType.SELL) {
-                cartItem.setQuantity(request.getQuantity());
+            if ( request.getProductType ( ) == ProductType.SELL ) {
+                cartItem.setQuantity ( request.getQuantity ( ) );
 
 
                 // Calculate price for sell item
-                double unitPrice = product.getProductFor().getSell().getDiscountPrice();
-                if (unitPrice <= 0) {
-                    unitPrice = product.getProductFor().getSell().getActualPrice();
+                double unitPrice = product.getProductFor ( ).getSell ( ).getDiscountPrice ( );
+                if ( unitPrice <= 0 ) {
+                    unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
                 }
-                if (product.getProductFor().getSell().getVat() != null) {
-                    unitPrice = unitPrice + (unitPrice * (product.getProductFor().getSell().getVat() / 100));
+                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null ) {
+                    unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
                 }
-                cartItem.setPrice(unitPrice * cartItem.getQuantity());
-            } else if (request.getProductType() == ProductType.RENT) {
-                cartItem.setQuantity(request.getQuantity());
+                cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
+            } else if ( request.getProductType ( ) == ProductType.RENT ) {
+                cartItem.setQuantity ( request.getQuantity ( ) );
 
 
                 // Calculate price for rent item
-                double monthlyPrice = product.getProductFor().getRent().getDiscountPrice();
-                if (monthlyPrice <= 0) {
-                    monthlyPrice = product.getProductFor().getRent().getMonthlyPrice();
+                double monthlyPrice = product.getProductFor ( ).getRent ( ).getDiscountPrice ( );
+                if ( monthlyPrice <= 0 ) {
+                    monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
                 }
-                if (product.getProductFor().getRent().getVat() != null) {
-                    monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor().getRent().getVat() / 100));
+                if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null ) {
+                    monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
                 }
-                cartItem.setPrice(monthlyPrice * cartItem.getQuantity() );
-            }
-            else if ( request.getProductType ()==ProductType.OTS ) {
-                cartItem.setPrice ( product.getProductFor ().getServices ().getOts ( ).getPrice ( ) );
-            }else if ( request.getProductType ()==ProductType.MMC ) {
-                cartItem.setPrice ( product.getProductFor ().getServices ().getMmc ( ).getPrice ( ) );
+                cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
+            } else if ( request.getProductType ( ) == ProductType.OTS ) {
+                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
+            } else if ( request.getProductType ( ) == ProductType.MMC ) {
+                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
 
-            }else if ( request.getProductType ()==ProductType.AMC_GOLD ) {
-                cartItem.setPrice ( product.getProductFor ().getServices ().getAmcBasic ( ).getPrice ( ) );
+            } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
+                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
 
-            }else if ( request.getProductType ()==ProductType.AMC_BASIC ) {
-                cartItem.setPrice ( product.getProductFor ().getServices ().getAmcGold ( ).getPrice ( ) );
+            } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
+                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
             }
 
             // Add to cart using the helper method
-            cart.addItem(cartItem);
+            cart.addItem ( cartItem );
 
             // Calculate total price for cart
-            cart.calculateTotalPrice();
+            cart.calculateTotalPrice ( );
 
             // Save the cart again with the item
-            cart = cartRepository.save(cart);
-            logger.debug("Updated cart with item, total price: {}", cart.getTotalPrice());
+            cart = cartRepository.save ( cart );
+            logger.debug ( "Updated cart with item, total price: {}", cart.getTotalPrice ( ) );
 
             // Handle address
             Address deliveryAddress = null;
 
             // If addressId is provided, use that address
-            if (request.getAddressId() != null) {
-                deliveryAddress = addressRepository.findById(request.getAddressId())
-                        .orElseThrow(() -> new RuntimeException("Address not found with id: " + request.getAddressId()));
+            if ( request.getAddressId ( ) != null ) {
+                deliveryAddress = addressRepository.findById ( request.getAddressId ( ) )
+                        .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
 
                 // Verify address belongs to current user
-                if (!deliveryAddress.getUser().getUserId().equals(currentUser.getUserId())) {
-                    throw new RuntimeException("You don't have permission to use this address");
+                if ( ! deliveryAddress.getUser ( ).getUserId ( ).equals ( currentUser.getUserId ( ) ) ) {
+                    throw new RuntimeException ( "You don't have permission to use this address" );
                 }
             }
             // If inline address is provided, create a new address
-            else if (request.getAddress() != null) {
-                AddressRequest addressRequest = request.getAddress();
-                deliveryAddress = addressRequest.toAddress();
-                deliveryAddress.setUser(currentUser);
-                deliveryAddress = addressRepository.save(deliveryAddress);
+            else if ( request.getAddress ( ) != null ) {
+                AddressRequest addressRequest = request.getAddress ( );
+                deliveryAddress = addressRequest.toAddress ( );
+                deliveryAddress.setUser ( currentUser );
+                deliveryAddress = addressRepository.save ( deliveryAddress );
             }
 
             // Create checkout
-            CheckOut checkOut = new CheckOut();
-            checkOut.setCart(cart);
+            CheckOut checkOut = new CheckOut ( );
+            checkOut.setCart ( cart );
             checkOut.setFirstName ( request.getFirstName ( ) );
             checkOut.setLastName ( request.getLastName ( ) );
-            checkOut.setMobile(request.getMobile());
-            checkOut.setEmail(request.getEmail());
+            checkOut.setMobile ( request.getMobile ( ) );
+            checkOut.setEmail ( request.getEmail ( ) );
 
 
-            if (deliveryAddress != null) {
-                checkOut.setDeliveryAddress(deliveryAddress);
-                checkOut.setHomeAddress(deliveryAddress.getFormattedAddress());
+            if ( deliveryAddress != null ) {
+                checkOut.setDeliveryAddress ( deliveryAddress );
+                checkOut.setHomeAddress ( deliveryAddress.getFormattedAddress ( ) );
             }
             // Save checkout
-            CheckOut savedCheckOut = checkOutRepository.save(checkOut);
-            logger.debug("Created checkout with ID: {}", savedCheckOut.getCheckoutId());
+            CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
+            logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
 
             // Place order immediately
-            CheckOutResponse checkOutResponse = checkOutService.placeOrder(savedCheckOut.getCheckoutId());
-            logger.debug("Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId());
+            CheckOutResponse checkOutResponse = checkOutService.placeOrder ( savedCheckOut.getCheckoutId ( ) );
+            logger.debug ( "Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
 
             return checkOutResponse;
-        } catch (Exception e) {
-            logger.error("Error processing buy now request: {}", e.getMessage(), e);
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error processing buy now request: {}", e.getMessage ( ), e );
             throw e;
         }
     }

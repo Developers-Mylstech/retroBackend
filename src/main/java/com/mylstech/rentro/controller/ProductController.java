@@ -77,19 +77,42 @@ public class ProductController {
         return ResponseEntity.ok("Product deleted successfully");
     }
 
-    // We're keeping these methods for backward compatibility and individual image management
-    @PostMapping("/{id}/images")
-    public ResponseEntity<ProductResponse> addImageToProduct(
-            @PathVariable Long id,
-            @RequestBody String imageUrl) {
-        return ResponseEntity.ok(productService.addImageToProduct(id, imageUrl));
+//    // We're keeping these methods for backward compatibility and individual image management
+//    @PostMapping("/{id}/images")
+//    public ResponseEntity<ProductResponse> addImageToProduct(
+//            @PathVariable Long id,
+//            @RequestBody String imageUrl) {
+//        return ResponseEntity.ok(productService.addImageToProduct(id,  imageUrl));
+//    }
+
+    @DeleteMapping("/{productId}/images/{imageId}")
+    @Operation(summary = "Remove a specific image from a product", 
+               description = "Removes the association between a product and an image")
+    public ResponseEntity<ProductResponse> removeImageFromProduct(
+            @PathVariable Long productId,
+            @PathVariable Long imageId) {
+        try {
+            ProductResponse response = productService.removeImageFromProduct(productId, imageId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
     }
 
-    @DeleteMapping("/{id}/images")
-    public ResponseEntity<ProductResponse> removeImageFromProduct(
-            @PathVariable Long id,
-            @RequestBody String imageUrl) {
-        return ResponseEntity.ok(productService.removeImageFromProduct(id, imageUrl));
+    @PostMapping("/{productId}/images/{imageId}")
+    @Operation(summary = "Add a specific image to a product", 
+               description = "Creates an association between a product and an image")
+    public ResponseEntity<ProductResponse> addImageToProduct(
+            @PathVariable Long productId,
+            @PathVariable Long imageId) {
+        try {
+            ProductResponse response = productService.addImageToProduct(productId, imageId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
     }
 
     @Operation(summary = "Get products by type", description = "Retrieve products filtered by type (SELL, RENT, SERVICE)")
