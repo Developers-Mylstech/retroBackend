@@ -31,4 +31,6 @@ public interface FileStorageService {
     String getUploadDir();
 
     String getBaseUrl();
+
+    void deleteImage(String imageUrl) throws IOException;
 }

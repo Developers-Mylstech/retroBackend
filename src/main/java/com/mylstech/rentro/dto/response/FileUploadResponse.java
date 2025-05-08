@@ -14,7 +14,7 @@ public class FileUploadResponse {
     private String fileType;
     private long size;
     private String error;
-    private Image image;
+    private ImageDTO image;
 
     public FileUploadResponse(String fileName, String fileUrl, String fileType, long size) {
         this.fileName = fileName;
@@ -24,7 +24,7 @@ public class FileUploadResponse {
         this.error = null;
     }
     
-    public FileUploadResponse(String fileName, String fileUrl, String fileType, long size, Image image) {
+    public FileUploadResponse(String fileName, String fileUrl, String fileType, long size, ImageDTO image) {
         this.fileName = fileName;
         this.fileUrl = fileUrl;
         this.fileType = fileType;

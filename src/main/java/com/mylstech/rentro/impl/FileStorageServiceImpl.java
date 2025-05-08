@@ -152,4 +152,25 @@ public class FileStorageServiceImpl implements FileStorageService {
                 file.getSize()
         );
     }
+
+    @Override
+    public void deleteImage(String imageUrl) throws IOException {
+        if (imageUrl == null || imageUrl.isEmpty()) {
+            return;
+        }
+        
+        // Extract the file name from the URL
+        String fileName = imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+        
+        // Create the file path
+        Path filePath = Paths.get(uploadDir).resolve(fileName).normalize();
+        
+        // Check if file exists
+        if (Files.exists(filePath)) {
+            // Delete the file
+            Files.delete(filePath);
+        } else {
+            throw new IOException("File not found: " + fileName);
+        }
+    }
 }
