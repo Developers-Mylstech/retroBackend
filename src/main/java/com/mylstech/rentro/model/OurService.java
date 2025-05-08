@@ -35,4 +35,8 @@ public class OurService {
     private List<String> imageUrl;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feature> feature;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id", insertable = false, updatable = false)
+    private Product product;
 }

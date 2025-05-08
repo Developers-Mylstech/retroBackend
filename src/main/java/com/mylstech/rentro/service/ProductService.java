@@ -20,11 +20,6 @@ public interface ProductService {
     ProductResponse addImageToProduct(Long productId, Long imageId);
     ProductResponse removeImageFromProduct(Long productId, Long imageId);
 
-//    @Transactional
-//    ProductResponse addImageToProduct(Long productId, String imageUrl);
-
-//    @Transactional
-//    ProductResponse removeImageFromProduct(Long productId, String imageUrl);
 
     // New method to get products by type
     List<ProductResponse> getProductsByType(ProductType productType);
@@ -36,4 +31,20 @@ public interface ProductService {
      * @return the checkout response
      */
     CheckOutResponse buyNow(Long productId, BuyNowRequest request);
+
+    /**
+     * Adds an existing service to a product by ID
+     * @param productId The ID of the product
+     * @param ourServiceId The ID of the service to add
+     * @return The updated product response
+     */
+    ProductResponse addServiceToProduct(Long productId, Long ourServiceId);
+
+    /**
+     * Removes a service from a product
+     * @param productId The ID of the product
+     * @param ourServiceId The ID of the service to remove
+     * @return The updated product response
+     */
+    ProductResponse removeServiceFromProduct(Long productId, Long ourServiceId);
 }

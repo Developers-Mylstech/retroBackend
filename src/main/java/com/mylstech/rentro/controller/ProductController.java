@@ -176,4 +176,34 @@ public class ProductController {
             throw e;
         }
     }
+
+    @PostMapping("/{productId}/services/{ourServiceId}")
+    @Operation(summary = "Add a service to a product by ID", 
+               description = "Adds an existing service to a product by ID")
+    public ResponseEntity<ProductResponse> addServiceToProduct(
+            @PathVariable Long productId,
+            @PathVariable Long ourServiceId) {
+        try {
+            ProductResponse response = productService.addServiceToProduct(productId, ourServiceId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
+
+    @DeleteMapping("/{productId}/services/{ourServiceId}")
+    @Operation(summary = "Remove a service from a product", 
+               description = "Removes a service from a product")
+    public ResponseEntity<ProductResponse> removeServiceFromProduct(
+            @PathVariable Long productId,
+            @PathVariable Long ourServiceId) {
+        try {
+            ProductResponse response = productService.removeServiceFromProduct(productId, ourServiceId);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
+                    .body(null);
+        }
+    }
 }

@@ -31,4 +31,6 @@ public class ProductRequest {
     private List<String> keyFeatures;
     private List<String> tagNKeywords;
     private List<Long> imageIds;
+    // Use IDs for existing OurService entities instead of full request objects
+    private List<Long> ourServiceIds;
 }

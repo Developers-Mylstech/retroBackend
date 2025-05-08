@@ -63,6 +63,10 @@ public class Product {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Inventory inventory;
 
+    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    @JoinColumn(name = "product_id")
+    private List<OurService> ourServices = new ArrayList<>();
+
     @ElementCollection
     @CollectionTable(name = "key_features",
             joinColumns = @JoinColumn(name = "product_id"))
@@ -138,6 +142,21 @@ public class Product {
             if (image.getProducts() != null) {
                 image.getProducts().remove(this);
             }
+        }
+    }
+
+    // Helper method to add an OurService
+    public void addOurService(OurService ourService) {
+        if (this.ourServices == null) {
+            this.ourServices = new ArrayList<>();
+        }
+        this.ourServices.add(ourService);
+    }
+
+    // Helper method to remove an OurService
+    public void removeOurService(OurService ourService) {
+        if (this.ourServices != null) {
+            this.ourServices.remove(ourService);
         }
     }
 }

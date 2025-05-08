@@ -17,6 +17,7 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -50,6 +51,7 @@ public class ProductServiceImpl implements ProductService {
     private final ImageService imageService;
     private final CartService cartService;
     private final ImageRepository imageRepository;
+    private final OurServiceRepository ourServiceRepository;
 
     @Value("${vat.value}")
     private Double vat;
@@ -248,6 +250,18 @@ public class ProductServiceImpl implements ProductService {
         //set Tag N Keyword
         if ( request.getTagNKeywords ( ) != null ) {
             product.setTagNKeywords ( request.getTagNKeywords ( ) );
+        }
+
+        // Handle OurServices if IDs are provided
+        if (request.getOurServiceIds() != null && !request.getOurServiceIds().isEmpty()) {
+            List<OurService> ourServices = ourServiceRepository.findAllById(request.getOurServiceIds());
+            
+            if (ourServices.size() != request.getOurServiceIds().size()) {
+                logger.warn("Some OurService IDs were not found. Found {} out of {} requested services.", 
+                            ourServices.size(), request.getOurServiceIds().size());
+            }
+            
+            product.setOurServices(ourServices);
         }
 
         // Initialize images list
@@ -565,6 +579,29 @@ public class ProductServiceImpl implements ProductService {
         if ( request.getTagNKeywords ( ) != null ) {
             product.setTagNKeywords ( request.getTagNKeywords ( ) );
         }
+
+        // Update OurServices if IDs are provided
+        if (request.getOurServiceIds() != null) {
+            // Clear existing services
+            if (product.getOurServices() != null) {
+                product.getOurServices().clear();
+            } else {
+                product.setOurServices(new ArrayList<>());
+            }
+            
+            // Add services by ID
+            if (!request.getOurServiceIds().isEmpty()) {
+                List<OurService> ourServices = ourServiceRepository.findAllById(request.getOurServiceIds());
+                
+                if (ourServices.size() != request.getOurServiceIds().size()) {
+                    logger.warn("Some OurService IDs were not found. Found {} out of {} requested services.", 
+                                ourServices.size(), request.getOurServiceIds().size());
+                }
+                
+                product.getOurServices().addAll(ourServices);
+            }
+        }
+
         // Save the updated product
         Product updatedProduct = productRepository.save ( product );
 
@@ -952,5 +989,66 @@ public class ProductServiceImpl implements ProductService {
             logger.error ( "Error processing buy now request: {}", e.getMessage ( ), e );
             throw e;
         }
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse addServiceToProduct(Long productId, Long ourServiceId) {
+        logger.debug("Adding service {} to product {}", ourServiceId, productId);
+        
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        
+        OurService ourService = ourServiceRepository.findById(ourServiceId)
+                .orElseThrow(() -> new RuntimeException("OurService not found with id: " + ourServiceId));
+        
+        // Check if the service is already associated with the product
+        boolean serviceExists = false;
+        if (product.getOurServices() != null) {
+            serviceExists = product.getOurServices().stream()
+                    .anyMatch(service -> service.getOurServiceId().equals(ourServiceId));
+        } else {
+            product.setOurServices(new ArrayList<>());
+        }
+        
+        if (!serviceExists) {
+            product.addOurService(ourService);
+            product = productRepository.save(product);
+            logger.debug("Successfully added service {} to product {}", ourServiceId, productId);
+        } else {
+            logger.debug("Service {} is already associated with product {}", ourServiceId, productId);
+        }
+        
+        return new ProductResponse(product);
+    }
+
+    @Override
+    @Transactional
+    public ProductResponse removeServiceFromProduct(Long productId, Long ourServiceId) {
+        logger.debug("Removing service {} from product {}", ourServiceId, productId);
+        
+        Product product = productRepository.findById(productId)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
+        
+        if (product.getOurServices() == null || product.getOurServices().isEmpty()) {
+            logger.warn("Product {} has no services", productId);
+            return new ProductResponse(product);
+        }
+        
+        OurService serviceToRemove = product.getOurServices().stream()
+                .filter(service -> service.getOurServiceId().equals(ourServiceId))
+                .findFirst()
+                .orElse(null);
+        
+        if (serviceToRemove == null) {
+            logger.warn("Service {} not found in product {}", ourServiceId, productId);
+            return new ProductResponse(product);
+        }
+        
+        product.removeOurService(serviceToRemove);
+        product = productRepository.save(product);
+        logger.debug("Successfully removed service {} from product {}", ourServiceId, productId);
+        
+        return new ProductResponse(product);
     }
 }
