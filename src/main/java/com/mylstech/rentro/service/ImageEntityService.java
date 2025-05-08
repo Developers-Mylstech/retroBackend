@@ -2,6 +2,7 @@ package com.mylstech.rentro.service;
 
 import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.model.Image;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
@@ -27,4 +28,7 @@ public interface ImageEntityService {
     List<Image> getAllImages();
     
     Image getImageById(Long imageId);
+
+    @Transactional
+    void cleanupOrphanedImages();
 }

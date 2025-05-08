@@ -8,6 +8,8 @@ import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.LocalDateTime;
+import java.util.ArrayList;
+import java.util.List;
 
 @Entity
 @Getter
@@ -26,8 +28,30 @@ public class Image {
     @CreationTimestamp
     private LocalDateTime createdAt;
     
+    // Many-to-many relationship with Product
+    @ManyToMany(mappedBy = "images")
+    private List<Product> products = new ArrayList<>();
+    
     // Helper method to extract file path from URL for deletion
     public String getFilePath() {
         return imageUrl.substring(imageUrl.lastIndexOf("/") + 1);
+    }
+    
+    // Helper method to add a product
+    public void addProduct(Product product) {
+        if (this.products == null) {
+            this.products = new ArrayList<>();
+        }
+        
+        if (!this.products.contains(product)) {
+            this.products.add(product);
+        }
+    }
+    
+    // Helper method to remove a product
+    public void removeProduct(Product product) {
+        if (this.products != null) {
+            this.products.remove(product);
+        }
     }
 }

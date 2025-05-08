@@ -7,6 +7,8 @@ import com.mylstech.rentro.repository.ImageRepository;
 import com.mylstech.rentro.service.FileStorageService;
 import com.mylstech.rentro.service.ImageEntityService;
 import lombok.RequiredArgsConstructor;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.util.StringUtils;
@@ -22,6 +24,7 @@ public class ImageEntityServiceImpl implements ImageEntityService {
 
     private final ImageRepository imageRepository;
     private final FileStorageService fileStorageService;
+    private final Logger logger = LoggerFactory.getLogger ( ImageEntityServiceImpl.class );
 
     @Override
     @Transactional
@@ -104,5 +107,40 @@ public class ImageEntityServiceImpl implements ImageEntityService {
     public Image getImageById(Long imageId) {
         return imageRepository.findById(imageId)
                 .orElseThrow(() -> new RuntimeException("Image not found with id: " + imageId));
+    }
+
+    @Transactional
+    @Override
+    public void cleanupOrphanedImages() {
+        logger.info("Starting cleanup of orphaned images");
+        
+        // Find images not associated with any products
+        List<Image> orphanedImages = imageRepository.findImagesWithNoProducts();
+        
+        if (orphanedImages.isEmpty()) {
+            logger.info("No orphaned images found");
+            return;
+        }
+        
+        logger.info("Found {} orphaned images to clean up", orphanedImages.size());
+        
+        // Delete each orphaned image
+        for (Image image : orphanedImages) {
+            try {
+                // Delete the file from storage
+                fileStorageService.deleteImage(image.getImageUrl());
+                
+                // Delete from database
+                imageRepository.delete(image);
+                logger.debug("Deleted orphaned image with id: {}", image.getImageId());
+            } catch (IOException e) {
+                // Log error but continue with other deletions
+                logger.error("Error deleting image file for image id: " + image.getImageId(), e);
+                // Still delete from database
+                imageRepository.delete(image);
+            }
+        }
+        
+        logger.info("Completed cleanup of orphaned images");
     }
 }

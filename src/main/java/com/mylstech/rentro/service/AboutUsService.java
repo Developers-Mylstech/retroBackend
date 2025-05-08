@@ -11,4 +11,8 @@ public interface AboutUsService {
     AboutUsResponse createAboutUs(AboutUsRequest request);
     AboutUsResponse updateAboutUs(Long id, AboutUsRequest request);
     void deleteAboutUs(Long id);
+    
+    // New methods for image management
+    AboutUsResponse setAboutUsImage(Long aboutUsId, Long imageId);
+    AboutUsResponse removeAboutUsImage(Long aboutUsId);
 }

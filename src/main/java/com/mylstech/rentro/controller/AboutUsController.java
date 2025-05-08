@@ -79,4 +79,34 @@ public class AboutUsController {
             throw e;
         }
     }
+    
+    @PutMapping("/{id}/image/{imageId}")
+    @Operation(summary = "Set about us image", description = "Sets the image for an about us entry")
+    public ResponseEntity<AboutUsResponse> setAboutUsImage(
+            @PathVariable Long id,
+            @PathVariable Long imageId) {
+        try {
+            logger.debug("Setting image with ID {} for about us entry with ID: {}", imageId, id);
+            AboutUsResponse aboutUs = aboutUsService.setAboutUsImage(id, imageId);
+            logger.debug("Set image for about us entry: {}", aboutUs);
+            return ResponseEntity.ok(aboutUs);
+        } catch (Exception e) {
+            logger.error("Error setting image for about us entry with ID: " + id, e);
+            throw e;
+        }
+    }
+    
+    @DeleteMapping("/{id}/image")
+    @Operation(summary = "Remove about us image", description = "Removes the image from an about us entry")
+    public ResponseEntity<AboutUsResponse> removeAboutUsImage(@PathVariable Long id) {
+        try {
+            logger.debug("Removing image from about us entry with ID: {}", id);
+            AboutUsResponse aboutUs = aboutUsService.removeAboutUsImage(id);
+            logger.debug("Removed image from about us entry: {}", aboutUs);
+            return ResponseEntity.ok(aboutUs);
+        } catch (Exception e) {
+            logger.error("Error removing image from about us entry with ID: " + id, e);
+            throw e;
+        }
+    }
 }
