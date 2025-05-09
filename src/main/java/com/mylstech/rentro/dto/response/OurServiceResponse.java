@@ -27,11 +27,11 @@ public class OurServiceResponse {
         this.detailedHeading = ourService.getDetailedHeading();
         this.detailedDescription = ourService.getDetailedDescription();
         this.imageUrl = ourService.getImageUrl();
-        
+
         if (ourService.getFeature() != null && !ourService.getFeature().isEmpty()) {
             this.features = ourService.getFeature().stream()
                     .map(FeatureResponse::new)
-                    .collect(Collectors.toList());
+                    .toList();
         }
     }
 }

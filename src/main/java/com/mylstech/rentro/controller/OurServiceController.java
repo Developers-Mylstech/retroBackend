@@ -2,6 +2,7 @@ package com.mylstech.rentro.controller;
 
 import com.mylstech.rentro.dto.request.OurServiceRequest;
 import com.mylstech.rentro.dto.response.OurServiceResponse;
+import com.mylstech.rentro.dto.response.OurServiceWithProductsResponse;
 import com.mylstech.rentro.service.OurServiceService;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
@@ -82,6 +83,20 @@ public class OurServiceController {
             return ResponseEntity.ok("Our service deleted successfully");
         } catch (Exception e) {
             logger.error("Error deleting our service with id: " + id, e);
+            throw e;
+        }
+    }
+
+    @GetMapping("/{id}/products")
+    public ResponseEntity<OurServiceWithProductsResponse> getOurServiceWithProducts(@PathVariable Long id) {
+        try {
+            logger.debug("Fetching our service with products for service id: {}", id);
+            OurServiceWithProductsResponse response = ourServiceService.getOurServiceWithProducts(id);
+            logger.debug("Found our service with {} related products", 
+                        response.getRelatedProducts() != null ? response.getRelatedProducts().size() : 0);
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error fetching our service with products for id: " + id, e);
             throw e;
         }
     }

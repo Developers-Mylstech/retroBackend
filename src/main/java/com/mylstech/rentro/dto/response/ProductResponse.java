@@ -35,6 +35,7 @@ public class ProductResponse {
     private List<String> keyFeatures;
     private List<String> tagNKeywords;
     private List<ImageDTO> images;
+    private List<OurServiceResponse> ourServices;
 
     public ProductResponse(Product product) {
         this.productId = product.getProductId();
@@ -77,9 +78,14 @@ public class ProductResponse {
             this.images = product.getImages().stream()
                     .map(image -> new ImageDTO(image.getImageId(), image.getImageUrl()))
                   .toList();
-            System.out.println ("images-------in response-----------: " + images.stream ().map ( ImageDTO::getImageUrl ).toList () );
+
         } else {
             this.images = new ArrayList<>();
+        }
+        if(product.getOurServices () != null) {
+            this.ourServices = product.getOurServices ().stream()
+                    .map(OurServiceResponse::new)
+                    .toList();
         }
         if (product.getKeyFeatures () != null) {
             this.keyFeatures = product.getKeyFeatures ();

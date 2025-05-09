@@ -13,7 +13,7 @@ public class JobApplicantResponse {
     private String name;
     private String email;
     private String resume;
-    private Long jobPostId;
+    private String jobCode;
     private String phone;
     private String jobTitle;
 
@@ -23,7 +23,7 @@ public class JobApplicantResponse {
         this.email = jobApplicant.getEmail();
         this.resume = jobApplicant.getResume();
         this.phone = jobApplicant.getPhone();
-        this.jobPostId = jobApplicant.getJobPost().getJobPostId();
+        this.jobCode = jobApplicant.getJobPost().getJobCode ();
         this.jobTitle = jobApplicant.getJobPost().getJobTitle();
     }
 }

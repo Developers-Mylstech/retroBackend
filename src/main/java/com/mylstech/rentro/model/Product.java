@@ -63,8 +63,12 @@ public class Product {
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Inventory inventory;
 
-    @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
-    @JoinColumn(name = "product_id")
+    @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
+    @JoinTable(
+        name = "product_services",
+        joinColumns = @JoinColumn(name = "product_id"),
+        inverseJoinColumns = @JoinColumn(name = "service_id")
+    )
     private List<OurService> ourServices = new ArrayList<>();
 
     @ElementCollection
@@ -145,18 +149,40 @@ public class Product {
         }
     }
 
-    // Helper method to add an OurService
+    // Helper method to add a service
     public void addOurService(OurService ourService) {
         if (this.ourServices == null) {
             this.ourServices = new ArrayList<>();
         }
-        this.ourServices.add(ourService);
+        
+        // Check if we already have this service to avoid duplicates
+        boolean serviceExists = this.ourServices.stream()
+                .anyMatch(svc -> svc.getOurServiceId() != null && 
+                                 svc.getOurServiceId().equals(ourService.getOurServiceId()));
+                                 
+        if (!serviceExists) {
+            this.ourServices.add(ourService);
+            // Add this product to the service's products list
+            if (ourService.getProducts() != null) {
+                if (!ourService.getProducts().contains(this)) {
+                    ourService.getProducts().add(this);
+                }
+            } else {
+                List<Product> products = new ArrayList<>();
+                products.add(this);
+                ourService.setProducts(products);
+            }
+        }
     }
 
-    // Helper method to remove an OurService
+    // Helper method to remove a service
     public void removeOurService(OurService ourService) {
         if (this.ourServices != null) {
             this.ourServices.remove(ourService);
+            // Remove this product from the service's products list
+            if (ourService.getProducts() != null) {
+                ourService.getProducts().remove(this);
+            }
         }
     }
 }

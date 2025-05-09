@@ -619,34 +619,46 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public void deleteProduct(Long id) {
         try {
-            logger.debug ( "Attempting to delete product with id: {}", id );
+            logger.debug("Attempting to delete product with id: {}", id);
 
-            Product product = productRepository.findById ( id )
-                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+            Product product = productRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
 
-            // First, remove all image associations
-            if ( product.getImages ( ) != null && ! product.getImages ( ).isEmpty ( ) ) {
-                logger.debug ( "Removing {} image associations from product", product.getImages ( ).size ( ) );
-
+            // First, remove all service associations
+            if (product.getOurServices() != null && !product.getOurServices().isEmpty()) {
+                logger.debug("Removing {} service associations from product", product.getOurServices().size());
+                
                 // Create a copy to avoid ConcurrentModificationException
-                List<Image> imagesToRemove = new ArrayList<> ( product.getImages ( ) );
-
-                // Remove each image association
-                for (Image image : imagesToRemove) {
-                    product.removeImage ( image );
+                List<OurService> servicesToRemove = new ArrayList<>(product.getOurServices());
+                
+                // Remove each service association
+                for (OurService service : servicesToRemove) {
+                    product.removeOurService(service);
                 }
-
+                
                 // Save the product to update the associations
-                product = productRepository.save ( product );
+                product = productRepository.save(product);
+            }
+
+            // Remove image associations (existing code)
+            if (product.getImages() != null && !product.getImages().isEmpty()) {
+                logger.debug("Removing {} image associations from product", product.getImages().size());
+                
+                List<Image> imagesToRemove = new ArrayList<>(product.getImages());
+                
+                for (Image image : imagesToRemove) {
+                    product.removeImage(image);
+                }
+                
+                product = productRepository.save(product);
             }
 
             // Now delete the product
-            productRepository.delete ( product );
-            logger.debug ( "Successfully deleted product with id: {}", id );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error deleting product with id: " + id, e );
-            throw new RuntimeException ( "Failed to delete product with id: " + id, e );
+            productRepository.delete(product);
+            logger.debug("Successfully deleted product with id: {}", id);
+        } catch (Exception e) {
+            logger.error("Error deleting product with id: " + id, e);
+            throw new RuntimeException("Failed to delete product with id: " + id, e);
         }
     }
 

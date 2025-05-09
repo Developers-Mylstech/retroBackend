@@ -40,7 +40,6 @@ public class BannerServiceImpl implements BannerService {
             banner.setImageUrl ( request.getImageUrl ( ) );
         }
         return  new BannerResponse ( bannerRepository.save ( banner ));
-
     }
 
     @Override

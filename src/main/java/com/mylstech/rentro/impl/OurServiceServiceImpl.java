@@ -2,8 +2,10 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.OurServiceRequest;
 import com.mylstech.rentro.dto.response.OurServiceResponse;
+import com.mylstech.rentro.dto.response.OurServiceWithProductsResponse;
 import com.mylstech.rentro.model.Feature;
 import com.mylstech.rentro.model.OurService;
+import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.repository.OurServiceRepository;
 import com.mylstech.rentro.service.OurServiceService;
 import lombok.RequiredArgsConstructor;
@@ -144,11 +146,54 @@ public class OurServiceServiceImpl implements OurServiceService {
             OurService ourService = ourServiceRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Our service not found with id: " + id));
             
+            // First, remove all product associations
+            if (ourService.getProducts() != null && !ourService.getProducts().isEmpty()) {
+                logger.debug("Removing {} product associations from service", ourService.getProducts().size());
+                
+                // Create a copy to avoid ConcurrentModificationException
+                List<Product> productsToRemove = new ArrayList<>(ourService.getProducts());
+                
+                // Remove each product association
+                for (Product product : productsToRemove) {
+                    ourService.removeProduct(product);
+                }
+                
+                // Save the service to update the associations
+                ourService = ourServiceRepository.save(ourService);
+            }
+            
+            // Now delete the service
             ourServiceRepository.delete(ourService);
             logger.info("Successfully deleted our service with id: {}", id);
         } catch (Exception e) {
             logger.error("Error deleting our service with id: {}", id, e);
             throw new RuntimeException("Failed to delete our service with id: " + id, e);
+        }
+    }
+
+    @Override
+    @Transactional(readOnly = true)
+    public OurServiceWithProductsResponse getOurServiceWithProducts(Long id) {
+        try {
+            logger.info("Retrieving our service with products for service id: {}", id);
+            
+            OurService ourService = ourServiceRepository.findById(id)
+                    .orElseThrow(() -> new RuntimeException("Our service not found with id: " + id));
+            
+            // Ensure products are loaded (if using lazy loading)
+            if (ourService.getProducts() != null) {
+                ourService.getProducts().size(); // Force initialization of the collection
+                logger.debug("Found {} related products for service id: {}", 
+                            ourService.getProducts().size(), id);
+            }
+            
+            OurServiceWithProductsResponse response = new OurServiceWithProductsResponse(ourService);
+            logger.info("Successfully retrieved our service with products for id: {}", id);
+            
+            return response;
+        } catch (Exception e) {
+            logger.error("Error retrieving our service with products for id: {}", id, e);
+            throw new RuntimeException("Failed to retrieve our service with products for id: " + id, e);
         }
     }
 }
