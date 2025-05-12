@@ -101,7 +101,8 @@ public class ImageServiceImpl implements ImageService {
             case "ourservices":
                 OurService ourServices = ourServicesRepository.findById(entityId)
                         .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + entityId));
-                response.setImageUrls(ourServices.getImageUrl());
+                // Set as single image instead of image URLs list
+                response.setSingleImage(ourServices.getImageUrl());
                 break;
 
             default:
@@ -155,9 +156,8 @@ public class ImageServiceImpl implements ImageService {
                     .map(os -> new EntityImagesResponse(
                         os.getOurServiceId (),
                         "ourservices",
-                        os.getImageUrl (),
-                        null))
-                    .toList();
+                        null,
+                        os.getImageUrl ())).toList();
                 
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
@@ -329,10 +329,10 @@ public class ImageServiceImpl implements ImageService {
         OurService ourServices = ourServicesRepository.findById(ourServicesId)
                 .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
         
-        if (ourServices.getImageUrl() == null) {
-            ourServices.setImageUrl(new ArrayList<>());
+        if (ourServices.getImageUrl() != null) {
+            ourServices.setImageUrl(fileUrl);
         }
-        ourServices.getImageUrl().add(fileUrl);
+
         ourServicesRepository.save(ourServices);
     }
 
@@ -340,9 +340,9 @@ public class ImageServiceImpl implements ImageService {
         OurService ourServices = ourServicesRepository.findById(ourServicesId)
                 .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
         
-        if (ourServices.getImageUrl() != null && !ourServices.getImageUrl().isEmpty()) {
-            String imageUrl = ourServices.getImageUrl().get(ourServices.getImageUrl().size() - 1);
-            ourServices.getImageUrl().remove(imageUrl);
+        if (ourServices.getImageUrl() != null) {
+            String imageUrl = ourServices.getImageUrl();
+            ourServices.setImageUrl(null);
             ourServicesRepository.save(ourServices);
             deleteImageFile(imageUrl);
         }

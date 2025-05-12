@@ -17,7 +17,8 @@ public class OurServiceResponse {
     private String shortDescription;
     private String detailedHeading;
     private String detailedDescription;
-    private List<String> imageUrl;
+//    private List<String> imageUrl;
+    private String imageUrl;
     private List<FeatureResponse> features;
     
     public OurServiceResponse(OurService ourService) {

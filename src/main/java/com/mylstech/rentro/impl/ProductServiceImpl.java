@@ -17,6 +17,8 @@ import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -81,6 +83,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
+    @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponse> getAllProducts() {
         try {
             List<Product> products = productRepository.findAll ( );
@@ -115,6 +118,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse createProduct(ProductRequest request) {
         // Bottom-up approach: Create all related entities first, then the product
 
@@ -312,6 +316,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById ( id )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
@@ -617,6 +622,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
+    @CacheEvict(value = "products", key = "'allProducts'")
     public void deleteProduct(Long id) {
         try {
             logger.debug("Attempting to delete product with id: {}", id);

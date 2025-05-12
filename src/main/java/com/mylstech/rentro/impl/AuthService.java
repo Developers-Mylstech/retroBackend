@@ -72,6 +72,10 @@ public class AuthService {
 
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
+        // Check if user is verified
+        if (!user.isVerified()) {
+            throw new RuntimeException("Account not verified. Please verify your email first.");
+        }
 
 
         RefreshToken refreshToken;

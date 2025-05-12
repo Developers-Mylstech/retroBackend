@@ -108,12 +108,12 @@ public class OurServiceServiceImpl implements OurServiceService {
                 ourService.setDetailedDescription(request.getDetailedDescription());
                 logger.debug("Updated detailed description for our service with id: {}", id);
             }
-            
+
+            // Handle imageUrl as a single string
             if (request.getImageUrl() != null) {
                 ourService.setImageUrl(request.getImageUrl());
-                logger.debug("Updated image URLs for our service with id: {}", id);
+                logger.debug("Updated image URL for our service with id: {}", id);
             }
-            
             if (request.getFeatures() != null) {
                 List<Feature> features = request.getFeatures().stream()
                         .map(featureRequest -> {

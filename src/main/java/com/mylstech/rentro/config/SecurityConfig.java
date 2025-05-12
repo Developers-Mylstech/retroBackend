@@ -38,8 +38,18 @@ public class SecurityConfig {
                 .csrf ( AbstractHttpConfigurer::disable )
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
-                        .requestMatchers ( HttpMethod.GET,"api/v1/products/**","/api/v1/job-posts","/api/v1/our-services" ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST,"/api/v1/job-applicants","/api/v1/files/upload-pdf","/api/v1/request-quotations","/api/v1/images/upload" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.GET,
+                                "api/v1/products/**",
+                                "/api/v1/job-posts",
+                                "/api/v1/our-services",
+                                "/api/v1/clients",
+                                "/api/v1/brands",
+                                "/api/v1/about-us/**" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,
+                                "/api/v1/job-applicants",
+                                "/api/v1/files/upload-pdf",
+                                "/api/v1/request-quotations",
+                                "/api/v1/images/upload" ).permitAll ( )
                         .requestMatchers ( "/api/v1/auth/register",
                                 "/uploads/**",
                                 "/api/v1/auth/register-admin",
@@ -87,9 +97,11 @@ public class SecurityConfig {
         CorsConfiguration config = new CorsConfiguration ( );
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
-                "https://llq7suvlc27b.share.zrok.io",
+                "http://localhost:5174",
+                "https://ytpl35tzol7o.share.zrok.io",
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
+                "https://demo.rentro.ae",
                 "https://panel.rentro.ae",
                 "https://demo.panel.rentro.ae" ) ); // You can replace "*" with specific domains
         config.setAllowedMethods ( List.of ( "GET", "POST", "PUT", "DELETE", "OPTIONS" ) );

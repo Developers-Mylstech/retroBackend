@@ -28,4 +28,10 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     @Query("SELECT p FROM Product p WHERE p.productFor.services.amcGold IS NOT NULL")
     List<Product> findByProductForServicesAmcGoldNotNull();
+
+    List<Product> findByBrandBrandId(Long brandId);
+
+    List<Product> findByCategoryCategoryId(Long id);
+
+    List<Product> findBySubCategoryCategoryId(Long id);
 }

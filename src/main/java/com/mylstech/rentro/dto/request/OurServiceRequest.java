@@ -18,7 +18,8 @@ public class OurServiceRequest {
     private String shortDescription;
     private String detailedHeading;
     private String detailedDescription;
-    private List<String> imageUrl;
+//    private List<String> imageUrl;
+    private String imageUrl;
     private List<FeatureRequest> features;
     
     public OurService requestToOurService() {
@@ -27,8 +28,8 @@ public class OurServiceRequest {
         ourService.setShortDescription(shortDescription);
         ourService.setDetailedHeading(detailedHeading);
         ourService.setDetailedDescription(detailedDescription);
-        ourService.setImageUrl(imageUrl != null ? imageUrl : new ArrayList<>());
-        
+//        ourService.setImageUrl(imageUrl != null ? imageUrl : new ArrayList<>());
+        ourService.setImageUrl ( imageUrl );
         if (features != null && !features.isEmpty()) {
             List<Feature> featureList = features.stream()
                     .map(FeatureRequest::requestToFeature)

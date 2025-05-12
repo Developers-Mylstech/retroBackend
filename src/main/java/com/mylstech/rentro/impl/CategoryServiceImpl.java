@@ -3,10 +3,13 @@ package com.mylstech.rentro.impl;
 import com.mylstech.rentro.dto.request.CategoryRequest;
 import com.mylstech.rentro.dto.response.CategoryResponse;
 import com.mylstech.rentro.model.Category;
+import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.repository.CategoryRepository;
+import com.mylstech.rentro.repository.ProductRepository;
 import com.mylstech.rentro.service.CategoryService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -16,6 +19,7 @@ import java.util.stream.Collectors;
 public class CategoryServiceImpl implements CategoryService {
 
     private final CategoryRepository categoryRepository;
+    private final ProductRepository productRepository;
 
     @Override
     public List<CategoryResponse> getAllCategories() {
@@ -90,26 +94,45 @@ public class CategoryServiceImpl implements CategoryService {
     }
 
     @Override
+    @Transactional
     public void deleteCategory(Long id) {
         Category category = categoryRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + id));
 
-        // If the category has subcategories, either delete them or reassign them
+        // Check if the category has subcategories
         if (category.getSubCategories() != null && !category.getSubCategories().isEmpty()) {
-            // Option 1: Delete all subcategories (cascading delete)
-            // This is handled by CascadeType.ALL in the entity
-
-            // Option 2: Reassign subcategories to the parent of the category being deleted
-            // Uncomment the following code to implement this option
-            /*
-            Category parentCategory = category.getParentCategory();
-            for (Category subCategory : category.getSubCategories()) {
-                subCategory.setParentCategory(parentCategory);
-                categoryRepository.save(subCategory);
-            }
-            */
+            throw new RuntimeException("Cannot delete category with subcategories. Found " + 
+                    category.getSubCategories().size() + " subcategories. Remove subcategories first.");
         }
 
+        // Check if any products are associated with this category
+        List<Product> productsWithCategory = productRepository.findByCategoryCategoryId(id);
+        if (productsWithCategory != null && !productsWithCategory.isEmpty()) {
+            throw new RuntimeException("Cannot delete category with associated products. Found " + 
+                    productsWithCategory.size() + " products using this category.");
+        }
+
+        // Check if any products are associated with this category as a subcategory
+        List<Product> productsWithSubCategory = productRepository.findBySubCategoryCategoryId(id);
+        if (productsWithSubCategory != null && !productsWithSubCategory.isEmpty()) {
+            throw new RuntimeException("Cannot delete category with associated products as subcategory. Found " + 
+                    productsWithSubCategory.size() + " products using this as subcategory.");
+        }
+
+        // Clear images if any
+        if (category.getImages() != null) {
+            category.getImages().clear();
+        }
+
+        // Clear image URLs if any
+        if (category.getImageUrls() != null) {
+            category.getImageUrls().clear();
+        }
+
+        // Save the category with cleared collections first
+        categoryRepository.save(category);
+
+        // Now delete the category
         categoryRepository.delete(category);
     }
 }
