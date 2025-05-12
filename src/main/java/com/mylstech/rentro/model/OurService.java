@@ -27,12 +27,9 @@ public class OurService {
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "our_service_id")
     private List<Image> images = new ArrayList<>();
-//    @ElementCollection
-//    @CollectionTable(name = "our_services_image_urls",
-//            joinColumns = @JoinColumn(name = "our_service_id"))
-//    @Column(name = "image_url")
-//    @Deprecated
-//    private List<String> imageUrl;
+
+    // Explicitly name the column to avoid conflicts with the old collection table
+    @Column(name = "image_url")
     private String imageUrl;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feature> feature;

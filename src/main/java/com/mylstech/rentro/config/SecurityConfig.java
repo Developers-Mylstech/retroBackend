@@ -98,7 +98,7 @@ public class SecurityConfig {
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "https://ytpl35tzol7o.share.zrok.io",
+                "https://mcs2kz4bdzki.share.zrok.io",
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://demo.rentro.ae",

@@ -18,25 +18,30 @@ public class OurServiceRequest {
     private String shortDescription;
     private String detailedHeading;
     private String detailedDescription;
-//    private List<String> imageUrl;
+    
+    // Changed from List<String> to String
     private String imageUrl;
+    
     private List<FeatureRequest> features;
     
     public OurService requestToOurService() {
         OurService ourService = new OurService();
-        ourService.setTitle(title);
-        ourService.setShortDescription(shortDescription);
-        ourService.setDetailedHeading(detailedHeading);
-        ourService.setDetailedDescription(detailedDescription);
-//        ourService.setImageUrl(imageUrl != null ? imageUrl : new ArrayList<>());
-        ourService.setImageUrl ( imageUrl );
-        if (features != null && !features.isEmpty()) {
-            List<Feature> featureList = features.stream()
-                    .map(FeatureRequest::requestToFeature)
-                    .collect(Collectors.toList());
+        ourService.setTitle(this.title);
+        ourService.setShortDescription(this.shortDescription);
+        ourService.setDetailedHeading(this.detailedHeading);
+        ourService.setDetailedDescription(this.detailedDescription);
+        ourService.setImageUrl(this.imageUrl);
+        
+        if (this.features != null) {
+            List<Feature> featureList = this.features.stream()
+                    .map(featureRequest -> {
+                        Feature feature = new Feature();
+                        feature.setTitle(featureRequest.getTitle());
+                        feature.setDescription(featureRequest.getDescription());
+                        return feature;
+                    })
+                    .toList();
             ourService.setFeature(featureList);
-        } else {
-            ourService.setFeature(new ArrayList<>());
         }
         
         return ourService;

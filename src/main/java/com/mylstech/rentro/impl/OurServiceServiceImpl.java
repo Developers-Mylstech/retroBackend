@@ -1,5 +1,6 @@
 package com.mylstech.rentro.impl;
 
+import com.mylstech.rentro.dto.request.FeatureRequest;
 import com.mylstech.rentro.dto.request.OurServiceRequest;
 import com.mylstech.rentro.dto.response.OurServiceResponse;
 import com.mylstech.rentro.dto.response.OurServiceWithProductsResponse;
@@ -86,8 +87,12 @@ public class OurServiceServiceImpl implements OurServiceService {
     public OurServiceResponse updateOurService(Long id, OurServiceRequest request) {
         try {
             logger.info("Updating our service with id: {}", id);
+            logger.debug("Request details: {}", request);
+            
             OurService ourService = ourServiceRepository.findById(id)
                     .orElseThrow(() -> new RuntimeException("Our service not found with id: " + id));
+            
+            logger.debug("Current service before update: {}", ourService);
             
             if (request.getTitle() != null) {
                 ourService.setTitle(request.getTitle());
@@ -108,27 +113,46 @@ public class OurServiceServiceImpl implements OurServiceService {
                 ourService.setDetailedDescription(request.getDetailedDescription());
                 logger.debug("Updated detailed description for our service with id: {}", id);
             }
-
+            
             // Handle imageUrl as a single string
             if (request.getImageUrl() != null) {
+                logger.debug("Updating image URL from '{}' to '{}'", ourService.getImageUrl(), request.getImageUrl());
                 ourService.setImageUrl(request.getImageUrl());
-                logger.debug("Updated image URL for our service with id: {}", id);
-            }
-            if (request.getFeatures() != null) {
-                List<Feature> features = request.getFeatures().stream()
-                        .map(featureRequest -> {
-                            Feature feature = new Feature();
-                            feature.setTitle(featureRequest.getTitle());
-                            feature.setDescription(featureRequest.getDescription());
-                            return feature;
-                        })
-                        .toList();
                 
+                // Explicitly flush to ensure the update is sent to the database
+                ourServiceRepository.saveAndFlush(ourService);
+                
+                logger.debug("Image URL updated successfully");
+            }
+            
+            if (request.getFeatures() != null) {
+                // Create a new list for features instead of modifying the existing one
+                List<Feature> features = new ArrayList<>();
+                
+                for (FeatureRequest featureRequest : request.getFeatures()) {
+                    Feature feature = new Feature();
+                    feature.setTitle(featureRequest.getTitle());
+                    feature.setDescription(featureRequest.getDescription());
+                    features.add(feature);
+                }
+                
+                // Clear existing features first to avoid the immutable collection issue
+                if (ourService.getFeature() != null) {
+                    // Create a new list to replace the potentially immutable one
+                    ourService.setFeature(new ArrayList<>(ourService.getFeature()));
+                    ourService.getFeature().clear();
+                    ourServiceRepository.saveAndFlush(ourService);
+                } else {
+                    ourService.setFeature(new ArrayList<>());
+                }
+                
+                // Now set the new features
                 ourService.setFeature(features);
                 logger.debug("Updated features for our service with id: {}", id);
             }
             
             OurService updatedOurService = ourServiceRepository.save(ourService);
+            logger.debug("Service after update: {}", updatedOurService);
             logger.info("Successfully updated our service with id: {}", id);
             
             return new OurServiceResponse(updatedOurService);

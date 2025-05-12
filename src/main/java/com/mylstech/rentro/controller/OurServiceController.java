@@ -64,13 +64,10 @@ public class OurServiceController {
     @PutMapping("/{id}")
     public ResponseEntity<OurServiceResponse> updateOurService(@PathVariable Long id, @RequestBody OurServiceRequest request) {
         try {
-            logger.debug("Updating our service with id: {}", id);
-            OurServiceResponse ourService = ourServiceService.updateOurService(id, request);
-            logger.debug("Updated our service: {}", ourService);
-            return ResponseEntity.ok(ourService);
+            OurServiceResponse response = ourServiceService.updateOurService(id, request);
+            return ResponseEntity.ok(response);
         } catch (Exception e) {
-            logger.error("Error updating our service with id: " + id, e);
-            throw e;
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
         }
     }
 
