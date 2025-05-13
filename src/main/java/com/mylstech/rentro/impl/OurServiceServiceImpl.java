@@ -90,22 +90,22 @@ public class OurServiceServiceImpl implements OurServiceService {
             if (request.getImageId() != null) {
                 Image image = imageRepository.findById(request.getImageId())
                         .orElseThrow(() -> new ResourceNotFoundException("Image", "id", request.getImageId()));
-                ourService.setImageUrl (image.getImageUrl ());
+                ourService.setImage (image);
             }
             // For backward compatibility, handle imageUrl if provided
-            else if (request.getImageUrl () != null) {
-                // Find or create an Image entity for this URL
-                Image image = imageRepository.findByImageUrl(request.getImageUrl ())
-                        .orElseGet(() -> {
-                            Image newImage = new Image();
-                            newImage.setImageUrl(request.getImageUrl ());
-                            return imageRepository.save(newImage);
-                        });
-                ourService.setImage (image);
-
-                // Also set the deprecated field for backward compatibility
-                ourService.setImageUrl(request.getImageUrl ());
-            }
+//            else if (request.getImageUrl () != null) {
+//                // Find or create an Image entity for this URL
+//                Image image = imageRepository.findByImageUrl(request.getImageUrl ())
+//                        .orElseGet(() -> {
+//                            Image newImage = new Image();
+//                            newImage.setImageUrl(request.getImageUrl ());
+//                            return imageRepository.save(newImage);
+//                        });
+//                ourService.setImage (image);
+//
+//                // Also set the deprecated field for backward compatibility
+//                ourService.setImageUrl(request.getImageUrl ());
+//            }
             OurService savedOurService = ourServiceRepository.save ( ourService );
             logger.info ( "Successfully created our service with id: {}", savedOurService.getOurServiceId ( ) );
 
@@ -155,34 +155,34 @@ public class OurServiceServiceImpl implements OurServiceService {
                         .orElseThrow(() -> new ResourceNotFoundException("Image", "id", request.getImageId()));
 
                 // Clear previous image reference
-                ourService.setImageUrl (null);
-                ourServiceRepository.saveAndFlush(ourService);
+//                ourService.setImageUrl (null);
+//                ourServiceRepository.saveAndFlush(ourService);
 
                 // Set new image
                 ourService.setImage (image);
 
                 // Also update the deprecated field for backward compatibility
-                ourService.setImageUrl(image.getImageUrl());
+//                ourService.setImageUrl(image.getImageUrl());
             }
             // For backward compatibility, handle imageUrl if provided
-            else if (request.getImageUrl () != null) {
-                // Clear previous image reference
-                ourService.setImageUrl (null);
-                ourServiceRepository.saveAndFlush(ourService);
-
-                // Find or create an Image entity for this URL
-                Image image = imageRepository.findByImageUrl(request.getImageUrl ())
-                        .orElseGet(() -> {
-                            Image newImage = new Image();
-                            newImage.setImageUrl(request.getImageUrl ());
-                            return imageRepository.save(newImage);
-                        });
-
-                ourService.setImage (image);
-
-                // Also set the deprecated field for backward compatibility
-                ourService.setImageUrl(request.getImageUrl ());
-            }
+//            else if (request.getImageUrl () != null) {
+//                // Clear previous image reference
+//                ourService.setImageUrl (null);
+//                ourServiceRepository.saveAndFlush(ourService);
+//
+//                // Find or create an Image entity for this URL
+//                Image image = imageRepository.findByImageUrl(request.getImageUrl ())
+//                        .orElseGet(() -> {
+//                            Image newImage = new Image();
+//                            newImage.setImageUrl(request.getImageUrl ());
+//                            return imageRepository.save(newImage);
+//                        });
+//
+//                ourService.setImage (image);
+//
+//                // Also set the deprecated field for backward compatibility
+//                ourService.setImageUrl(request.getImageUrl ());
+//            }
             if ( request.getFeatures ( ) != null ) {
                 // Create a new list for features instead of modifying the existing one
                 List<Feature> features = new ArrayList<> ( );
