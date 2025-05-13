@@ -26,10 +26,7 @@ public class AboutUs {
     @Column(length = 1000)
     private String description;
     
-    // Old field for backward compatibility
-    @Column(name = "image_url")
-    private String imageUrl;
-    
+
     // New field for Image entity integration with ManyToOne relationship
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")

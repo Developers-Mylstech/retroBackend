@@ -16,9 +16,7 @@ public class AboutUsRequest {
     @Size(max = 1000)
     private String description;
     
-    // Old field for backward compatibility
-    private String imageUrl;
-    
+
     // New field for Image entity integration
     private Long imageId;
     
@@ -27,7 +25,7 @@ public class AboutUsRequest {
         aboutUs.setTitle(this.title);
         aboutUs.setSubtitle(this.subtitle);
         aboutUs.setDescription(this.description);
-        aboutUs.setImageUrl(this.imageUrl); // For backward compatibility
+
         // Note: image will be set in the service layer
         return aboutUs;
     }

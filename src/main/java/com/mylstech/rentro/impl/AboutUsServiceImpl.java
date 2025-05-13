@@ -52,10 +52,10 @@ public class AboutUsServiceImpl implements AboutUsService {
                         .orElseThrow(() -> new ResourceNotFoundException("Image", "id", request.getImageId()));
                 aboutUs.setImage(image);
                 
-                // For backward compatibility, also set imageUrl
-                if (aboutUs.getImageUrl() == null) {
-                    aboutUs.setImageUrl(image.getImageUrl());
-                }
+//                // For backward compatibility, also set imageUrl
+//                if (aboutUs.getImageUrl() == null) {
+//                    aboutUs.setImageUrl(image.getImageUrl());
+//                }
             }
             
             AboutUs savedAboutUs = aboutUsRepository.save(aboutUs);
@@ -93,21 +93,21 @@ public class AboutUsServiceImpl implements AboutUsService {
             aboutUs.setImage(image);
             
             // For backward compatibility, also update imageUrl
-            aboutUs.setImageUrl(image.getImageUrl());
+//            aboutUs.setImageUrl(image.getImageUrl());
         } 
         // If only imageUrl is provided (backward compatibility)
-        else if (request.getImageUrl() != null) {
-            aboutUs.setImageUrl(request.getImageUrl());
-            
-            // Try to find or create an Image entity for this URL
-            Image image = imageRepository.findByImageUrl(request.getImageUrl())
-                    .orElseGet(() -> {
-                        Image newImage = new Image();
-                        newImage.setImageUrl(request.getImageUrl());
-                        return imageRepository.save(newImage);
-                    });
-            aboutUs.setImage(image);
-        }
+//        else if (request.getImageUrl() != null) {
+//            aboutUs.setImageUrl(request.getImageUrl());
+//
+//            // Try to find or create an Image entity for this URL
+//            Image image = imageRepository.findByImageUrl(request.getImageUrl())
+//                    .orElseGet(() -> {
+//                        Image newImage = new Image();
+//                        newImage.setImageUrl(request.getImageUrl());
+//                        return imageRepository.save(newImage);
+//                    });
+//            aboutUs.setImage(image);
+//        }
         
         return new AboutUsResponse(aboutUsRepository.save(aboutUs));
     }
@@ -130,7 +130,7 @@ public class AboutUsServiceImpl implements AboutUsService {
                 .orElseThrow(() -> new ResourceNotFoundException("Image", "id", imageId));
         
         aboutUs.setImage(image);
-        aboutUs.setImageUrl(image.getImageUrl()); // For backward compatibility
+//        aboutUs.setImageUrl(image.getImageUrl()); // For backward compatibility
         
         return new AboutUsResponse(aboutUsRepository.save(aboutUs));
     }
@@ -142,7 +142,7 @@ public class AboutUsServiceImpl implements AboutUsService {
                 .orElseThrow(() -> new ResourceNotFoundException("AboutUs", "id", aboutUsId));
         
         aboutUs.setImage(null);
-        aboutUs.setImageUrl(null); // Also clear the imageUrl for consistency
+//        aboutUs.setImageUrl(null); // Also clear the imageUrl for consistency
         
         return new AboutUsResponse(aboutUsRepository.save(aboutUs));
     }
