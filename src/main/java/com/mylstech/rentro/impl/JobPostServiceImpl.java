@@ -52,22 +52,22 @@ public class JobPostServiceImpl implements JobPostService {
         if (request.getImageId() != null) {
             Image image = imageRepository.findById(request.getImageId())
                     .orElseThrow(() -> new ResourceNotFoundException("Image", "id", request.getImageId()));
-            jobPost.setImageUrl (image.getImageUrl ());
+            jobPost.setImage (image);
         } 
         // For backward compatibility, handle imageUrl if provided
-        else if (request.getImage() != null) {
-            // Find or create an Image entity for this URL
-            Image image = imageRepository.findByImageUrl(request.getImage())
-                    .orElseGet(() -> {
-                        Image newImage = new Image();
-                        newImage.setImageUrl(request.getImage());
-                        return imageRepository.save(newImage);
-                    });
-            jobPost.setImage (image);
-            
-            // Also set the deprecated field for backward compatibility
-            jobPost.setImageUrl(request.getImage());
-        }
+//        else if (request.getImage() != null) {
+//            // Find or create an Image entity for this URL
+//            Image image = imageRepository.findByImageUrl(request.getImage())
+//                    .orElseGet(() -> {
+//                        Image newImage = new Image();
+//                        newImage.setImageUrl(request.getImage());
+//                        return imageRepository.save(newImage);
+//                    });
+//            jobPost.setImage (image);
+//
+//            // Also set the deprecated field for backward compatibility
+////            jobPost.setImageUrl(request.getImage());
+//        }
         
         return new JobPostResponse(jobPostRepository.save(jobPost));
     }
@@ -121,34 +121,34 @@ public class JobPostServiceImpl implements JobPostService {
                     .orElseThrow(() -> new ResourceNotFoundException("Image", "id", request.getImageId()));
             
             // Clear previous image reference
-            jobPost.setImageUrl (null);
-            jobPostRepository.saveAndFlush(jobPost);
+//            jobPost.setImageUrl (null);
+//            jobPostRepository.saveAndFlush(jobPost);
             
             // Set new image
             jobPost.setImage (image);
             
             // Also update the deprecated field for backward compatibility
-            jobPost.setImageUrl(image.getImageUrl());
+//            jobPost.setImageUrl(image.getImageUrl());
         } 
         // For backward compatibility, handle imageUrl if provided
-        else if (request.getImage() != null) {
-            // Clear previous image reference
-            jobPost.setImageUrl (null);
-            jobPostRepository.saveAndFlush(jobPost);
-            
-            // Find or create an Image entity for this URL
-            Image image = imageRepository.findByImageUrl(request.getImage())
-                    .orElseGet(() -> {
-                        Image newImage = new Image();
-                        newImage.setImageUrl(request.getImage());
-                        return imageRepository.save(newImage);
-                    });
-            
-            jobPost.setImage (image);
-            
-            // Also set the deprecated field for backward compatibility
-            jobPost.setImageUrl(request.getImage());
-        }
+//        else if (request.getImage() != null) {
+//            // Clear previous image reference
+//            jobPost.setImageUrl (null);
+//            jobPostRepository.saveAndFlush(jobPost);
+//
+//            // Find or create an Image entity for this URL
+//            Image image = imageRepository.findByImageUrl(request.getImage())
+//                    .orElseGet(() -> {
+//                        Image newImage = new Image();
+//                        newImage.setImageUrl(request.getImage());
+//                        return imageRepository.save(newImage);
+//                    });
+//
+//            jobPost.setImage (image);
+//
+//            // Also set the deprecated field for backward compatibility
+//            jobPost.setImageUrl(request.getImage());
+//        }
 
         return new JobPostResponse(jobPostRepository.save(jobPost));
     }
