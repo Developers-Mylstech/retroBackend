@@ -40,7 +40,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests ( auth -> auth
                         .requestMatchers ( HttpMethod.GET,
                                 "api/v1/products/**",
-                                "/api/v1/job-posts",
+                                "/api/v1/job-posts/**",
                                 "/api/v1/our-services/**",
                                 "/api/v1/clients",
                                 "/api/v1/brands",
