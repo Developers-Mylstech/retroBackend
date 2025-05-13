@@ -5,6 +5,7 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -17,10 +18,10 @@ public class OurServiceResponse {
     private String shortDescription;
     private String detailedHeading;
     private String detailedDescription;
-//    private List<String> imageUrl;
     private String imageUrl;
+    private ImageDTO image;
     private List<FeatureResponse> features;
-    
+
     public OurServiceResponse(OurService ourService) {
         this.ourServiceId = ourService.getOurServiceId();
         this.title = ourService.getTitle();
@@ -28,11 +29,18 @@ public class OurServiceResponse {
         this.detailedHeading = ourService.getDetailedHeading();
         this.detailedDescription = ourService.getDetailedDescription();
         this.imageUrl = ourService.getImageUrl();
-
-        if (ourService.getFeature() != null && !ourService.getFeature().isEmpty()) {
+        
+        // Safely handle null image
+        if (ourService.getImage() != null) {
+            this.image = new ImageDTO(ourService.getImage());
+        }
+        
+        if (ourService.getFeature() != null) {
             this.features = ourService.getFeature().stream()
                     .map(FeatureResponse::new)
-                    .toList();
+                    .collect(Collectors.toList());
+        } else {
+            this.features = new ArrayList<>();
         }
     }
 }

@@ -20,7 +20,10 @@ public class OurServiceRequest {
     private String detailedDescription;
     
     // Changed from List<String> to String
+    @Deprecated
     private String imageUrl;
+
+    private Long imageId;
     
     private List<FeatureRequest> features;
     

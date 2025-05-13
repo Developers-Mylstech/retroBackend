@@ -24,9 +24,11 @@ public class OurService {
     private String detailedHeading;
     @Size(max = 500)
     private String detailedDescription;
-    @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
-    @JoinColumn(name = "our_service_id")
-    private List<Image> images = new ArrayList<>();
+    // Changed from OneToOne to ManyToOne with proper cascade settings
+    @ManyToOne(fetch = FetchType.EAGER)
+    @JoinColumn(name = "image_id")
+    private Image image;
+
 
     // Explicitly name the column to avoid conflicts with the old collection table
     @Column(name = "image_url")

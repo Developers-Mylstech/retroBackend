@@ -12,8 +12,10 @@ public class ImageDTO {
     private Long imageId;
     private String imageUrl;
 
-    public ImageDTO(Image image ){
-        this.imageId = image.getImageId ();
-        this.imageUrl =image.getImageUrl ();
+    public ImageDTO(Image image) {
+        if (image != null) {
+            this.imageId = image.getImageId();
+            this.imageUrl = image.getImageUrl();
+        }
     }
 }

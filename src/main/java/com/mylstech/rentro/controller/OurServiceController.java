@@ -3,7 +3,9 @@ package com.mylstech.rentro.controller;
 import com.mylstech.rentro.dto.request.OurServiceRequest;
 import com.mylstech.rentro.dto.response.OurServiceResponse;
 import com.mylstech.rentro.dto.response.OurServiceWithProductsResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.service.OurServiceService;
+import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -96,5 +98,54 @@ public class OurServiceController {
             logger.error("Error fetching our service with products for id: " + id, e);
             throw e;
         }
+    }
+
+    @PutMapping("/{id}/image/{imageId}")
+    @Operation(summary = "Set image for a service", 
+               description = "Associates an existing image with a service")
+    public ResponseEntity<OurServiceResponse> setServiceImage(
+            @PathVariable("id") Long serviceId,
+            @PathVariable("imageId") Long imageId) {
+        try {
+            logger.debug("Setting image {} for service {}", imageId, serviceId);
+            OurServiceResponse response = ourServiceService.setOurServiceImage(serviceId, imageId);
+            logger.debug("Successfully set image for service");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error setting image {} for service {}", imageId, serviceId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+
+    @DeleteMapping("/{id}/image")
+    @Operation(summary = "Remove image from a service",
+               description = "Removes the associated image from a service")
+    public ResponseEntity<OurServiceResponse> removeServiceImage(
+            @PathVariable("id") Long serviceId) {
+        try {
+            logger.debug("Removing image from service {}", serviceId);
+            OurServiceResponse response = ourServiceService.removeOurServiceImage(serviceId);
+            logger.debug("Successfully removed image from service");
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            logger.error("Error removing image from service {}", serviceId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }
+    
+    @ExceptionHandler(ResourceNotFoundException.class)
+    public ResponseEntity<String> handleResourceNotFoundException(ResourceNotFoundException ex) {
+        logger.error("Resource not found: {}", ex.getMessage());
+        return ResponseEntity
+                .status(HttpStatus.NOT_FOUND)
+                .body(ex.getMessage());
+    }
+    
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleGenericException(Exception ex) {
+        logger.error("Unexpected error in OurServiceController", ex);
+        return ResponseEntity
+                .status(HttpStatus.INTERNAL_SERVER_ERROR)
+                .body("An unexpected error occurred: " + ex.getMessage());
     }
 }

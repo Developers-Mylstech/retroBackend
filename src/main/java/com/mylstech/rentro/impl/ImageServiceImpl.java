@@ -28,6 +28,7 @@ public class ImageServiceImpl implements ImageService {
     private final JobPostRepository jobPostRepository;
     private final OurServiceRepository ourServicesRepository;
     private final ImageEntityService imageEntityService;
+    private final ImageRepository imageRepository;
 
     @Override
     public FileUploadResponse uploadImage(MultipartFile file, int quality, boolean fallbackToJpeg) throws IOException {
@@ -83,7 +84,7 @@ public class ImageServiceImpl implements ImageService {
             case "brand":
                 Brand brand = brandRepository.findById(entityId)
                         .orElseThrow(() -> new RuntimeException("Brand not found with id: " + entityId));
-                response.setImageUrls(brand.getImages());
+                response.setSingleImage (brand.getImage().getImageUrl ());
                 break;
 
             case "category":
@@ -129,8 +130,8 @@ public class ImageServiceImpl implements ImageService {
                         .map(b -> new EntityImagesResponse(
                                 b.getBrandId(),
                                 "brand",
-                                b.getImages(),
-                                null))
+                                null,
+                                b.getImage().getImageUrl ()))
                         .toList();
 
             case "category":
@@ -252,10 +253,13 @@ public class ImageServiceImpl implements ImageService {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new RuntimeException("Brand not found with id: " + brandId));
         
-        if (brand.getImages() == null) {
-            brand.setImages(new ArrayList<>());
-        }
-        brand.getImages().add(fileUrl);
+        // Create a new Image entity
+        Image image = new Image();
+        image.setImageUrl(fileUrl);
+        image = imageRepository.save(image);
+        
+        // Set the image for the brand
+        brand.setImage(image);
         brandRepository.save(brand);
     }
 
@@ -293,11 +297,22 @@ public class ImageServiceImpl implements ImageService {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new RuntimeException("Brand not found with id: " + brandId));
         
-        if (brand.getImages() != null && !brand.getImages().isEmpty()) {
-            String imageUrl = brand.getImages().get(brand.getImages().size() - 1);
-            brand.getImages().remove(imageUrl);
-            brandRepository.save(brand);
-            deleteImageFile(imageUrl);
+        // Store the image ID before clearing it
+        Long imageId = null;
+        if (brand.getImage() != null) {
+            imageId = brand.getImage().getImageId();
+        }
+        
+        // Clear the image reference
+        brand.setImage(null);
+        brandRepository.save(brand);
+        
+        // Delete the image if it exists and is not used elsewhere
+        if (imageId != null) {
+            int usageCount = imageRepository.countUsagesOfImage(imageId);
+            if (usageCount == 0) {
+                imageRepository.deleteById(imageId);
+            }
         }
     }
 
