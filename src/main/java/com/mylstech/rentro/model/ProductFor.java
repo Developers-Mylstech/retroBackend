@@ -1,6 +1,7 @@
 package com.mylstech.rentro.model;
 
 import jakarta.persistence.*;
+import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
@@ -23,4 +24,6 @@ public class ProductFor {
 
     @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private Service services;
+
+    private Boolean isAvailableForRequestQuotation;
 }

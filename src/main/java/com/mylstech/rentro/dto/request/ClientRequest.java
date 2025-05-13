@@ -12,6 +12,7 @@ public class ClientRequest {
 
     private String name;
     private String imageUrl;
+    private Long imageId;
 
     public Client requestToClient() {
         Client client = new Client ( );

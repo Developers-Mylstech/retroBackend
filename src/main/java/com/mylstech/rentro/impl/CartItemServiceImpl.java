@@ -7,6 +7,7 @@ import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.repository.CartItemRepository;
 import com.mylstech.rentro.repository.ProductRepository;
 import com.mylstech.rentro.service.CartItemService;
+import com.mylstech.rentro.service.ProductService;
 import com.mylstech.rentro.util.ProductType;
 import jakarta.transaction.Transactional;
 import lombok.RequiredArgsConstructor;
@@ -20,6 +21,7 @@ public class CartItemServiceImpl implements CartItemService {
 
     private final CartItemRepository cartItemRepository;
     private final ProductRepository productRepository;
+    private final ProductService productService;
 
     @Override
     public CartItemResponse getCartItemById(Long id) {

@@ -22,7 +22,7 @@ public class ProductRequest {
     private String supplierCode;
     private String modelNo;
     private Long brandId;
-    private List<String> imageUrls;
+//    private List<String> imageUrls;
     private List<SpecificationRequest> specifications;
     private ProductForRequest productFor;
     private Long categoryId;

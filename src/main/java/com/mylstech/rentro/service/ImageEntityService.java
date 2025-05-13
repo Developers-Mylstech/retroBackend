@@ -1,5 +1,6 @@
 package com.mylstech.rentro.service;
 
+import com.mylstech.rentro.dto.response.EntityImagesResponse;
 import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.model.Image;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,9 +26,9 @@ public interface ImageEntityService {
     
     void deleteImage(Long imageId) throws IOException;
     
-    List<Image> getAllImages();
+    List<EntityImagesResponse> getAllImages();
     
-    Image getImageById(Long imageId);
+    EntityImagesResponse getImageById(Long imageId);
 
     @Transactional
     void cleanupOrphanedImages();

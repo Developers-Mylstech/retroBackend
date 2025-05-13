@@ -19,7 +19,6 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,6 +53,7 @@ public class ProductServiceImpl implements ProductService {
     private final CartService cartService;
     private final ImageRepository imageRepository;
     private final OurServiceRepository ourServiceRepository;
+    private final OrderItemRepository orderItemRepository;
 
     @Value("${vat.value}")
     private Double vat;
@@ -120,206 +120,226 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse createProduct(ProductRequest request) {
-        // Bottom-up approach: Create all related entities first, then the product
-
-        // 1. Create or fetch the inventory
-        Inventory inventory = null;
-        if ( request.getInventory ( ) != null ) {
-            inventory = request.getInventory ( ).requestToInventory ( );
-        }
-
-        // 2. Create or fetch the ProductFor entity and its related entities
-        ProductFor productFor = null;
-        if ( request.getProductFor ( ) != null ) {
-            productFor = new ProductFor ( );
-
-            // Handle Sell entity
-            if ( request.getProductFor ( ).getSell ( ) != null ) {
-
-                // Create new Sell entity
-                Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
-                sell = sellRepository.save ( sell );
-                productFor.setSell ( sell );
-            }
-
-            // Handle Rent entity
-            if ( request.getProductFor ( ).getRent ( ) != null ) {
-
-                // Create new Rent entity
-                Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
-                rent = rentRepository.save ( rent );
-                productFor.setRent ( rent );
-            }
-
-            // Handle Service entity
-            if ( request.getProductFor ( ).getService ( ) != null ) {
-                com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
-                ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
-                addAmcBasic ( serviceRequest, service );
-                addAmcGold ( serviceRequest, service );
-                addMmc ( serviceRequest, service );
-                addOts ( serviceRequest, service );
-                service = serviceRepository.save ( service );
-                productFor.setServices ( service );
-            }
-
-            // Save the ProductFor entity first
-            productFor = productForRepository.save ( productFor );
-        }
-
-        // 3. Create specifications
-        List<Specification> specifications = null;
-        if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
-            // Get all specification names from the request
-            List<String> requestNameList = request.getSpecifications ( ).stream ( )
-                    .map ( SpecificationRequest::getName )
-                    .toList ( );
-
-            // Get all existing specification fields from DB
-            List<SpecificationField> existingFields = specificationFieldRepository.findAll ( );
-            Map<String, SpecificationField> existingFieldsMap = existingFields.stream ( )
-                    .collect ( Collectors.toMap ( SpecificationField::getName, field -> field ) );
-
-            // Create any missing specification fields
-            requestNameList.stream ( )
-                    .filter ( name -> ! existingFieldsMap.containsKey ( name ) )
-                    .forEach ( name -> {
-                        SpecificationField field = new SpecificationField ( );
-                        field.setName ( name );
-                        SpecificationField savedField = specificationFieldRepository.save ( field );
-                        existingFieldsMap.put ( name, savedField );
-                    } );
-
-            // Create specifications with proper references to specification fields
-            specifications = request.getSpecifications ( ).stream ( )
-                    .filter ( spec -> spec.getName ( ) != null
-                            && ! spec.getName ( ).trim ( ).isEmpty ( )
-                            && spec.getValue ( ) != null
-                            && ! spec.getValue ( ).trim ( ).isEmpty ( ) )
-                    .map ( specRequest -> {
-                        Specification spec = new Specification ( );
-                        spec.setName ( specRequest.getName ( ) );
-                        spec.setValue ( specRequest.getValue ( ) );
-                        return spec;
-                    } )
-                    .toList ( );
-        }
-
-        // 4. Create the product
-        Product product = new Product ( );
-        product.setName ( request.getName ( ) );
-        product.setDescription ( request.getDescription ( ) );
-        product.setLongDescription ( request.getLongDescription ( ) );
-        product.setManufacturer ( request.getManufacturer ( ) );
-        product.setKeyFeatures ( request.getKeyFeatures ( ) );
-        product.setSupplierName ( request.getSupplierName ( ) );
-        product.setSupplierCode ( request.getSupplierCode ( ) );
-        product.setModelNo ( request.getModelNo ( ) );
-
-        // Set category if categoryId is provided
-        if ( request.getCategoryId ( ) != null ) {
-            Category category = categoryRepository.findById ( request.getCategoryId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "Category not found with id: " + request.getCategoryId ( ) ) );
-            product.setCategory ( category );
-        }
-
-        // Set subcategory if subCategoryId is provided
-        if ( request.getSubCategoryId ( ) != null ) {
-            Category subCategory = categoryRepository.findById ( request.getSubCategoryId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "SubCategory not found with id: " + request.getSubCategoryId ( ) ) );
-            product.setSubCategory ( subCategory );
-        }
-
-        // Set brand if brandId is provided
-        if ( request.getBrandId ( ) != null ) {
-            Brand brand = brandRepository.findById ( request.getBrandId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "Brand not found with id: " + request.getBrandId ( ) ) );
-            product.setBrand ( brand );
-        }
-
-        // Set the inventory
-        if ( inventory != null ) {
-            product.setInventory ( inventory );
-        }
-
-        // Set the productFor
-        if ( productFor != null ) {
-            product.setProductFor ( productFor );
-        }
-
-        // Set specifications
-        if ( specifications != null ) {
-            product.setSpecification ( specifications );
-        }
-        //set Tag N Keyword
-        if ( request.getTagNKeywords ( ) != null ) {
-            product.setTagNKeywords ( request.getTagNKeywords ( ) );
-        }
-
-        // Handle OurServices if IDs are provided
-        if (request.getOurServiceIds() != null && !request.getOurServiceIds().isEmpty()) {
-            List<OurService> ourServices = ourServiceRepository.findAllById(request.getOurServiceIds());
+        try {
+            logger.debug("Starting product creation process");
             
-            if (ourServices.size() != request.getOurServiceIds().size()) {
-                logger.warn("Some OurService IDs were not found. Found {} out of {} requested services.", 
-                            ourServices.size(), request.getOurServiceIds().size());
+            // Bottom-up approach: Create all related entities first, then the product
+
+            // 1. Create or fetch the inventory
+            Inventory inventory = null;
+            if ( request.getInventory ( ) != null ) {
+                inventory = request.getInventory ( ).requestToInventory ( );
             }
-            
-            product.setOurServices(ourServices);
-        }
 
-        // Initialize images list
-        product.setImages ( new ArrayList<> ( ) );
+            // 2. Create or fetch the ProductFor entity and its related entities
+            ProductFor productFor = null;
 
-        // Set images using imageIds if provided
-        if ( request.getImageIds ( ) != null && ! request.getImageIds ( ).isEmpty ( ) ) {
-            List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
-            logger.debug ( "Found {} images by IDs", images.size ( ) );
+            if ( request.getProductFor ( ) != null ) {
+                productFor = new ProductFor ( );
 
-            // Add each image individually to maintain bidirectional relationship
-            for (Image image : images) {
-                product.addImage ( image );
+                // Set request quotation flag first
+                if ( request.getProductFor ( ).getIsAvailableForRequestQuotation ( ) == Boolean.TRUE ) {
+                    productFor.setIsAvailableForRequestQuotation ( Boolean.TRUE);
+                } else {
+                    // Default to false for backward compatibility
+                    productFor.setIsAvailableForRequestQuotation ( Boolean.FALSE );
+                    // Handle Sell entity
+                    if ( request.getProductFor ( ).getSell ( ) != null ) {
+
+                        // Create new Sell entity
+                        Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
+                        sell = sellRepository.save ( sell );
+                        productFor.setSell ( sell );
+                    }
+
+                    // Handle Rent entity
+                    if ( request.getProductFor ( ).getRent ( ) != null ) {
+                        // Create new Rent entity
+                        Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
+                        rent = rentRepository.save ( rent );
+                        productFor.setRent ( rent );
+                    }
+
+                    // Handle Service entity
+                    if ( request.getProductFor ( ).getService ( ) != null ) {
+                        com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
+                        ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
+                        addAmcBasic ( serviceRequest, service );
+                        addAmcGold ( serviceRequest, service );
+                        addMmc ( serviceRequest, service );
+                        addOts ( serviceRequest, service );
+                        service = serviceRepository.save ( service );
+                        productFor.setServices ( service );
+                    }
+                }
+
+
+                // Save the ProductFor entity first
+                productFor = productForRepository.save ( productFor );
             }
-        }
 
-        // For backward compatibility - handle imageUrls if provided
-        if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
-            for (String url : request.getImageUrls ( )) {
-                // Check if this URL already exists in our images list to avoid duplicates
-                boolean urlAlreadyExists = product.getImages ( ).stream ( )
-                        .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
+            // 3. Create specifications
+            List<Specification> specifications = null;
+            if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
+                // Get all specification names from the request
+                List<String> requestNameList = request.getSpecifications ( ).stream ( )
+                        .map ( SpecificationRequest::getName )
+                        .toList ( );
 
-                if ( ! urlAlreadyExists ) {
-                    // Try to find existing image entity with this URL
-                    Image image = imageRepository.findByImageUrl ( url )
-                            .orElseGet ( () -> {
-                                Image newImage = new Image ( );
-                                newImage.setImageUrl ( url );
-                                return imageRepository.save ( newImage );
-                            } );
+                // Get all existing specification fields from DB
+                List<SpecificationField> existingFields = specificationFieldRepository.findAll ( );
+                Map<String, SpecificationField> existingFieldsMap = existingFields.stream ( )
+                        .collect ( Collectors.toMap ( SpecificationField::getName, field -> field ) );
+
+                // Create any missing specification fields
+                requestNameList.stream ( )
+                        .filter ( name -> ! existingFieldsMap.containsKey ( name ) )
+                        .forEach ( name -> {
+                            SpecificationField field = new SpecificationField ( );
+                            field.setName ( name );
+                            SpecificationField savedField = specificationFieldRepository.save ( field );
+                            existingFieldsMap.put ( name, savedField );
+                        } );
+
+                // Create specifications with proper references to specification fields
+                specifications = request.getSpecifications ( ).stream ( )
+                        .filter ( spec -> spec.getName ( ) != null
+                                && ! spec.getName ( ).trim ( ).isEmpty ( )
+                                && spec.getValue ( ) != null
+                                && ! spec.getValue ( ).trim ( ).isEmpty ( ) )
+                        .map ( specRequest -> {
+                            Specification spec = new Specification ( );
+                            spec.setName ( specRequest.getName ( ) );
+                            spec.setValue ( specRequest.getValue ( ) );
+                            return spec;
+                        } )
+                        .toList ( );
+            }
+
+            // 4. Create the product
+            Product product = new Product ( );
+            product.setName ( request.getName ( ) );
+            product.setDescription ( request.getDescription ( ) );
+            product.setLongDescription ( request.getLongDescription ( ) );
+            product.setManufacturer ( request.getManufacturer ( ) );
+            product.setKeyFeatures ( request.getKeyFeatures ( ) );
+            product.setSupplierName ( request.getSupplierName ( ) );
+            product.setSupplierCode ( request.getSupplierCode ( ) );
+            product.setModelNo ( request.getModelNo ( ) );
+
+            // Set category if categoryId is provided
+            if ( request.getCategoryId ( ) != null ) {
+                Category category = categoryRepository.findById ( request.getCategoryId ( ) )
+                        .orElseThrow ( () -> new RuntimeException ( "Category not found with id: " + request.getCategoryId ( ) ) );
+                product.setCategory ( category );
+            }
+
+            // Set subcategory if subCategoryId is provided
+            if ( request.getSubCategoryId ( ) != null ) {
+                Category subCategory = categoryRepository.findById ( request.getSubCategoryId ( ) )
+                        .orElseThrow ( () -> new RuntimeException ( "SubCategory not found with id: " + request.getSubCategoryId ( ) ) );
+                product.setSubCategory ( subCategory );
+            }
+
+            // Set brand if brandId is provided
+            if ( request.getBrandId ( ) != null ) {
+                Brand brand = brandRepository.findById ( request.getBrandId ( ) )
+                        .orElseThrow ( () -> new RuntimeException ( "Brand not found with id: " + request.getBrandId ( ) ) );
+                product.setBrand ( brand );
+            }
+
+            // Set the inventory
+            if ( inventory != null ) {
+                product.setInventory ( inventory );
+            }
+
+            // Set the productFor
+            if ( productFor != null ) {
+                product.setProductFor ( productFor );
+            }
+
+            // Set specifications
+            if ( specifications != null ) {
+                product.setSpecification ( specifications );
+            }
+            //set Tag N Keyword
+            if ( request.getTagNKeywords ( ) != null ) {
+                product.setTagNKeywords ( request.getTagNKeywords ( ) );
+            }
+
+            // Handle OurServices if IDs are provided
+            if ( request.getOurServiceIds ( ) != null && ! request.getOurServiceIds ( ).isEmpty ( ) ) {
+                List<OurService> ourServices = ourServiceRepository.findAllById ( request.getOurServiceIds ( ) );
+
+                if ( ourServices.size ( ) != request.getOurServiceIds ( ).size ( ) ) {
+                    logger.warn ( "Some OurService IDs were not found. Found {} out of {} requested services.",
+                            ourServices.size ( ), request.getOurServiceIds ( ).size ( ) );
+                }
+
+                product.setOurServices ( ourServices );
+            }
+
+            // Initialize images list
+            product.setImages ( new ArrayList<> ( ) );
+
+            // Set images using imageIds if provided
+            if ( request.getImageIds ( ) != null && ! request.getImageIds ( ).isEmpty ( ) ) {
+                List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
+                logger.debug ( "Found {} images by IDs", images.size ( ) );
+
+                // Add each image individually to maintain bidirectional relationship
+                for (Image image : images) {
                     product.addImage ( image );
                 }
             }
+
+            // For backward compatibility - handle imageUrls if provided
+            /* 
+            if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
+                for (String url : request.getImageUrls ( )) {
+                    // Check if this URL already exists in our images list to avoid duplicates
+                    boolean urlAlreadyExists = product.getImages ( ).stream ( )
+                            .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
+
+                    if ( ! urlAlreadyExists ) {
+                        // Try to find existing image entity with this URL
+                        Image image = imageRepository.findByImageUrl ( url )
+                                .orElseGet ( () -> {
+                                    Image newImage = new Image ( );
+                                    newImage.setImageUrl ( url );
+                                    return imageRepository.save ( newImage );
+                                } );
+                        product.addImage ( image );
+                    }
+                }
+            }
+            */
+
+            // Save the product
+            Product savedProduct = productRepository.save ( product );
+
+            if ( logger.isDebugEnabled ( ) ) {
+                logger.debug ( "Saved product with ID: {} and {} images",
+                        savedProduct.getProductId ( ),
+                        savedProduct.getImages ( ).size ( ) );
+            }
+
+            logger.debug("Successfully created product");
+            return new ProductResponse(savedProduct);
+        } catch (Exception e) {
+            logger.error("Error creating product: {}", e.getMessage(), e);
+            // Print the stack trace to see exactly where the error is occurring
+            e.printStackTrace();
+            throw e;
         }
-
-        // Save the product
-        Product savedProduct = productRepository.save ( product );
-
-        if ( logger.isDebugEnabled ( ) ) {
-            logger.debug ( "Saved product with ID: {} and {} images",
-                    savedProduct.getProductId ( ),
-                    savedProduct.getImages ( ).size ( ) );
-        }
-
-        return new ProductResponse ( savedProduct );
     }
 
     @Override
     @Transactional
     @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse updateProduct(Long id, ProductRequest request) {
-        Product product = productRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
 
         // Update basic fields if provided
         if ( request.getName ( ) != null ) {
@@ -549,6 +569,7 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // For backward compatibility - handle imageUrls if provided
+        /*
         if ( request.getImageUrls ( ) != null ) {
             // Clear existing images if we're explicitly setting new ones and imageIds wasn't provided
             if ( request.getImageIds ( ) == null ) {
@@ -579,6 +600,7 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
         }
+        */
 
         //update Tag N Keyword
         if ( request.getTagNKeywords ( ) != null ) {
@@ -586,24 +608,24 @@ public class ProductServiceImpl implements ProductService {
         }
 
         // Update OurServices if IDs are provided
-        if (request.getOurServiceIds() != null) {
+        if ( request.getOurServiceIds ( ) != null ) {
             // Clear existing services
-            if (product.getOurServices() != null) {
-                product.getOurServices().clear();
+            if ( product.getOurServices ( ) != null ) {
+                product.getOurServices ( ).clear ( );
             } else {
-                product.setOurServices(new ArrayList<>());
+                product.setOurServices ( new ArrayList<> ( ) );
             }
-            
+
             // Add services by ID
-            if (!request.getOurServiceIds().isEmpty()) {
-                List<OurService> ourServices = ourServiceRepository.findAllById(request.getOurServiceIds());
-                
-                if (ourServices.size() != request.getOurServiceIds().size()) {
-                    logger.warn("Some OurService IDs were not found. Found {} out of {} requested services.", 
-                                ourServices.size(), request.getOurServiceIds().size());
+            if ( ! request.getOurServiceIds ( ).isEmpty ( ) ) {
+                List<OurService> ourServices = ourServiceRepository.findAllById ( request.getOurServiceIds ( ) );
+
+                if ( ourServices.size ( ) != request.getOurServiceIds ( ).size ( ) ) {
+                    logger.warn ( "Some OurService IDs were not found. Found {} out of {} requested services.",
+                            ourServices.size ( ), request.getOurServiceIds ( ).size ( ) );
                 }
-                
-                product.getOurServices().addAll(ourServices);
+
+                product.getOurServices ( ).addAll ( ourServices );
             }
         }
 
@@ -625,46 +647,47 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", key = "'allProducts'")
     public void deleteProduct(Long id) {
         try {
-            logger.debug("Attempting to delete product with id: {}", id);
+            logger.debug ( "Attempting to delete product with id: {}", id );
 
-            Product product = productRepository.findById(id)
-                    .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+            Product product = productRepository.findById ( id )
+                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
 
             // First, remove all service associations
-            if (product.getOurServices() != null && !product.getOurServices().isEmpty()) {
-                logger.debug("Removing {} service associations from product", product.getOurServices().size());
-                
+            if ( product.getOurServices ( ) != null && ! product.getOurServices ( ).isEmpty ( ) ) {
+                logger.debug ( "Removing {} service associations from product", product.getOurServices ( ).size ( ) );
+
                 // Create a copy to avoid ConcurrentModificationException
-                List<OurService> servicesToRemove = new ArrayList<>(product.getOurServices());
-                
+                List<OurService> servicesToRemove = new ArrayList<> ( product.getOurServices ( ) );
+
                 // Remove each service association
                 for (OurService service : servicesToRemove) {
-                    product.removeOurService(service);
+                    product.removeOurService ( service );
                 }
-                
+
                 // Save the product to update the associations
-                product = productRepository.save(product);
+                product = productRepository.save ( product );
             }
 
             // Remove image associations (existing code)
-            if (product.getImages() != null && !product.getImages().isEmpty()) {
-                logger.debug("Removing {} image associations from product", product.getImages().size());
-                
-                List<Image> imagesToRemove = new ArrayList<>(product.getImages());
-                
+            if ( product.getImages ( ) != null && ! product.getImages ( ).isEmpty ( ) ) {
+                logger.debug ( "Removing {} image associations from product", product.getImages ( ).size ( ) );
+
+                List<Image> imagesToRemove = new ArrayList<> ( product.getImages ( ) );
+
                 for (Image image : imagesToRemove) {
-                    product.removeImage(image);
+                    product.removeImage ( image );
                 }
-                
-                product = productRepository.save(product);
+
+                product = productRepository.save ( product );
             }
 
             // Now delete the product
-            productRepository.delete(product);
-            logger.debug("Successfully deleted product with id: {}", id);
-        } catch (Exception e) {
-            logger.error("Error deleting product with id: " + id, e);
-            throw new RuntimeException("Failed to delete product with id: " + id, e);
+            productRepository.delete ( product );
+            logger.debug ( "Successfully deleted product with id: {}", id );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error deleting product with id: " + id, e );
+            throw new RuntimeException ( "Failed to delete product with id: " + id, e );
         }
     }
 
@@ -753,12 +776,12 @@ public class ProductServiceImpl implements ProductService {
             existingRent.setDiscountUnit ( UNIT.PERCENTAGE );
             existingRent.setDiscountValue ( rentRequest.getDiscountValue ( ) );
         }
-        if ( Boolean.TRUE.equals(rentRequest.getIsVatIncluded ( )) ) {
+        if ( Boolean.TRUE.equals ( rentRequest.getIsVatIncluded ( ) ) ) {
             existingRent.setVat ( vat );
             existingRent.setDiscountPrice ( existingRent.getMonthlyPrice ( ) +
                     (existingRent.getMonthlyPrice ( ) * (existingRent.getVat ( )
                             / 100)) );
-        } else if ( Boolean.FALSE.equals ( rentRequest.getIsVatIncluded ( )) ) {
+        } else if ( Boolean.FALSE.equals ( rentRequest.getIsVatIncluded ( ) ) ) {
             existingRent.setVat ( 0.0 );
         }
 
@@ -1012,61 +1035,71 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Transactional
     public ProductResponse addServiceToProduct(Long productId, Long ourServiceId) {
-        logger.debug("Adding service {} to product {}", ourServiceId, productId);
-        
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        
-        OurService ourService = ourServiceRepository.findById(ourServiceId)
-                .orElseThrow(() -> new RuntimeException("OurService not found with id: " + ourServiceId));
-        
+        logger.debug ( "Adding service {} to product {}", ourServiceId, productId );
+
+        Product product = productRepository.findById ( productId )
+                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+
+        OurService ourService = ourServiceRepository.findById ( ourServiceId )
+                .orElseThrow ( () -> new RuntimeException ( "OurService not found with id: " + ourServiceId ) );
+
         // Check if the service is already associated with the product
         boolean serviceExists = false;
-        if (product.getOurServices() != null) {
-            serviceExists = product.getOurServices().stream()
-                    .anyMatch(service -> service.getOurServiceId().equals(ourServiceId));
+        if ( product.getOurServices ( ) != null ) {
+            serviceExists = product.getOurServices ( ).stream ( )
+                    .anyMatch ( service -> service.getOurServiceId ( ).equals ( ourServiceId ) );
         } else {
-            product.setOurServices(new ArrayList<>());
+            product.setOurServices ( new ArrayList<> ( ) );
         }
-        
-        if (!serviceExists) {
-            product.addOurService(ourService);
-            product = productRepository.save(product);
-            logger.debug("Successfully added service {} to product {}", ourServiceId, productId);
+
+        if ( ! serviceExists ) {
+            product.addOurService ( ourService );
+            product = productRepository.save ( product );
+            logger.debug ( "Successfully added service {} to product {}", ourServiceId, productId );
         } else {
-            logger.debug("Service {} is already associated with product {}", ourServiceId, productId);
+            logger.debug ( "Service {} is already associated with product {}", ourServiceId, productId );
         }
-        
-        return new ProductResponse(product);
+
+        return new ProductResponse ( product );
     }
 
     @Override
     @Transactional
     public ProductResponse removeServiceFromProduct(Long productId, Long ourServiceId) {
-        logger.debug("Removing service {} from product {}", ourServiceId, productId);
-        
-        Product product = productRepository.findById(productId)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        
-        if (product.getOurServices() == null || product.getOurServices().isEmpty()) {
-            logger.warn("Product {} has no services", productId);
-            return new ProductResponse(product);
+        logger.debug ( "Removing service {} from product {}", ourServiceId, productId );
+
+        Product product = productRepository.findById ( productId )
+                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+
+        if ( product.getOurServices ( ) == null || product.getOurServices ( ).isEmpty ( ) ) {
+            logger.warn ( "Product {} has no services", productId );
+            return new ProductResponse ( product );
         }
-        
-        OurService serviceToRemove = product.getOurServices().stream()
-                .filter(service -> service.getOurServiceId().equals(ourServiceId))
-                .findFirst()
-                .orElse(null);
-        
-        if (serviceToRemove == null) {
-            logger.warn("Service {} not found in product {}", ourServiceId, productId);
-            return new ProductResponse(product);
+
+        OurService serviceToRemove = product.getOurServices ( ).stream ( )
+                .filter ( service -> service.getOurServiceId ( ).equals ( ourServiceId ) )
+                .findFirst ( )
+                .orElse ( null );
+
+        if ( serviceToRemove == null ) {
+            logger.warn ( "Service {} not found in product {}", ourServiceId, productId );
+            return new ProductResponse ( product );
         }
-        
-        product.removeOurService(serviceToRemove);
-        product = productRepository.save(product);
-        logger.debug("Successfully removed service {} from product {}", ourServiceId, productId);
-        
-        return new ProductResponse(product);
+
+        product.removeOurService ( serviceToRemove );
+        product = productRepository.save ( product );
+        logger.debug ( "Successfully removed service {} from product {}", ourServiceId, productId );
+
+        return new ProductResponse ( product );
     }
+
+//    @Override
+//    public boolean isProductAvailableForPurchase(Long productId) {
+//        Product product = productRepository.findById(productId)
+//                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
+//
+//        // Product is available for purchase if it has a productFor entity and is not request-quotation-only
+//        return product.getProductFor() != null &&
+//               !Boolean.TRUE.equals(product.getProductFor().getIsAvailableForRequestQuotation());
+//    }
 }

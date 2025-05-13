@@ -46,6 +46,10 @@ public class Product {
     @Column(name = "image_url")
     @Access(AccessType.PROPERTY)
     @Deprecated
+    /* 
+     * This field is deprecated and only kept for backward compatibility.
+     * Use the 'images' relationship instead.
+     */
     private List<String> imageUrls;
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
@@ -88,6 +92,11 @@ public class Product {
     private String manufacturer;
 
     // Helper methods for backward compatibility
+    /**
+     * @deprecated This method is only for backward compatibility.
+     * Use getImages() instead.
+     */
+    @Deprecated
     public List<String> getImageUrls() {
         if (images == null || images.isEmpty()) {
             return new ArrayList<>();
@@ -97,6 +106,11 @@ public class Product {
                 .collect(Collectors.toList());
     }
 
+    /**
+     * @deprecated This method is only for backward compatibility.
+     * Use addImage(Image) instead.
+     */
+    @Deprecated
     public void setImageUrls(List<String> urls) {
         if (urls == null) {
             return;

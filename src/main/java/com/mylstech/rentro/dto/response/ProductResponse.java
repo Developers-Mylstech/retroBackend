@@ -31,7 +31,7 @@ public class ProductResponse {
     private InventoryResponse inventory;
     private ProductForResponse productFor;
     private List<SpecificationResponse> specifications;
-    private List<String> imageUrls;
+//    private List<String> imageUrls;
     private List<String> keyFeatures;
     private List<String> tagNKeywords;
     private List<ImageDTO> images;
@@ -71,7 +71,7 @@ public class ProductResponse {
 
 
         // For backward compatibility
-        this.imageUrls = product.getImageUrls();
+//        this.imageUrls = product.getImageUrls();
         
         // New image entity integration
         if (product.getImages() != null) {

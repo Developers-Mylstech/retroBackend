@@ -1,5 +1,6 @@
 package com.mylstech.rentro.controller;
 
+import com.mylstech.rentro.dto.response.EntityImagesResponse;
 import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.model.Image;
 import com.mylstech.rentro.service.ImageEntityService;
@@ -48,15 +49,15 @@ public class ImageEntityController {
 
     @Operation(summary = "Get all images")
     @GetMapping
-    public ResponseEntity<List<Image>> getAllImages() {
-        List<Image> images = imageEntityService.getAllImages();
+    public ResponseEntity<List<EntityImagesResponse>> getAllImages() {
+        List<EntityImagesResponse> images = imageEntityService.getAllImages();
         return ResponseEntity.ok(images);
     }
 
     @Operation(summary = "Get image by ID")
     @GetMapping("/{imageId}")
-    public ResponseEntity<Image> getImageById(@PathVariable Long imageId) {
-        Image image = imageEntityService.getImageById(imageId);
+    public ResponseEntity<EntityImagesResponse> getImageById(@PathVariable Long imageId) {
+        EntityImagesResponse image = imageEntityService.getImageById ( imageId );
         return ResponseEntity.ok(image);
     }
 

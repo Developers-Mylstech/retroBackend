@@ -13,6 +13,7 @@ public class ProductForResponse {
     private SellResponse sell;
     private RentResponse rent;
     private ServiceResponse service;
+    private Boolean isAvailableForRequestQuotation;
 
     public ProductForResponse(ProductFor productFor) {
         this.productForId = productFor.getProductForId();
@@ -27,6 +28,9 @@ public class ProductForResponse {
 
         if (productFor.getServices() != null) {
             this.service = new ServiceResponse(productFor.getServices());
+        }
+        if (productFor.getIsAvailableForRequestQuotation() != null) {
+            this.isAvailableForRequestQuotation = productFor.getIsAvailableForRequestQuotation();
         }
     }
 }

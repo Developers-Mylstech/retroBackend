@@ -17,4 +17,6 @@ public class ProductForRequest {
     private SellRequest sell;
     private RentRequest rent;
     private ServiceRequest service;
+    private Boolean isAvailableForRequestQuotation;
+
 }

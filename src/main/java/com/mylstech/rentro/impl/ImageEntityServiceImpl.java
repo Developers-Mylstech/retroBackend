@@ -1,5 +1,6 @@
 package com.mylstech.rentro.impl;
 
+import com.mylstech.rentro.dto.response.EntityImagesResponse;
 import com.mylstech.rentro.dto.response.FileUploadResponse;
 import com.mylstech.rentro.dto.response.ImageDTO;
 import com.mylstech.rentro.model.Image;
@@ -99,14 +100,19 @@ public class ImageEntityServiceImpl implements ImageEntityService {
     }
 
     @Override
-    public List<Image> getAllImages() {
-        return imageRepository.findAll();
+    public List<EntityImagesResponse> getAllImages() {
+        List<Image> images = imageRepository.findAll ( );
+        return images.stream ().map ( image -> {
+            return new EntityImagesResponse ( image.getImageId (), "image", image.getImageUrl ());
+        }  ).toList ();
+
     }
 
     @Override
-    public Image getImageById(Long imageId) {
-        return imageRepository.findById(imageId)
-                .orElseThrow(() -> new RuntimeException("Image not found with id: " + imageId));
+    public EntityImagesResponse getImageById(Long imageId) {
+        Image image = imageRepository.findById ( imageId )
+                .orElseThrow ( () -> new RuntimeException ( "Image not found with id: " + imageId ) );
+        return new EntityImagesResponse ( image.getImageId (), "image", image.getImageUrl () );
     }
 
     @Transactional

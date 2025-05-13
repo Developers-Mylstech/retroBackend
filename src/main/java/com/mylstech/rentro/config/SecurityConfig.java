@@ -41,9 +41,10 @@ public class SecurityConfig {
                         .requestMatchers ( HttpMethod.GET,
                                 "api/v1/products/**",
                                 "/api/v1/job-posts",
-                                "/api/v1/our-services",
+                                "/api/v1/our-services/**",
                                 "/api/v1/clients",
                                 "/api/v1/brands",
+                                "/api/v1/banners",
                                 "/api/v1/about-us/**" ).permitAll ( )
                         .requestMatchers ( HttpMethod.POST,
                                 "/api/v1/job-applicants",
@@ -98,7 +99,7 @@ public class SecurityConfig {
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "https://mcs2kz4bdzki.share.zrok.io",
+                "https://7an0ee4iefac.share.zrok.io",
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://demo.rentro.ae",

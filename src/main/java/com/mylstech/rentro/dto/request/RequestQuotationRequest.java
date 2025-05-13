@@ -1,5 +1,7 @@
 package com.mylstech.rentro.dto.request;
 
+import com.mylstech.rentro.dto.response.EntityImagesResponse;
+import com.mylstech.rentro.dto.response.ImageDTO;
 import com.mylstech.rentro.model.RequestQuotation;
 import com.mylstech.rentro.util.RequestQuotationStatus;
 import lombok.AllArgsConstructor;
@@ -15,8 +17,8 @@ public class RequestQuotationRequest {
     private String name;
     private String mobile;
     private String companyName;
-    private String location;
-    private List<String> productImages;
+    private LocationRequest location;
+    private ImageDTO image;
     private RequestQuotationStatus status;
     
     public RequestQuotation requestToRequestQuotation() {
@@ -24,9 +26,7 @@ public class RequestQuotationRequest {
         requestQuotation.setCompanyName (companyName);
         requestQuotation.setName (name);
         requestQuotation.setMobile (mobile);
-        requestQuotation.setLocation (location);
-        requestQuotation.setProductImages (productImages);
-        requestQuotation.setStatus (status);
+        requestQuotation.setStatus (RequestQuotationStatus.SENT_QUOTATION);
         return requestQuotation;
     }
 }
