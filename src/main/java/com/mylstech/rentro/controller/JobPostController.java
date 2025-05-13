@@ -44,14 +44,22 @@ public class JobPostController {
     }
 
     @PostMapping
+    @Operation(summary = "Create job post", description = "Creates a new job post")
     public ResponseEntity<?> createJobPost(@RequestBody JobPostRequest request) {
         try {
+            logger.info("Creating new job post with title: {}", request.getJobTitle());
             JobPostResponse response = jobPostService.createJobPost(request);
+            logger.info("Successfully created job post with ID: {}", response.getJobPostId());
             return new ResponseEntity<>(response, HttpStatus.CREATED);
+        } catch (ResourceNotFoundException e) {
+            logger.error("Resource not found: {}", e.getMessage());
+            return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                    .body(new ErrorResponse(HttpStatus.NOT_FOUND, e.getMessage()));
         } catch (Exception e) {
             logger.error("Error creating job post: {}", e.getMessage(), e);
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR)
-                    .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR, "Failed to create job post: " + e.getMessage()));
+                    .body(new ErrorResponse(HttpStatus.INTERNAL_SERVER_ERROR,
+                            "Failed to create job post: " + e.getMessage()));
         }
     }
 
@@ -128,11 +136,11 @@ public class JobPostController {
             logger.debug("Controller: Successfully removed image from job post");
             
             // Verify the response doesn't have an image
-            if (jobPost.getImage() == null && jobPost.getImageDetails() == null) {
-                logger.debug("Controller: Verified image is null in response");
-            } else {
-                logger.warn("Controller: Image is still present in response!");
-            }
+//            if (jobPost.getImage() == null && jobPost.getImageDetails() == null) {
+//                logger.debug("Controller: Verified image is null in response");
+//            } else {
+//                logger.warn("Controller: Image is still present in response!");
+//            }
             
             return ResponseEntity.ok(jobPost);
         } catch (ResourceNotFoundException e) {

@@ -11,7 +11,7 @@ import java.util.List;
 
 @Repository
 public interface JobPostRepository extends JpaRepository<JobPost, Long> {
-    @Query("SELECT j.jobCode FROM JobPost j WHERE j.jobCode LIKE :prefix% ORDER BY j.jobCode DESC")
+    @Query(value = "SELECT job_code FROM job_posts WHERE job_code LIKE :prefix% ORDER BY job_code DESC LIMIT 1", nativeQuery = true)
     String findLatestJobCodeByPrefix(@Param("prefix") String prefix);
     List<JobPost> findByImageImageId(Long imageId);
     @Modifying

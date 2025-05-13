@@ -20,8 +20,8 @@ public class JobPostResponse {
      * @deprecated This field is only for backward compatibility.
      * Use image object instead.
      */
-    @Deprecated
-    private String image;
+//    @Deprecated
+//    private String image;
     
     private ImageDTO imageDetails;
     private Integer totalApplicants;
@@ -32,8 +32,8 @@ public class JobPostResponse {
         this.jobDescription = jobPost.getJobDescription();
         this.requirements = jobPost.getRequirements();
         this.isActive = jobPost.getIsActive();
-        this.image = jobPost.getImageUrl (); // For backward compatibility
-        if (jobPost.getImageUrl () != null) {
+//        this.image = jobPost.getImageUrl (); // For backward compatibility
+        if (jobPost.getImage () != null) {
             this.imageDetails = new ImageDTO(jobPost.getImage ());
         }
         this.totalApplicants = jobPost.getTotalApplicants();
