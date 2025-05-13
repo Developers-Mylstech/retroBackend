@@ -17,9 +17,12 @@ public class Banner {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long bannerId;
     private String title;
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+    
+    // Changed from OneToOne to ManyToOne with proper cascade settings
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")
     private Image image;
+    
     @Column(name = "image_url")
     @Deprecated
     private String imageUrl;

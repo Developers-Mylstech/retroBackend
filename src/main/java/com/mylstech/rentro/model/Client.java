@@ -17,8 +17,9 @@ public class Client {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long clientId;
     private String name;
-    
-    @OneToOne(cascade = CascadeType.ALL, orphanRemoval = true)
+
+    // New field for Image entity integration with ManyToOne relationship
+    @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")
     private Image image;
     

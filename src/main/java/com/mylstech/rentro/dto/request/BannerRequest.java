@@ -1,0 +1,29 @@
+package com.mylstech.rentro.dto.request;
+
+import com.mylstech.rentro.model.Banner;
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+
+@Data
+@AllArgsConstructor
+@NoArgsConstructor
+public class BannerRequest {
+    private String title;
+    
+    /**
+     * @deprecated This field is only for backward compatibility.
+     * Use imageId instead.
+     */
+    @Deprecated
+    private String imageUrl;
+    
+    private Long imageId;
+
+    public Banner requestToBanner() {
+        Banner banner = new Banner();
+        banner.setTitle(this.title);
+        // Image will be set separately in the service
+        return banner;
+    }
+}

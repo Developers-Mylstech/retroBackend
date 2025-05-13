@@ -11,6 +11,7 @@ import lombok.NoArgsConstructor;
 public class BannerRequest {
     private String title;
     private String imageUrl;
+    private Long imageId;
 
     public Banner requestToBanner(){
         Banner banner = new Banner ( );

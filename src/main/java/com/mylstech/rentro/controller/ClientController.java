@@ -63,7 +63,7 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}/image")
-    @Operation(summary = "Remove client image", description = "Removes the image from a client")
+    @Operation(summary = "Remove client image by clientId", description = "Removes the image from a client")
     public ResponseEntity<ClientResponse> removeClientImage(@PathVariable Long id) {
         try {
             logger.debug("Removing image for client with ID: {}", id);
