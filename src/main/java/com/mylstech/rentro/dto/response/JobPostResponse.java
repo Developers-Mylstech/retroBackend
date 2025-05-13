@@ -15,7 +15,15 @@ public class JobPostResponse {
     private String jobDescription;
     private String requirements;
     private Boolean isActive;
+    
+    /**
+     * @deprecated This field is only for backward compatibility.
+     * Use image object instead.
+     */
+    @Deprecated
     private String image;
+    
+    private ImageDTO imageDetails;
     private Integer totalApplicants;
 
     public JobPostResponse(JobPost jobPost) {
@@ -24,8 +32,11 @@ public class JobPostResponse {
         this.jobDescription = jobPost.getJobDescription();
         this.requirements = jobPost.getRequirements();
         this.isActive = jobPost.getIsActive();
-        this.image = jobPost.getImage();
-        this.totalApplicants=jobPost.getTotalApplicants ();
-        this.jobCode=jobPost.getJobCode ();
+        this.image = jobPost.getImageUrl (); // For backward compatibility
+        if (jobPost.getImageUrl () != null) {
+            this.imageDetails = new ImageDTO(jobPost.getImage ());
+        }
+        this.totalApplicants = jobPost.getTotalApplicants();
+        this.jobCode = jobPost.getJobCode();
     }
 }

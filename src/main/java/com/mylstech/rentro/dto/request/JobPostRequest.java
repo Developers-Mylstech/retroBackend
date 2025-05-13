@@ -13,7 +13,15 @@ public class JobPostRequest {
     private String jobDescription;
     private String requirements;
     private Boolean isActive;
+    
+    /**
+     * @deprecated This field is only for backward compatibility.
+     * Use imageId instead.
+     */
+    @Deprecated
     private String image;
+    
+    private Long imageId;
 
     public JobPost requestToJobPost() {
         JobPost jobPost = new JobPost();
@@ -21,7 +29,7 @@ public class JobPostRequest {
         jobPost.setJobDescription(jobDescription);
         jobPost.setRequirements(requirements);
         jobPost.setIsActive(isActive);
-        jobPost.setImage(image);
+        // Image will be set separately in the service
         return jobPost;
     }
 }

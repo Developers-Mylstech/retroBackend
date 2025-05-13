@@ -95,7 +95,7 @@ public class ImageServiceImpl implements ImageService {
             case "jobpost":
                 JobPost jobPost = jobPostRepository.findById(entityId)
                         .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + entityId));
-                response.setSingleImage(jobPost.getImage());
+                response.setSingleImage(jobPost.getImageUrl ());
                 break;
 
             case "ourservices":
@@ -148,7 +148,7 @@ public class ImageServiceImpl implements ImageService {
                                 jp.getJobPostId(),
                                 "jobpost",
                                 null,
-                                jp.getImage()))
+                                jp.getImageUrl ()))
                         .toList();
 
             case "ourservices":
@@ -273,7 +273,7 @@ public class ImageServiceImpl implements ImageService {
     private void handleJobPostImage(Long jobPostId, String fileUrl) {
         JobPost jobPost = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + jobPostId));
-        jobPost.setImage(fileUrl);
+        jobPost.setImageUrl (fileUrl);
         jobPostRepository.save(jobPost);
     }
 
@@ -317,9 +317,9 @@ public class ImageServiceImpl implements ImageService {
         JobPost jobPost = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + jobPostId));
         
-        if (jobPost.getImage() != null) {
-            String imageUrl = jobPost.getImage();
-            jobPost.setImage(null);
+        if (jobPost.getImageUrl () != null) {
+            String imageUrl = jobPost.getImageUrl ();
+            jobPost.setImageUrl (null);
             jobPostRepository.save(jobPost);
             deleteImageFile(imageUrl);
         }
