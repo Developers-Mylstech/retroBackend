@@ -42,7 +42,7 @@ public class ClientServiceImpl implements ClientService {
             
             // For backward compatibility, also set imageUrl
             // This line can be removed once the migration is complete
-            savedClient.setImageUrl(image.getImageUrl());
+//            savedClient.setImageUrl(image.getImageUrl());
         }
 
         return new ClientResponse(clientRepository.save(savedClient));
@@ -64,7 +64,7 @@ public class ClientServiceImpl implements ClientService {
             
             // For backward compatibility, also set imageUrl
             // This line can be removed once the migration is complete
-            client.setImageUrl(image.getImageUrl());
+//            client.setImageUrl(image.getImageUrl());
         }
         
         return new ClientResponse(clientRepository.save(client));
@@ -89,7 +89,7 @@ public class ClientServiceImpl implements ClientService {
         
         // For backward compatibility, also set imageUrl
         // This line can be removed once the migration is complete
-        client.setImageUrl(image.getImageUrl());
+//        client.setImageUrl(image.getImageUrl());
         
         return new ClientResponse(clientRepository.save(client));
     }
@@ -104,7 +104,7 @@ public class ClientServiceImpl implements ClientService {
         
         // For backward compatibility, also clear imageUrl
         // This line can be removed once the migration is complete
-        client.setImageUrl(null);
+//        client.setImageUrl(null);
         
         return new ClientResponse(clientRepository.save(client));
     }

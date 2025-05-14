@@ -31,8 +31,8 @@ public class OurService {
 
 
     // Explicitly name the column to avoid conflicts with the old collection table
-    @Column(name = "image_url")
-    private String imageUrl;
+//    @Column(name = "image_url")
+//    private String imageUrl;
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Feature> feature;
 

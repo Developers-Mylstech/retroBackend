@@ -193,7 +193,7 @@ public class JobPostServiceImpl implements JobPostService {
         }
         
         // Clear the image reference first
-        jobPost.setImageUrl (null);
+//        jobPost.setImageUrl (null);
         jobPostRepository.saveAndFlush(jobPost);
         logger.debug("Cleared old image reference");
         
@@ -217,7 +217,7 @@ public class JobPostServiceImpl implements JobPostService {
         jobPost.setImage(image);
         
         // Also update the deprecated field for backward compatibility
-        jobPost.setImageUrl(image.getImageUrl());
+//        jobPost.setImageUrl(null);
         
         JobPost savedJobPost = jobPostRepository.save(jobPost);
         logger.debug("Set new image and saved job post");
@@ -245,7 +245,7 @@ public class JobPostServiceImpl implements JobPostService {
         try {
             // First approach: Use JPA entity
             jobPost.setImage(null);
-            jobPost.setImageUrl(null);
+//            jobPost.setImageUrl(null);
             
             // Save and flush to ensure changes are committed immediately
             JobPost savedJobPost = jobPostRepository.saveAndFlush(jobPost);

@@ -11,13 +11,13 @@ import lombok.NoArgsConstructor;
 public class ClientRequest {
 
     private String name;
-    private String imageUrl;
+//    private String imageUrl;
     private Long imageId;
 
     public Client requestToClient() {
         Client client = new Client ( );
         client.setName ( name );
-        client.setImageUrl ( imageUrl );
+//        client.setImageUrl ( imageUrl );
         return client;
     }
 }

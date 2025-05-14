@@ -301,7 +301,7 @@ public class OurServiceServiceImpl implements OurServiceService {
         }
         
         // Clear the image reference first
-        ourService.setImageUrl(null);
+//        ourService.setImageUrl(null);
         ourServiceRepository.saveAndFlush(ourService);
         logger.debug("Cleared old image reference");
         
@@ -325,7 +325,7 @@ public class OurServiceServiceImpl implements OurServiceService {
         ourService.setImage(image);
         
         // Also update the deprecated field for backward compatibility
-        ourService.setImageUrl(image.getImageUrl());
+//        ourService.setImageUrl(image.getImageUrl());
         
         OurService savedService = ourServiceRepository.save(ourService);
         logger.debug("Set new image and saved our service");
@@ -353,7 +353,7 @@ public class OurServiceServiceImpl implements OurServiceService {
         try {
             // First approach: Use JPA entity
             ourService.setImage(null);
-            ourService.setImageUrl(null);
+//            ourService.setImageUrl(null);
             
             // Save and flush to ensure changes are committed immediately
             OurService savedService = ourServiceRepository.saveAndFlush(ourService);

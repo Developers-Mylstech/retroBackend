@@ -17,8 +17,8 @@ public class ClientResponse {
      * @deprecated This field is only for backward compatibility.
      * Use image.imageUrl instead.
      */
-    @Deprecated
-    private String imageUrl;
+//    @Deprecated
+//    private String imageUrl;
     
     private ImageDTO image;
 
@@ -28,10 +28,10 @@ public class ClientResponse {
         
         // Handle image - both for backward compatibility and new approach
         if (client.getImage() != null) {
-            this.imageUrl = client.getImage().getImageUrl();
+//            this.imageUrl = client.getImage().getImageUrl();
             this.image = new ImageDTO(client.getImage());
         } else {
-            this.imageUrl = null;
+//            this.imageUrl = null;
             this.image = null;
         }
     }

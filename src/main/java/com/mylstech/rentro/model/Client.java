@@ -23,27 +23,27 @@ public class Client {
     @JoinColumn(name = "image_id")
     private Image image;
     
-    @Column(name = "image_url")
-    @Deprecated
-    private String imageUrl;
-    
+//    @Column(name = "image_url")
+//    @Deprecated
+//    private String imageUrl;
+//
     // Helper methods for backward compatibility
-    /**
-     * @deprecated This method is only for backward compatibility.
-     * Use getImage().getImageUrl() instead.
-     */
-    @Deprecated
-    public String getImageUrl() {
-        return this.image != null ? this.image.getImageUrl() : null;
-    }
-
-    /**
-     * @deprecated This method is only for backward compatibility.
-     * Use setImage(Image) instead.
-     */
-    @Deprecated
-    public void setImageUrl(String imageUrl) {
-        // This is kept for backward compatibility
-        // In new code, use setImage(Image) instead
-    }
+//    /**
+//     * @deprecated This method is only for backward compatibility.
+//     * Use getImage().getImageUrl() instead.
+//     */
+//    @Deprecated
+//    public String getImageUrl() {
+//        return this.image != null ? this.image.getImageUrl() : null;
+//    }
+//
+//    /**
+//     * @deprecated This method is only for backward compatibility.
+//     * Use setImage(Image) instead.
+//     */
+//    @Deprecated
+//    public void setImageUrl(String imageUrl) {
+//        // This is kept for backward compatibility
+//        // In new code, use setImage(Image) instead
+//    }
 }

@@ -54,10 +54,7 @@ public class RequestQuotation {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
-        
-        if (productImages == null) {
-            productImages = new ArrayList<>();
-        }
+
     }
     
     @PreUpdate

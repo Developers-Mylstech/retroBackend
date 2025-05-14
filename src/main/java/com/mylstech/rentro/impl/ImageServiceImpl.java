@@ -35,7 +35,7 @@ public class ImageServiceImpl implements ImageService {
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         String fileUrl = fileStorageService.storeImageAsWebP(file, quality, fallbackToJpeg);
         String contentType = fileUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
-        
+
         return new FileUploadResponse(
             fileName,
             fileUrl,
@@ -50,7 +50,7 @@ public class ImageServiceImpl implements ImageService {
             int quality,
             boolean fallbackToJpeg) throws IOException {
         List<FileUploadResponse> responses = new ArrayList<>();
-        
+
         for (MultipartFile file : files) {
             try {
                 FileUploadResponse response = uploadImage(file, quality, fallbackToJpeg);
@@ -60,11 +60,11 @@ public class ImageServiceImpl implements ImageService {
                 e.printStackTrace();
             }
         }
-        
+
         if (responses.isEmpty()) {
             throw new IOException("Failed to upload any files");
         }
-        
+
         return responses;
     }
 
@@ -96,14 +96,14 @@ public class ImageServiceImpl implements ImageService {
             case "jobpost":
                 JobPost jobPost = jobPostRepository.findById(entityId)
                         .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + entityId));
-                response.setSingleImage(jobPost.getImageUrl ());
+                response.setSingleImage(jobPost.getImage ().getImageUrl ());
                 break;
 
             case "ourservices":
                 OurService ourServices = ourServicesRepository.findById(entityId)
                         .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + entityId));
                 // Set as single image instead of image URLs list
-                response.setSingleImage(ourServices.getImageUrl());
+                response.setSingleImage(ourServices.getImage().getImageUrl ());
                 break;
 
             default:
@@ -149,7 +149,7 @@ public class ImageServiceImpl implements ImageService {
                                 jp.getJobPostId(),
                                 "jobpost",
                                 null,
-                                jp.getImageUrl ()))
+                                jp.getImage ().getImageUrl ()))
                         .toList();
 
             case "ourservices":
@@ -158,8 +158,9 @@ public class ImageServiceImpl implements ImageService {
                         os.getOurServiceId (),
                         "ourservices",
                         null,
-                        os.getImageUrl ())).toList();
-                
+                        os.getImage ().getImageUrl ())
+                    ).toList();
+
             default:
                 throw new IllegalArgumentException("Unknown entity type: " + entityType);
         }
@@ -173,12 +174,12 @@ public class ImageServiceImpl implements ImageService {
             MultipartFile file,
             int quality,
             boolean fallbackToJpeg) throws IOException {
-        
+
         // Upload the file first
         String fileName = StringUtils.cleanPath(file.getOriginalFilename());
         String fileUrl = fileStorageService.storeImageAsWebP(file, quality, fallbackToJpeg);
         String contentType = fileUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
-        
+
         // Create response object
         FileUploadResponse response = new FileUploadResponse(
             fileName,
@@ -241,7 +242,7 @@ public class ImageServiceImpl implements ImageService {
     private void handleProductImage(Long productId, String fileUrl) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        
+
         if (product.getImageUrls() == null) {
             product.setImageUrls(new ArrayList<>());
         }
@@ -252,12 +253,12 @@ public class ImageServiceImpl implements ImageService {
     private void handleBrandImage(Long brandId, String fileUrl) {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new RuntimeException("Brand not found with id: " + brandId));
-        
+
         // Create a new Image entity
         Image image = new Image();
         image.setImageUrl(fileUrl);
         image = imageRepository.save(image);
-        
+
         // Set the image for the brand
         brand.setImage(image);
         brandRepository.save(brand);
@@ -266,7 +267,7 @@ public class ImageServiceImpl implements ImageService {
     private void handleCategoryImage(Long categoryId, String fileUrl) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
-        
+
         if (category.getImageUrls() == null) {
             category.setImageUrls(new ArrayList<>());
         }
@@ -277,14 +278,14 @@ public class ImageServiceImpl implements ImageService {
     private void handleJobPostImage(Long jobPostId, String fileUrl) {
         JobPost jobPost = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + jobPostId));
-        jobPost.setImageUrl (fileUrl);
+//        jobPost.setImageUrl (fileUrl);
         jobPostRepository.save(jobPost);
     }
 
     private void deleteProductImage(Long productId) {
         Product product = productRepository.findById(productId)
                 .orElseThrow(() -> new RuntimeException("Product not found with id: " + productId));
-        
+
         if (product.getImageUrls() != null && !product.getImageUrls().isEmpty()) {
             String imageUrl = product.getImageUrls().get(product.getImageUrls().size() - 1);
             product.getImageUrls().remove(imageUrl);
@@ -296,17 +297,17 @@ public class ImageServiceImpl implements ImageService {
     private void deleteBrandImage(Long brandId) {
         Brand brand = brandRepository.findById(brandId)
                 .orElseThrow(() -> new RuntimeException("Brand not found with id: " + brandId));
-        
+
         // Store the image ID before clearing it
         Long imageId = null;
         if (brand.getImage() != null) {
             imageId = brand.getImage().getImageId();
         }
-        
+
         // Clear the image reference
         brand.setImage(null);
         brandRepository.save(brand);
-        
+
         // Delete the image if it exists and is not used elsewhere
         if (imageId != null) {
             int usageCount = imageRepository.countUsagesOfImage(imageId);
@@ -319,7 +320,7 @@ public class ImageServiceImpl implements ImageService {
     private void deleteCategoryImage(Long categoryId) {
         Category category = categoryRepository.findById(categoryId)
                 .orElseThrow(() -> new RuntimeException("Category not found with id: " + categoryId));
-        
+
         if (category.getImageUrls() != null && !category.getImageUrls().isEmpty()) {
             String imageUrl = category.getImageUrls().get(category.getImageUrls().size() - 1);
             category.getImageUrls().remove(imageUrl);
@@ -331,10 +332,10 @@ public class ImageServiceImpl implements ImageService {
     private void deleteJobPostImage(Long jobPostId) {
         JobPost jobPost = jobPostRepository.findById(jobPostId)
                 .orElseThrow(() -> new RuntimeException("JobPost not found with id: " + jobPostId));
-        
-        if (jobPost.getImageUrl () != null) {
-            String imageUrl = jobPost.getImageUrl ();
-            jobPost.setImageUrl (null);
+
+        if (jobPost.getImage ().getImageUrl () != null) {
+            String imageUrl = jobPost.getImage ().getImageUrl ();
+//            jobPost.setImageUrl (null);
             jobPostRepository.save(jobPost);
             deleteImageFile(imageUrl);
         }
@@ -343,10 +344,10 @@ public class ImageServiceImpl implements ImageService {
     private void handleOurServicesImage(Long ourServicesId, String fileUrl) {
         OurService ourServices = ourServicesRepository.findById(ourServicesId)
                 .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
-        
-        if (ourServices.getImageUrl() != null) {
-            ourServices.setImageUrl(fileUrl);
-        }
+
+//        if (ourServices.getImage() != null) {
+//            ourServices.setImage(fileUrl);
+//        }
 
         ourServicesRepository.save(ourServices);
     }
@@ -354,10 +355,10 @@ public class ImageServiceImpl implements ImageService {
     private void deleteOurServicesImage(Long ourServicesId) {
         OurService ourServices = ourServicesRepository.findById(ourServicesId)
                 .orElseThrow(() -> new RuntimeException("OurServices not found with id: " + ourServicesId));
-        
-        if (ourServices.getImageUrl() != null) {
-            String imageUrl = ourServices.getImageUrl();
-            ourServices.setImageUrl(null);
+
+        if (ourServices.getImage() != null) {
+            String imageUrl = ourServices.getImage().getImageUrl ();
+//            ourServices.setImageUrl(null);
             ourServicesRepository.save(ourServices);
             deleteImageFile(imageUrl);
         }

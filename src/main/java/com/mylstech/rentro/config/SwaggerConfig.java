@@ -7,12 +7,14 @@ import io.swagger.v3.oas.models.info.License;
 import io.swagger.v3.oas.models.Components;
 import io.swagger.v3.oas.models.security.SecurityScheme;
 import io.swagger.v3.oas.models.security.SecurityRequirement;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class SwaggerConfig {
-
+    @Value("${zrok.url}")
+    public String zrokUrl;
     @Bean
     public OpenAPI customOpenAPI() {
         final String securitySchemeName = "bearerAuth";
@@ -27,7 +29,7 @@ public class SwaggerConfig {
                                 .email("support@rentro.ae")
                                 .url("https://rentro.ae"))
                         .license(new License().name("Rentro License")))
-                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://7an0ee4iefac.share.zrok.io"))
+                .addServersItem(new io.swagger.v3.oas.models.servers.Server().url(zrokUrl))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("http://localhost:8080/"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://demo.rentro.ae"))
                 .addServersItem(new io.swagger.v3.oas.models.servers.Server().url("https://proud-expression-production-6ebc.up.railway.app"))

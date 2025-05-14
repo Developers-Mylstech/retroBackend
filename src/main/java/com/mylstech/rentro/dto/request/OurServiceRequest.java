@@ -20,8 +20,8 @@ public class OurServiceRequest {
     private String detailedDescription;
     
     // Changed from List<String> to String
-    @Deprecated
-    private String imageUrl;
+//    @Deprecated
+//    private String imageUrl;
 
     private Long imageId;
     
@@ -33,7 +33,7 @@ public class OurServiceRequest {
         ourService.setShortDescription(this.shortDescription);
         ourService.setDetailedHeading(this.detailedHeading);
         ourService.setDetailedDescription(this.detailedDescription);
-        ourService.setImageUrl(this.imageUrl);
+//        ourService.setImageUrl(this.imageUrl);
         
         if (this.features != null) {
             List<Feature> featureList = this.features.stream()

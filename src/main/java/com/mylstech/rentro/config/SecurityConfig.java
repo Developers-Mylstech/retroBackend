@@ -2,6 +2,7 @@ package com.mylstech.rentro.config;
 
 import com.mylstech.rentro.security.JwtAuthenticationFilter;
 import lombok.RequiredArgsConstructor;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpMethod;
@@ -31,6 +32,8 @@ public class SecurityConfig {
 
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
+    @Value("${zrok.url}")
+    public String zrokUrl;
 
     @Bean
     public SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
@@ -99,7 +102,7 @@ public class SecurityConfig {
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
                 "http://localhost:5174",
-                "https://7an0ee4iefac.share.zrok.io",
+                zrokUrl,
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://demo.rentro.ae",

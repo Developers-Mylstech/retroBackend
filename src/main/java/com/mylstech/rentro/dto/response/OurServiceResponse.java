@@ -18,7 +18,7 @@ public class OurServiceResponse {
     private String shortDescription;
     private String detailedHeading;
     private String detailedDescription;
-    private String imageUrl;
+//    private String imageUrl;
     private ImageDTO image;
     private List<FeatureResponse> features;
 
@@ -28,7 +28,7 @@ public class OurServiceResponse {
         this.shortDescription = ourService.getShortDescription();
         this.detailedHeading = ourService.getDetailedHeading();
         this.detailedDescription = ourService.getDetailedDescription();
-        this.imageUrl = ourService.getImageUrl();
+//        this.imageUrl = ourService.getImageUrl();
         
         // Safely handle null image
         if (ourService.getImage() != null) {
@@ -38,7 +38,7 @@ public class OurServiceResponse {
         if (ourService.getFeature() != null) {
             this.features = ourService.getFeature().stream()
                     .map(FeatureResponse::new)
-                    .collect(Collectors.toList());
+                    .toList();
         } else {
             this.features = new ArrayList<>();
         }

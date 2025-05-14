@@ -38,9 +38,9 @@ public class JobPost {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")
     private Image image;
-    @Deprecated
-    @Column(name = "image_url", length = 500)
-    private String imageUrl;
+//    @Deprecated
+//    @Column(name = "image_url", length = 500)
+//    private String imageUrl;
     
     // Helper method for backward compatibility
 //    public String getImage() {
