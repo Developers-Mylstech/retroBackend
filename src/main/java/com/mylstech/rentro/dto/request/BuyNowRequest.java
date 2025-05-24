@@ -44,13 +44,5 @@ public class BuyNowRequest {
     
 
 
-//    /**
-//     * Validates that the appropriate fields are provided based on product type
-//     */
-//    public boolean isValid() {
-//        if (productType == ProductType.RENT || productType == ProductType.SELL) {
-//           return quantity != null && quantity > 0;
-//        }
-//        return false;
-//    }
+
 }

@@ -1,6 +1,7 @@
 package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.response.WishlistResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.model.Wishlist;
@@ -37,7 +38,7 @@ public class WishlistServiceImpl implements WishlistService {
         }
         catch ( Exception e ) {
             logger.error ( "Error getting wishlist for current user", e );
-            throw new RuntimeException ( "Failed to get wishlist for current user", e );
+            throw new ResourceNotFoundException ( "Failed to get wishlist for current user" );
         }
     }
 

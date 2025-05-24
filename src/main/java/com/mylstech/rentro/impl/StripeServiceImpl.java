@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.PaymentResponse;
 import com.mylstech.rentro.dto.StripePaymentRequest;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CheckOut;
 import com.mylstech.rentro.repository.CheckOutRepository;
@@ -28,9 +29,9 @@ public class StripeServiceImpl implements StripeService {
         try {
             CheckOut checkOut = checkOutRepository.findById ( request.getCheckoutId ( ) )
                     .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + request.getCheckoutId ( ) ) );
-            System.out.println (checkOut.getCart ().getTotalPrice () );
+            System.out.println ( checkOut.getCart ( ).getTotalPrice ( ) );
             // Convert amount to cents (Stripe uses smallest currency unit)
-            long amountInCents = Math.round ( checkOut.getCart ().getTotalPrice () * 100 );
+            long amountInCents = Math.round ( checkOut.getCart ( ).getTotalPrice ( ) * 100 );
             System.out.println ( "Amount in cents: " + amountInCents );
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder ( )
                     .setAmount ( amountInCents )
@@ -49,7 +50,7 @@ public class StripeServiceImpl implements StripeService {
                     paymentIntent.getId ( ),
                     paymentIntent.getClientSecret ( ),
                     paymentIntent.getStatus ( ),
-                    paymentIntent.getAmount ().doubleValue (),
+                    paymentIntent.getAmount ( ).doubleValue ( ),
                     true,
                     "Payment intent created successfully"
             );
@@ -70,32 +71,36 @@ public class StripeServiceImpl implements StripeService {
     @Override
     public PaymentResponse confirmPayment(String paymentIntentId) {
         try {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
-            if("succeeded".equals(paymentIntent.getStatus())) {
-                // Only clear cart if it's not temporary
-                Cart cart = cartService.getUserCart();
-                if (cart != null && !cart.isTemporary()) {
-                    cartService.clearCart();
+            PaymentIntent paymentIntent = PaymentIntent.retrieve ( paymentIntentId );
+            if ( "succeeded".equals ( paymentIntent.getStatus ( ) ) ) {
+
+                String checkout = paymentIntent.getMetadata ( ).get ( "checkout" );
+                Long checkoutId = Long.parseLong ( checkout );
+                CheckOut checkOut = checkOutRepository.findById ( checkoutId )
+                        .orElseThrow ( () -> new ResourceNotFoundException ( "Checkout not found with id: " + checkoutId ) );
+                Cart cart = checkOut.getCart ( );
+                if ( ! cart.isTemporary ( ) ) {
+                    cartService.clearCart ( );
                 }
             }
-            return new PaymentResponse(
-                paymentIntent.getId(),
-                paymentIntent.getClientSecret(),
-                paymentIntent.getStatus(),
-                paymentIntent.getAmount().doubleValue(),
-                "succeeded".equals(paymentIntent.getStatus()),
-                "Payment status retrieved"
+            return new PaymentResponse (
+                    paymentIntent.getId ( ),
+                    paymentIntent.getClientSecret ( ),
+                    paymentIntent.getStatus ( ),
+                    paymentIntent.getAmount ( ).doubleValue ( ),
+                    "succeeded".equals ( paymentIntent.getStatus ( ) ),
+                    "Payment status retrieved"
             );
         }
-        catch (StripeException e) {
-            logger.error("Error confirming payment", e);
-            return new PaymentResponse(
-                e.getRequestId(),
-                null,
-                "failed",
-                0.0,
-                false,
-                e.getMessage()
+        catch ( StripeException e ) {
+            logger.error ( "Error confirming payment", e );
+            return new PaymentResponse (
+                    e.getRequestId ( ),
+                    null,
+                    "failed",
+                    0.0,
+                    false,
+                    e.getMessage ( )
             );
         }
     }
