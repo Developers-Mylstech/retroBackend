@@ -3,6 +3,7 @@ package com.mylstech.rentro.controller;
 import com.mylstech.rentro.dto.response.OrderResponse;
 import com.mylstech.rentro.service.OrderService;
 import com.mylstech.rentro.util.ORDER_STATUS;
+import com.mylstech.rentro.util.SecurityUtils;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
@@ -21,6 +22,7 @@ import java.util.List;
 public class OrderController {
     private final OrderService orderService;
     private final Logger logger = LoggerFactory.getLogger(OrderController.class);
+    private final SecurityUtils securityUtils;
 
     @Operation(summary = "Get all orders", description = "Retrieve a list of all orders")
     @ApiResponses(value = {
@@ -61,15 +63,17 @@ public class OrderController {
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200", description = "Successfully retrieved orders")
     })
-    @GetMapping("/user/{userId}")
-    public ResponseEntity<List<OrderResponse>> getOrdersByUserId(@PathVariable Long userId) {
+    @GetMapping("/user")
+    public ResponseEntity<List<OrderResponse>> getOrdersByUserId() {
+
         try {
+            Long userId = securityUtils.getCurrentUser ( ).getUserId ( );
             logger.debug("Fetching orders for user with ID: {}", userId);
             List<OrderResponse> orders = orderService.getOrdersByUserId(userId);
             logger.debug("Found {} orders for user with ID: {}", orders.size(), userId);
             return ResponseEntity.ok(orders);
         } catch (Exception e) {
-            logger.error("Error fetching orders for user with ID: " + userId, e);
+
             throw e;
         }
     }

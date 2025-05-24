@@ -101,6 +101,7 @@ public class OrderServiceImpl implements OrderService {
         logger.debug("Fetching orders for user with ID: {}", userId);
         return orderRepository.findByUserUserIdOrderByCreatedAtDesc(userId).stream()
                 .map(OrderResponse::new)
+                .sorted ( (p1, p2) -> p2.getOrderId ( ).compareTo ( p1.getOrderId ( ) ) )
                 .toList();
     }
     

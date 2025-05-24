@@ -54,6 +54,8 @@ public class SecurityConfig {
                                 "/api/v1/files/upload-pdf",
                                 "/api/v1/request-quotations",
                                 "/api/v1/images/upload" ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,"api/v1/products" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT,"api/v1/products" ).hasRole ( "ADMIN" )
                         .requestMatchers ( "/api/v1/auth/register",
                                 "/uploads/**",
                                 "/api/v1/auth/register-admin",
