@@ -50,8 +50,8 @@ public class SecurityConfig {
                                 "/api/v1/files/upload-pdf",
                                 "/api/v1/request-quotations",
                                 "/api/v1/images/upload" ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.PUT,API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.POST, API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT, API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
                         .requestMatchers ( HttpMethod.GET,
                                 API_V_1_PRODUCTS + ALL,
                                 "/api/v1/job-posts" + ALL,
@@ -59,7 +59,7 @@ public class SecurityConfig {
                                 "/api/v1/clients",
                                 "/api/v1/brands",
                                 "/api/v1/banners",
-                                "/api/v1/about-us" + ALL ,
+                                "/api/v1/about-us" + ALL,
                                 "/uploads" + ALL,
                                 API_V_1_AUTH + "/register",
                                 API_V_1_AUTH + "/register-admin",

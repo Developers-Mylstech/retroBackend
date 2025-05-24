@@ -1,8 +1,6 @@
 package com.mylstech.rentro.dto.request;
 
-import com.mylstech.rentro.util.PAYMENT_OPTION;
 import com.mylstech.rentro.util.ProductType;
-import com.mylstech.rentro.validation.FutureDateTime;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -11,8 +9,6 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
@@ -20,7 +16,7 @@ public class BuyNowRequest {
     // Product details
     @NotNull(message = "Product type is required")
     private ProductType productType;
-    
+
     @Min(value = 1, message = "Quantity must be at least 1")
     private Integer quantity = 1;
 
@@ -31,18 +27,16 @@ public class BuyNowRequest {
 
     @NotBlank(message = "Mobile number is required")
     private String mobile;
-    
+
     @NotBlank(message = "Email is required")
     @Email(message = "Invalid email format")
     private String email;
-    
+
     // Address details - either addressId or full address
     private Long addressId;
-    
+
     // Or allow inline address creation
     private AddressRequest address;
-    
-
 
 
 }
