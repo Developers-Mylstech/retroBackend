@@ -72,9 +72,9 @@ public class CheckOutController {
     @PostMapping
     public ResponseEntity<CheckOutResponse> createCheckOut(@Valid @RequestBody CheckOutRequest request) {
         try {
-            logger.debug ( "Creating new checkout: {}", request );
+            logger.info ( "Creating new checkout: {}", request );
             CheckOutResponse checkOut = checkOutService.createCheckOut ( request );
-            logger.debug ( "Created checkout with ID: {}", checkOut.getCheckoutId ( ) );
+            logger.info ( "Created checkout with ID: {}", checkOut.getCheckoutId ( ) );
             return new ResponseEntity<> ( checkOut, HttpStatus.CREATED );
         }
         catch ( Exception e ) {

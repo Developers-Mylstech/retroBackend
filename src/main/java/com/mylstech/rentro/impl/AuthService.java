@@ -50,15 +50,6 @@ public class AuthService {
         otpService.generateOTPViaEmail (saveUser.getEmail());
          return "Otp sent to "+saveUser.getEmail ();
 
-//
-//        UserDetails userDetails = userDetailsService.loadUserByUsername(saveUser.getEmail());
-//        String accessToken = jwtUtil.generateAccessToken(userDetails);
-//        String refreshToken = jwtUtil.generateRefreshToken(userDetails);
-//
-//        return AuthResponse.builder()
-//                .accessToken(accessToken)
-//                .refreshToken(refreshToken)
-//                .build();
     }
 
     public AuthResponse authenticate(AuthRequest request) {
@@ -113,11 +104,7 @@ public class AuthService {
         UserDetails userDetails = userDetailsService.loadUserByUsername(user.getEmail());
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         
-        // Update existing refresh token instead of creating a new one
-//        refreshToken.setToken(UUID.randomUUID().toString());
-//        refreshToken.setExpiryDate(Instant.now().plusMillis(refreshTokenDurationMs));
-//        refreshToken.setRevoked(false);
-//        refreshToken = refreshTokenRepository.save(refreshToken);
+
         
         return AuthResponse.builder()
                 .accessToken(accessToken)

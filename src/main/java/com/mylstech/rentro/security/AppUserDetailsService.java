@@ -26,3 +26,34 @@ public class AppUserDetailsService implements UserDetailsService {
         return new AppUserSecurityDetails(user);
     }
 }
+/*
+* AboutUs
+* Address
+* AppUser
+* Banner
+* Brand
+* Cart
+* CartItem
+* Category
+* Checkout
+* Client
+* Feature
+* Image
+* Inventory
+* JobApplicant
+* JobPost
+* Location
+* Order
+* OrderItem
+* OurService
+* Product
+* ProductFor
+* RefreshToken
+* Rent
+* RequestQuotation
+* Sell
+* Service
+* ServiceField
+* Specification
+* SpecificationField
+* Wishlist*/

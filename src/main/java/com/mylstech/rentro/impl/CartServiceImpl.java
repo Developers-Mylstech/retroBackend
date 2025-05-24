@@ -237,13 +237,13 @@ public class CartServiceImpl implements CartService {
     }
 
     @Override
-    public CartResponse getUserCart() {
+    public Cart getUserCart() {
         logger.debug("Fetching cart for current user");
         
         AppUser currentUser = securityUtils.getCurrentUser();
         
         // Find the user's non-temporary cart
-        Cart cart = cartRepository.findByUserUserIdAndTemporaryFalse(currentUser.getUserId())
+        return cartRepository.findByUserUserIdAndTemporaryFalse(currentUser.getUserId())
                 .orElseGet(() -> {
                     // Create a new cart if none exists
                     Cart newCart = new Cart();
@@ -254,6 +254,6 @@ public class CartServiceImpl implements CartService {
                     return cartRepository.save(newCart);
                 });
         
-        return new CartResponse(cart);
+
     }
 }

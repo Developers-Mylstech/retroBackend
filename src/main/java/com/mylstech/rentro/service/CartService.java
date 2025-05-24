@@ -2,6 +2,8 @@ package com.mylstech.rentro.service;
 
 import com.mylstech.rentro.dto.request.cart.CartItemRequest;
 import com.mylstech.rentro.dto.response.cart.CartResponse;
+import com.mylstech.rentro.model.Cart;
+
 import java.util.List;
 
 public interface CartService {
@@ -38,5 +40,5 @@ public interface CartService {
      */
     CartResponse clearCart();
 
-    CartResponse getUserCart();
+    Cart getUserCart();
 }

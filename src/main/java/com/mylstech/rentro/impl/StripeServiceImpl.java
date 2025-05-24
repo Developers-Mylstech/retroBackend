@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.PaymentResponse;
 import com.mylstech.rentro.dto.StripePaymentRequest;
+import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CheckOut;
 import com.mylstech.rentro.repository.CheckOutRepository;
 import com.mylstech.rentro.service.CartService;
@@ -69,28 +70,32 @@ public class StripeServiceImpl implements StripeService {
     @Override
     public PaymentResponse confirmPayment(String paymentIntentId) {
         try {
-            PaymentIntent paymentIntent = PaymentIntent.retrieve ( paymentIntentId );
-            if("succeeded".equals ( paymentIntent.getStatus ( ) )){
-                cartService.clearCart();
+            PaymentIntent paymentIntent = PaymentIntent.retrieve(paymentIntentId);
+            if("succeeded".equals(paymentIntent.getStatus())) {
+                // Only clear cart if it's not temporary
+                Cart cart = cartService.getUserCart();
+                if (cart != null && !cart.isTemporary()) {
+                    cartService.clearCart();
+                }
             }
-            return new PaymentResponse (
-                    paymentIntent.getId ( ),
-                    paymentIntent.getClientSecret ( ),
-                    paymentIntent.getStatus ( ),
-                    paymentIntent.getAmount ().doubleValue (),
-                    "succeeded".equals ( paymentIntent.getStatus ( ) ),
-                    "Payment status retrieved"
+            return new PaymentResponse(
+                paymentIntent.getId(),
+                paymentIntent.getClientSecret(),
+                paymentIntent.getStatus(),
+                paymentIntent.getAmount().doubleValue(),
+                "succeeded".equals(paymentIntent.getStatus()),
+                "Payment status retrieved"
             );
         }
-        catch ( StripeException e ) {
-            logger.error ( "Error confirming payment", e );
-            return new PaymentResponse (
-                    e.getRequestId ( ),
-                    null,
-                    "failed",
-                    0.0,
-                    false,
-                    e.getMessage ( )
+        catch (StripeException e) {
+            logger.error("Error confirming payment", e);
+            return new PaymentResponse(
+                e.getRequestId(),
+                null,
+                "failed",
+                0.0,
+                false,
+                e.getMessage()
             );
         }
     }
