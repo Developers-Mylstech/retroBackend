@@ -47,4 +47,6 @@ public interface ProductService {
      * @return The updated product response
      */
     ProductResponse removeServiceFromProduct(Long productId, Long ourServiceId);
+
+    List<ProductResponse> searchByProductName(String query);
 }

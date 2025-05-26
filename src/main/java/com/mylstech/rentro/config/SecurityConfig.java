@@ -30,10 +30,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String API_V_1_PRODUCTS = "/api/v1/products";
-    private static final String ALL = "/**";
-    private static final String API_V_1_AUTH = "/api/v1/auth";
-    private static final String PAYMENT = "/api/v1/payments";
+    private static final String API_V_1_PRODUCTS = "api/v1/products";
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     @Value("${zrok.url}")
@@ -45,38 +42,38 @@ public class SecurityConfig {
                 .csrf ( AbstractHttpConfigurer::disable )
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
+                        .requestMatchers ( HttpMethod.GET,
+                                API_V_1_PRODUCTS + "/**",
+                                "/api/v1/job-posts/**",
+                                "/api/v1/our-services/**",
+                                "/api/v1/clients",
+                                "/api/v1/brands",
+                                "/api/v1/banners",
+                                "/api/v1/about-us/**" ).permitAll ( )
                         .requestMatchers ( HttpMethod.POST,
                                 "/api/v1/job-applicants",
                                 "/api/v1/files/upload-pdf",
                                 "/api/v1/request-quotations",
                                 "/api/v1/images/upload" ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST, API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.PUT, API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.GET,
-                                API_V_1_PRODUCTS + ALL,
-                                "/api/v1/job-posts" + ALL,
-                                "/api/v1/our-services" + ALL,
-                                "/api/v1/clients",
-                                "/api/v1/brands",
-                                "/api/v1/banners",
-                                "/api/v1/about-us" + ALL,
-                                "/uploads" + ALL,
-                                API_V_1_AUTH + "/register",
-                                API_V_1_AUTH + "/register-admin",
-                                API_V_1_AUTH + "/initiate-auth",
-                                API_V_1_AUTH + "/initiate-auth-phoneNo",
-                                API_V_1_AUTH + "/complete-auth",
-                                API_V_1_AUTH + "/admin-login",
-                                API_V_1_AUTH + "/refresh-token",
+                        .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT,"api/v1/products" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( "/api/v1/auth/register",
+                                "/uploads/**",
+                                "/api/v1/auth/register-admin",
+                                "/api/v1/auth/initiate-auth",
+                                "/api/v1/auth/initiate-auth-phoneNo",
+                                "/api/v1/auth/complete-auth",
+                                "/api/v1/auth/admin-login",
+                                "/api/v1/auth/refresh-token",
                                 // Swagger UI endpoints
-                                "/swagger-ui" + ALL,
+                                "/swagger-ui/**",
                                 "/swagger-ui.html",
-                                "/v3/api-docs" + ALL,
-                                "/api-docs" + ALL,
-                                "/swagger-resources" + ALL,
-                                "/webjars" + ALL,
-                                PAYMENT + "/create-payment-intent",
-                                PAYMENT + "/confirm" + ALL
+                                "/v3/api-docs/**",
+                                "/api-docs/**",
+                                "/swagger-resources/**",
+                                "/webjars/**",
+                                "/api/v1/payments/create-payment-intent",
+                                "/api/v1/payments/confirm/**"
                         ).permitAll ( )
                         .anyRequest ( ).authenticated ( )
                 )
@@ -119,7 +116,7 @@ public class SecurityConfig {
         config.setAllowCredentials ( true ); // Set to false if you're not supporting cookies/auth headers cross-origin
 
         UrlBasedCorsConfigurationSource source = new UrlBasedCorsConfigurationSource ( );
-        source.registerCorsConfiguration ( ALL, config );
+        source.registerCorsConfiguration ( "/**", config );
         return source;
     }
 

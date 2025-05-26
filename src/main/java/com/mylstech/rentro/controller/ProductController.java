@@ -216,4 +216,11 @@ public class ProductController {
                     .body ( null );
         }
     }
+    @GetMapping("/search/{query}")
+    public ResponseEntity<List<ProductResponse>> searchByProductName(@PathVariable String query) {
+
+            List<ProductResponse> products = productService.searchByProductName(query);
+            return ResponseEntity.ok(products);
+
+        };
 }

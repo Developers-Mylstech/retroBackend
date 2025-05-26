@@ -1093,6 +1093,12 @@ public class ProductServiceImpl implements ProductService {
         return new ProductResponse ( product );
     }
 
+    @Override
+    public List<ProductResponse> searchByProductName(String query) {
+        List<Product> products = productRepository.findByProductNameRegex (query);
+        return products.stream().map(ProductResponse::new).toList();
+    }
+
 //    @Override
 //    public boolean isProductAvailableForPurchase(Long productId) {
 //        Product product = productRepository.findById(productId)
