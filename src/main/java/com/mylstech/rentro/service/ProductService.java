@@ -49,4 +49,5 @@ public interface ProductService {
     ProductResponse removeServiceFromProduct(Long productId, Long ourServiceId);
 
     List<ProductResponse> searchByProductName(String query);
+    List<ProductResponse> searchByProductName1(String query);
 }

@@ -54,17 +54,14 @@ public class SecurityConfig {
                                 "/api/v1/job-applicants",
                                 "/api/v1/files/upload-pdf",
                                 "/api/v1/request-quotations",
-                                "/api/v1/images/upload" ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.PUT,"api/v1/products" ).hasRole ( "ADMIN" )
-                        .requestMatchers ( "/api/v1/auth/register",
+                                "/api/v1/image-entities/upload",
+                                "/api/v1/images/upload"
+                        ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT,"api/v1/products","/api/v1/about-us/**" ).hasRole ( "ADMIN" )
+                        .requestMatchers (
                                 "/uploads/**",
-                                "/api/v1/auth/register-admin",
-                                "/api/v1/auth/initiate-auth",
-                                "/api/v1/auth/initiate-auth-phoneNo",
-                                "/api/v1/auth/complete-auth",
-                                "/api/v1/auth/admin-login",
-                                "/api/v1/auth/refresh-token",
+                                "/api/v1/auth/**",
                                 // Swagger UI endpoints
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",

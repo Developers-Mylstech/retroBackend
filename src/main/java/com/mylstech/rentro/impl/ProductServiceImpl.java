@@ -19,10 +19,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
+import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -86,7 +88,7 @@ public class ProductServiceImpl implements ProductService {
     @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponse> getAllProducts() {
         try {
-            List<Product> products = productRepository.findAll ( );
+            List<Product> products = productRepository.findAllWithRelationships ();
             logger.debug ( "Found {} products in database", products.size ( ) );
             return products.stream ( )
                     .map ( ProductResponse::new )
@@ -121,8 +123,8 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse createProduct(ProductRequest request) {
         try {
-            logger.debug("Starting product creation process");
-            
+            logger.debug ( "Starting product creation process" );
+
             // Bottom-up approach: Create all related entities first, then the product
 
             // 1. Create or fetch the inventory
@@ -139,7 +141,7 @@ public class ProductServiceImpl implements ProductService {
 
                 // Set request quotation flag first
                 if ( request.getProductFor ( ).getIsAvailableForRequestQuotation ( ) == Boolean.TRUE ) {
-                    productFor.setIsAvailableForRequestQuotation ( Boolean.TRUE);
+                    productFor.setIsAvailableForRequestQuotation ( Boolean.TRUE );
                 } else {
                     // Default to false for backward compatibility
                     productFor.setIsAvailableForRequestQuotation ( Boolean.FALSE );
@@ -324,22 +326,27 @@ public class ProductServiceImpl implements ProductService {
                         savedProduct.getImages ( ).size ( ) );
             }
 
-            logger.debug("Successfully created product");
-            return new ProductResponse(savedProduct);
-        } catch (Exception e) {
-            logger.error("Error creating product: {}", e.getMessage(), e);
+            logger.debug ( "Successfully created product" );
+            return new ProductResponse ( savedProduct );
+        }
+        catch ( Exception e ) {
+            logger.error ( "Error creating product: {}", e.getMessage ( ), e );
             // Print the stack trace to see exactly where the error is occurring
-            e.printStackTrace();
+            e.printStackTrace ( );
             throw e;
         }
     }
 
     @Override
     @Transactional
-    @CacheEvict(value = "products", key = "'allProducts'")
-    public ProductResponse updateProduct(Long id, ProductRequest request) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Product not found with id: " + id));
+    @Caching (evict = {
+            @CacheEvict(value = "products", key = "'allProducts'"),
+            @CacheEvict(value = "productSearchCache", key = "#query.toLowerCase().trim()")
+    }
+    )
+        public ProductResponse updateProduct(Long id, ProductRequest request) {
+        Product product = productRepository.findById ( id )
+                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
 
         // Update basic fields if provided
         if ( request.getName ( ) != null ) {
@@ -644,7 +651,11 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    @CacheEvict(value = "products", key = "'allProducts'")
+    @Caching (evict = {
+            @CacheEvict(value = "products", key = "'allProducts'"),
+            @CacheEvict(value = "productSearchCache", key = "#query.toLowerCase().trim()")
+    }
+    )
     public void deleteProduct(Long id) {
         try {
             logger.debug ( "Attempting to delete product with id: {}", id );
@@ -1095,10 +1106,24 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponse> searchByProductName(String query) {
-        List<Product> products = productRepository.findByProductNameRegex (query);
-        return products.stream().map(ProductResponse::new).toList();
+        List<Product> products = productRepository.searchWithRelationships ( query );
+        return products.stream ( ).map ( ProductResponse::new ).toList ( );
     }
 
+
+
+    @Cacheable(value = "productSearchCache", key = "#query.toLowerCase().trim()")
+    @Override
+    public List<ProductResponse> searchByProductName1(String query) {
+        String normalizedQuery = query.toLowerCase().trim();
+
+        // Use direct database search instead of loading all products
+        List<Product> results = productRepository.searchWithRelationships(normalizedQuery);
+
+        return results.stream()
+                .map(ProductResponse::new)
+                .toList();
+    }
 //    @Override
 //    public boolean isProductAvailableForPurchase(Long productId) {
 //        Product product = productRepository.findById(productId)
