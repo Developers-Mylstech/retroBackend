@@ -26,20 +26,4 @@ public class CartItemRequest {
     private Integer quantity;
     
 
-    /**
-     * Converts request to CartItem entity with proper price calculation
-     * @param product the product to add to cart
-     * @return CartItem entity
-     */
-    public CartItem toCartItem(Product product) {
-        CartItem cartItem = new CartItem();
-        cartItem.setProduct(product);
-        cartItem.setProductType(productType);
-        
-        // Set quantity for both SELL and RENT
-        cartItem.setQuantity(quantity);
-
-        
-        return cartItem;
-    }
 }

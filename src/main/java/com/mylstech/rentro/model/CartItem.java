@@ -44,7 +44,6 @@ public class CartItem {
     protected void onCreate() {
         createdAt = LocalDateTime.now();
         updatedAt = createdAt;
-        quantity=1;
     }
     
     @PreUpdate

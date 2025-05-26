@@ -10,6 +10,7 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.AuthenticationProvider;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.annotation.web.configurers.AbstractHttpConfigurer;
@@ -27,10 +28,11 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 @RequiredArgsConstructor
 public class SecurityConfig {
 
-    private static final String API_V_1_PRODUCTS = "api/v1/products";
+    private static final String API_V_1_PRODUCTS = "/api/v1/products/**";
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     @Value("${zrok.url}")
@@ -43,7 +45,7 @@ public class SecurityConfig {
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
                         .requestMatchers ( HttpMethod.GET,
-                                API_V_1_PRODUCTS + "/**",
+                                API_V_1_PRODUCTS ,
                                 "/api/v1/job-posts/**",
                                 "/api/v1/our-services/**",
                                 "/api/v1/clients",
@@ -57,8 +59,10 @@ public class SecurityConfig {
                                 "/api/v1/image-entities/upload",
                                 "/api/v1/images/upload"
                         ).permitAll ( )
+                        .requestMatchers ( HttpMethod.POST,"/api/v1/products/{id}/buy-now" ).hasRole ( "CUSTOMER" )
                         .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.PUT,"api/v1/products","/api/v1/about-us/**" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.DELETE,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
                         .requestMatchers (
                                 "/uploads/**",
                                 "/api/v1/auth/**",

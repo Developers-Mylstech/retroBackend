@@ -50,16 +50,16 @@ public class CartItemServiceImpl implements CartItemService {
             throw new IllegalArgumentException ( "Product is not available for rent: " + product.getProductId ( ) );
         }
 
-        if ( request.getProductType ( ) == ProductType.OTS && product.getProductFor ( ).getServices ( ).getOts () == null ) {
+        if ( request.getProductType ( ) == ProductType.OTS && product.getProductFor ( ).getServices ( ).getOts ( ) == null ) {
             throw new IllegalArgumentException ( "Product is not available for OTS: " + product.getProductId ( ) );
         }
-        if ( request.getProductType ( ) == ProductType.MMC && product.getProductFor ( ).getServices ( ).getMmc () == null ) {
+        if ( request.getProductType ( ) == ProductType.MMC && product.getProductFor ( ).getServices ( ).getMmc ( ) == null ) {
             throw new IllegalArgumentException ( "Product is not available for MMC: " + product.getProductId ( ) );
         }
-        if ( request.getProductType ( ) == ProductType.AMC_BASIC && product.getProductFor ( ).getServices ( ).getAmcBasic () == null ) {
+        if ( request.getProductType ( ) == ProductType.AMC_BASIC && product.getProductFor ( ).getServices ( ).getAmcBasic ( ) == null ) {
             throw new IllegalArgumentException ( "Product is not available for AMC BASIC: " + product.getProductId ( ) );
         }
-        if ( request.getProductType ( ) == ProductType.AMC_GOLD && product.getProductFor ( ).getServices ( ).getAmcGold () == null ) {
+        if ( request.getProductType ( ) == ProductType.AMC_GOLD && product.getProductFor ( ).getServices ( ).getAmcGold ( ) == null ) {
             throw new IllegalArgumentException ( "Product is not available for AMC GOLD: " + product.getProductId ( ) );
         }
 
@@ -78,24 +78,24 @@ public class CartItemServiceImpl implements CartItemService {
             if ( monthlyPrice <= 0 ) {
                 monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
             }
-            cartItem.setPrice ( monthlyPrice * request.getQuantity ( ) * 1 );
+            cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
         } else if ( request.getProductType ( ) == ProductType.SELL ) {
             // Calculate price for sell item
             double unitPrice = product.getProductFor ( ).getSell ( ).getDiscountPrice ( );
             if ( unitPrice <= 0 ) {
                 unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
             }
-            cartItem.setPrice ( unitPrice * request.getQuantity ( ) );
-        } else if ( request.getProductType ()==ProductType.OTS ) {
-            cartItem.setPrice ( product.getProductFor ().getServices ().getOts ( ).getPrice ( ) );
-        }else if ( request.getProductType ()==ProductType.MMC ) {
-            cartItem.setPrice ( product.getProductFor ().getServices ().getMmc ( ).getPrice ( ) );
+            cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
+        } else if ( request.getProductType ( ) == ProductType.OTS ) {
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
+        } else if ( request.getProductType ( ) == ProductType.MMC ) {
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
 
-        }else if ( request.getProductType ()==ProductType.AMC_GOLD ) {
-            cartItem.setPrice ( product.getProductFor ().getServices ().getAmcBasic ( ).getPrice ( ) );
+        } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
 
-        }else if ( request.getProductType ()==ProductType.AMC_BASIC ) {
-            cartItem.setPrice ( product.getProductFor ().getServices ().getAmcGold ( ).getPrice ( ) );
+        } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
         }
         CartItem savedCartItem = cartItemRepository.save ( cartItem );
         return new CartItemResponse ( savedCartItem );
@@ -107,42 +107,16 @@ public class CartItemServiceImpl implements CartItemService {
         CartItem cartItem = cartItemRepository.findById ( id )
                 .orElseThrow ( () -> new RuntimeException ( "Cart item not found with id: " + id ) );
 
-        // Update cart item properties
-        cartItem.setProductType ( request.getProductType ( ) );
 
         // Set quantity for both SELL and RENT
-        cartItem.setQuantity ( request.getQuantity ( ) );
-
-        // Update rent period based on product type
-        if ( request.getProductType ( ) == ProductType.RENT ) {
-            // Calculate price for rent item
-            double monthlyPrice = cartItem.getProduct ( ).getProductFor ( ).getRent ( ).getDiscountPrice ( );
-            if ( monthlyPrice <= 0 ) {
-                monthlyPrice = cartItem.getProduct ( ).getProductFor ( ).getRent ( ).getMonthlyPrice ( );
-            }
-            cartItem.setPrice ( monthlyPrice * request.getQuantity ( ) * 1 );
-        } else if ( request.getProductType ( ) == ProductType.SELL ) {
-
-
-            // Calculate price for sell item
-            double unitPrice = cartItem.getProduct ( ).getProductFor ( ).getSell ( ).getDiscountPrice ( );
-            if ( unitPrice <= 0 ) {
-                unitPrice = cartItem.getProduct ( ).getProductFor ( ).getSell ( ).getActualPrice ( );
-            }
-            cartItem.setPrice ( unitPrice * request.getQuantity ( ) );
+        if ( request.getQuantity ( ) != null ) {
+            cartItem.setQuantity ( request.getQuantity ( ) );
         }
-        else if ( request.getProductType ()==ProductType.OTS ) {
-            cartItem.setPrice ( cartItem.getProduct ().getProductFor ().getServices ().getOts ( ).getPrice ( ) );
-        }else if ( request.getProductType ()==ProductType.MMC ) {
-            cartItem.setPrice ( cartItem.getProduct ().getProductFor ().getServices ().getMmc ( ).getPrice ( ) );
-
-        }else if ( request.getProductType ()==ProductType.AMC_GOLD ) {
-            cartItem.setPrice ( cartItem.getProduct ().getProductFor ().getServices ().getAmcBasic ( ).getPrice ( ) );
-
-        }else if ( request.getProductType ()==ProductType.AMC_BASIC ) {
-            cartItem.setPrice ( cartItem.getProduct ().getProductFor ().getServices ().getAmcGold ( ).getPrice ( ) );
+        if(cartItem.getProductType() == ProductType.RENT) {
+            cartItem.setPrice ( cartItem.getProduct ( ).getProductFor ( ).getRent ( ).getDiscountPrice ( ) * cartItem.getQuantity ( ) );
+        } else if ( cartItem.getProductType ( ) == ProductType.SELL ) {
+            cartItem.setPrice ( cartItem.getProduct ( ).getProductFor ( ).getSell ( ).getDiscountPrice ( ) * cartItem.getQuantity ( ) );
         }
-
         CartItem updatedCartItem = cartItemRepository.save ( cartItem );
         return new CartItemResponse ( updatedCartItem );
     }
