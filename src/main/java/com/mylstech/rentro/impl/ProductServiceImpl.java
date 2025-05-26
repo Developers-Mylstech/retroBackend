@@ -6,9 +6,7 @@ import com.mylstech.rentro.dto.response.ProductResponse;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
-import com.mylstech.rentro.service.CartService;
 import com.mylstech.rentro.service.CheckOutService;
-import com.mylstech.rentro.service.ImageService;
 import com.mylstech.rentro.service.ProductService;
 import com.mylstech.rentro.util.ProductType;
 import com.mylstech.rentro.util.SecurityUtils;
@@ -24,7 +22,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.ArrayList;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -40,22 +37,16 @@ public class ProductServiceImpl implements ProductService {
     private final ProductForRepository productForRepository;
     private final SellRepository sellRepository;
     private final RentRepository rentRepository;
-    private final RequestQuotationRepository requestQuotationRepository;
     private final ServiceRepository serviceRepository;
-
     private final SpecificationFieldRepository specificationFieldRepository;
-    private final ServiceFieldRepository serviceFieldRepository;
     private final AddressRepository addressRepository;
     private final SecurityUtils securityUtils;
-    private final CartItemRepository cartItemRepository;
     private final CartRepository cartRepository;
     private final CheckOutRepository checkOutRepository;
     private final CheckOutService checkOutService;
-    private final ImageService imageService;
-    private final CartService cartService;
     private final ImageRepository imageRepository;
     private final OurServiceRepository ourServiceRepository;
-    private final OrderItemRepository orderItemRepository;
+
 
     @Value("${vat.value}")
     private Double vat;
@@ -65,19 +56,16 @@ public class ProductServiceImpl implements ProductService {
             service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
         }
     }
-
     private static void addMmc(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getMmc ( ) != null ) {
             service.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
         }
     }
-
     private static void addAmcGold(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getAmcGold ( ) != null ) {
             service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
         }
     }
-
     private static void addAmcBasic(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getAmcBasic ( ) != null ) {
             service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
@@ -88,7 +76,7 @@ public class ProductServiceImpl implements ProductService {
     @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponse> getAllProducts() {
         try {
-            List<Product> products = productRepository.findAllWithRelationships ();
+            List<Product> products = productRepository.findAllWithRelationships ( );
             logger.debug ( "Found {} products in database", products.size ( ) );
             return products.stream ( )
                     .map ( ProductResponse::new )
@@ -339,12 +327,12 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    @Caching (evict = {
+    @Caching(evict = {
             @CacheEvict(value = "products", key = "'allProducts'"),
             @CacheEvict(value = "productSearchCache", key = "#query.toLowerCase().trim()")
     }
     )
-        public ProductResponse updateProduct(Long id, ProductRequest request) {
+    public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById ( id )
                 .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
 
@@ -651,7 +639,7 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     @Transactional
-    @Caching (evict = {
+    @Caching(evict = {
             @CacheEvict(value = "products", key = "'allProducts'"),
             @CacheEvict(value = "productSearchCache", key = "#query.toLowerCase().trim()")
     }
@@ -1111,26 +1099,17 @@ public class ProductServiceImpl implements ProductService {
     }
 
 
-
     @Cacheable(value = "productSearchCache", key = "#query.toLowerCase().trim()")
     @Override
     public List<ProductResponse> searchByProductName1(String query) {
-        String normalizedQuery = query.toLowerCase().trim();
+        String normalizedQuery = query.toLowerCase ( ).trim ( );
 
         // Use direct database search instead of loading all products
-        List<Product> results = productRepository.searchWithRelationships(normalizedQuery);
+        List<Product> results = productRepository.searchWithRelationships ( normalizedQuery );
 
-        return results.stream()
-                .map(ProductResponse::new)
-                .toList();
+        return results.stream ( )
+                .map ( ProductResponse::new )
+                .toList ( );
     }
-//    @Override
-//    public boolean isProductAvailableForPurchase(Long productId) {
-//        Product product = productRepository.findById(productId)
-//                .orElseThrow(() -> new ResourceNotFoundException("Product", "id", productId));
-//
-//        // Product is available for purchase if it has a productFor entity and is not request-quotation-only
-//        return product.getProductFor() != null &&
-//               !Boolean.TRUE.equals(product.getProductFor().getIsAvailableForRequestQuotation());
-//    }
+
 }
