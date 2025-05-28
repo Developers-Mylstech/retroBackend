@@ -2,7 +2,6 @@ package com.mylstech.rentro.dto.response;
 
 import com.mylstech.rentro.dto.response.cart.CartResponse;
 import com.mylstech.rentro.model.CheckOut;
-import com.mylstech.rentro.util.PAYMENT_OPTION;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;

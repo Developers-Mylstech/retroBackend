@@ -1,6 +1,5 @@
 package com.mylstech.rentro.dto.response;
 
-import com.mylstech.rentro.model.Image;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -23,7 +22,7 @@ public class FileUploadResponse {
         this.size = size;
         this.error = null;
     }
-    
+
     public FileUploadResponse(String fileName, String fileUrl, String fileType, long size, ImageDTO image) {
         this.fileName = fileName;
         this.fileUrl = fileUrl;

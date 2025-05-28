@@ -1,6 +1,8 @@
 package com.mylstech.rentro.config;
 
+import com.mylstech.rentro.exception.DirectoryCreationException;
 import jakarta.annotation.PostConstruct;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.web.servlet.config.annotation.ResourceHandlerRegistry;
@@ -13,6 +15,7 @@ import java.nio.file.Files;
 
 
 @Configuration
+@Slf4j
 public class FileStorageConfig implements WebMvcConfigurer {
 
     @Value("${file.upload-dir}")
@@ -25,9 +28,9 @@ public class FileStorageConfig implements WebMvcConfigurer {
             Files.createDirectories(uploadPath);
             Files.createDirectories(uploadPath.resolve("pdfs"));
             
-            System.out.println("Created directories at: " + uploadPath.toAbsolutePath());
+            log.info("Created directories at: " + uploadPath.toAbsolutePath());
         } catch (IOException e) {
-            throw new RuntimeException("Could not initialize storage directories", e);
+            throw new DirectoryCreationException ("Could not initialize storage directories", e);
         }
     }
 

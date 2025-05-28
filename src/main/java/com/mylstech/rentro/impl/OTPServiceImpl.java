@@ -5,6 +5,7 @@ import com.mylstech.rentro.service.OtpService;
 import com.twilio.Twilio;
 import com.twilio.rest.api.v2010.account.Message;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 
@@ -16,6 +17,7 @@ import java.util.concurrent.ConcurrentHashMap;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class OTPServiceImpl implements OtpService {
     
     private final EmailService emailService;
@@ -36,7 +38,7 @@ public class OTPServiceImpl implements OtpService {
     @Override
     public String generateOTPViaEmail(String email) {
         String otp = generateSecureOtp();
-        System.out.println("---------------> otp is here "+otp);
+       log.info("---------------> otp is here "+otp);
         LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(otpExpiryMinutes);
         
         // Store OTP with expiry time
@@ -77,7 +79,7 @@ public class OTPServiceImpl implements OtpService {
     @Override
     public String generateOTPViaPhoneNo(String phone) {
         String otp = generateSecureOtp();
-        System.out.println("---------------> otp is here "+otp);
+        log.info("---------------> otp is here "+otp);
         LocalDateTime expiryTime = LocalDateTime.now().plusMinutes(otpExpiryMinutes);
 
         // Store OTP with expiry time

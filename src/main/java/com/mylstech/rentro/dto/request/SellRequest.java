@@ -24,6 +24,11 @@ public class SellRequest {
     public Sell requestToSell() {
         Sell sell = new Sell();
         sell.setActualPrice(actualPrice);
+        if ( getIsVatIncluded ( ) ) {
+            sell.setVat ( 5.0 );
+        } else {
+            sell.setVat ( 0.0 );
+        }
         if(discountUnit == UNIT.AED){
             sell.setDiscountUnit(UNIT.AED);
             sell.setDiscountPrice(actualPrice-discountValue);
@@ -32,11 +37,6 @@ public class SellRequest {
             sell.setDiscountUnit(UNIT.PERCENTAGE);
             sell.setDiscountPrice(actualPrice-(actualPrice * (discountValue / 100)));
             sell.setDiscountValue(discountValue);
-        }
-        if ( getIsVatIncluded ( ).booleanValue ( ) ) {
-            sell.setVat ( 5.0 );
-        } else {
-            sell.setVat ( 0.0 );
         }
         sell.setBenefits(benefits != null ? benefits : new ArrayList<> ());
         if (warrantPeriod<= 0)  {

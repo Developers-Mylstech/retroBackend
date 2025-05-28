@@ -16,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class JobApplicantServiceImpl implements JobApplicantService {
 
+    private static final String JOB_APPLICANT_NOT_FOUND_WITH_ID = "JobApplicant not found with id: ";
     private final JobApplicantRepository jobApplicantRepository;
     private final JobPostRepository jobPostRepository;
 
@@ -36,7 +37,7 @@ public class JobApplicantServiceImpl implements JobApplicantService {
     @Override
     public JobApplicantResponse getJobApplicantById(Long id) {
         JobApplicant jobApplicant = jobApplicantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("JobApplicant not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException( JOB_APPLICANT_NOT_FOUND_WITH_ID + id));
         return new JobApplicantResponse(jobApplicant);
     }
 
@@ -55,7 +56,7 @@ public class JobApplicantServiceImpl implements JobApplicantService {
     @Override
     public JobApplicantResponse updateJobApplicant(Long id, JobApplicantRequest request) {
         JobApplicant jobApplicant = jobApplicantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("JobApplicant not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException( JOB_APPLICANT_NOT_FOUND_WITH_ID + id));
 
         if (request.getName() != null) {
             jobApplicant.setName(request.getName());
@@ -78,7 +79,7 @@ public class JobApplicantServiceImpl implements JobApplicantService {
     @Override
     public void deleteJobApplicant(Long id) {
         JobApplicant jobApplicant = jobApplicantRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("JobApplicant not found with id: " + id));
+                .orElseThrow(() -> new RuntimeException( JOB_APPLICANT_NOT_FOUND_WITH_ID + id));
         jobApplicantRepository.delete(jobApplicant);
     }
 }

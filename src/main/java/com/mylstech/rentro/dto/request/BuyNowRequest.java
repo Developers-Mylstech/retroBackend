@@ -18,7 +18,7 @@ public class BuyNowRequest {
     private ProductType productType;
 
     @Min(value = 1, message = "Quantity must be at least 1")
-    private Integer quantity = 1;
+    private Integer quantity ;
 
     // Customer details
     @NotBlank(message = "Name is required")

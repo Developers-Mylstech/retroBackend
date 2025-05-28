@@ -25,13 +25,10 @@ public class CartItemController {
 
     @GetMapping("/{id}")
     public ResponseEntity<CartItemResponse> getCartItemById(@PathVariable Long id) {
-        try {
+
             CartItemResponse cartItem = cartItemService.getCartItemById ( id );
             return ResponseEntity.ok ( cartItem );
-        }
-        catch ( Exception e ) {
-            throw e;
-        }
+
     }
 
     @Operation(
@@ -47,16 +44,12 @@ public class CartItemController {
     public ResponseEntity<CartItemResponse> addToCart(
             @RequestBody CartItemRequest request
     ) {
-        try {
+
             logger.debug ( "Adding item to cart: {}", request );
             CartItemResponse response = cartItemService.addToCart ( request );
             logger.debug ( "Item added to cart with ID: {}", response.getCartItemId ( ) );
             return new ResponseEntity<> ( response, HttpStatus.CREATED );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error adding item to cart", e );
-            throw e;
-        }
+
     }
 
     @Operation(
@@ -68,27 +61,19 @@ public class CartItemController {
             @PathVariable Long id,
             @RequestBody CartItemRequest request
     ) {
-        try {
+
             logger.debug ( "Updating cart item with ID: {}", id );
             CartItemResponse response = cartItemService.updateCartItem ( id, request );
             logger.debug ( "Cart item updated: {}", response.getCartItemId ( ) );
             return ResponseEntity.ok ( response );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error updating cart item with ID: " + id, e );
-            throw e;
-        }
     }
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> removeCartItem(@PathVariable Long id) {
-        try {
+
             cartItemService.removeCartItem ( id );
             return ResponseEntity.noContent ( ).build ( );
-        }
-        catch ( Exception e ) {
-            throw e;
-        }
+
     }
 
 }

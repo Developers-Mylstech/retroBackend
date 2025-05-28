@@ -18,6 +18,7 @@ import org.springframework.web.multipart.MultipartFile;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @RequiredArgsConstructor
@@ -41,7 +42,7 @@ public class ImageEntityServiceImpl implements ImageEntityService {
 
     @Override
     public FileUploadResponse uploadImage(MultipartFile file, int quality, boolean fallbackToJpeg) throws IOException {
-        String fileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String fileName = StringUtils.cleanPath( Objects.requireNonNullElse(file.getOriginalFilename(), "untitled"));
         String fileUrl = fileStorageService.storeImageAsWebP(file, quality, fallbackToJpeg);
         String contentType = fileUrl.endsWith(".webp") ? "image/webp" : "image/jpeg";
         
@@ -102,10 +103,7 @@ public class ImageEntityServiceImpl implements ImageEntityService {
     @Override
     public List<EntityImagesResponse> getAllImages() {
         List<Image> images = imageRepository.findAll ( );
-        return images.stream ().map ( image -> {
-            return new EntityImagesResponse ( image.getImageId (), "image", image.getImageUrl ());
-        }  ).toList ();
-
+        return images.stream ().map ( image -> new EntityImagesResponse ( image.getImageId (), "image", image.getImageUrl ())).toList ();
     }
 
     @Override

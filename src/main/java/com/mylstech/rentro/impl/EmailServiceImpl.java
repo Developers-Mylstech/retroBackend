@@ -1,5 +1,6 @@
 package com.mylstech.rentro.impl;
 
+import com.mylstech.rentro.exception.EmailSendingException;
 import com.mylstech.rentro.service.EmailService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -31,7 +32,7 @@ public class EmailServiceImpl implements EmailService {
             log.info("Email sent successfully to: {}", to);
         } catch (Exception e) {
             log.error("Failed to send email to: {}", to, e);
-            throw new RuntimeException("Failed to send email", e);
+            throw new EmailSendingException ("Failed to send email", e);
         }
     }
 }

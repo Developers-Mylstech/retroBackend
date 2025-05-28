@@ -931,6 +931,7 @@ public class ProductServiceImpl implements ProductService {
             CartItem cartItem = new CartItem ( );
             cartItem.setProduct ( product );
             cartItem.setProductType ( request.getProductType ( ) );
+            cartItem.setQuantity ( 1 );
 
             // Set quantity and rent period based on product type
             if ( request.getProductType ( ) == ProductType.SELL ) {
@@ -942,7 +943,7 @@ public class ProductServiceImpl implements ProductService {
                 if ( unitPrice <= 0 ) {
                     unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
                 }
-                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null ) {
+                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null&& product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
                     unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
                 }
                 cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
@@ -955,7 +956,7 @@ public class ProductServiceImpl implements ProductService {
                 if ( monthlyPrice <= 0 ) {
                     monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
                 }
-                if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null ) {
+                if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
                     monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
                 }
                 cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
@@ -1004,7 +1005,9 @@ public class ProductServiceImpl implements ProductService {
 
             // Create checkout
             CheckOut checkOut = new CheckOut ( );
+            logger.info("cart id--------------------> {}",cart.getCartId());
             checkOut.setCart ( cart );
+            logger.info("is cart temporary --------------------> {}",cart.isTemporary ());
             checkOut.setFirstName ( request.getFirstName ( ) );
             checkOut.setLastName ( request.getLastName ( ) );
             checkOut.setMobile ( request.getMobile ( ) );

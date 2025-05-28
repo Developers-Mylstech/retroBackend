@@ -33,6 +33,13 @@ import java.util.List;
 public class SecurityConfig {
 
     private static final String API_V_1_PRODUCTS = "/api/v1/products/**";
+    private static final String API_V_1_BANNERS = "/api/v1/banners/**";
+    private static final String API_V_1_ABOUT_US = "/api/v1/about-us/**";
+    private static final String API_V_1_BRANDS = "/api/v1/brands/**";
+    private static final String API_V_1_CLIENTS = "/api/v1/clients/**";
+    private static final String API_V_1_OUR_SERVICES = "/api/v1/our-services/**";
+    private static final String API_V_1_JOB_APPLICANTS = "/api/v1/job-applicants/**";
+    private static final String API_V_1_JOB_POSTS = "/api/v1/job-posts/**";
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     @Value("${zrok.url}")
@@ -46,35 +53,59 @@ public class SecurityConfig {
                 .authorizeHttpRequests ( auth -> auth
                         .requestMatchers ( HttpMethod.GET,
                                 API_V_1_PRODUCTS ,
-                                "/api/v1/job-posts/**",
-                                "/api/v1/our-services/**",
-                                "/api/v1/clients",
-                                "/api/v1/brands",
-                                "/api/v1/banners",
-                                "/api/v1/about-us/**" ).permitAll ( )
+                                API_V_1_JOB_POSTS,
+                                API_V_1_OUR_SERVICES,
+                                API_V_1_CLIENTS,
+                                API_V_1_BRANDS,
+                                API_V_1_BANNERS,
+                                API_V_1_ABOUT_US ).permitAll ( )
                         .requestMatchers ( HttpMethod.POST,
-                                "/api/v1/job-applicants",
+                                API_V_1_JOB_APPLICANTS,
                                 "/api/v1/files/upload-pdf",
                                 "/api/v1/request-quotations",
                                 "/api/v1/image-entities/upload",
                                 "/api/v1/images/upload"
                         ).permitAll ( )
-                        .requestMatchers ( HttpMethod.POST,"/api/v1/products/{id}/buy-now" ).hasRole ( "CUSTOMER" )
-                        .requestMatchers ( HttpMethod.POST,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.DELETE,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
-                        .requestMatchers ( HttpMethod.PUT,API_V_1_PRODUCTS,"/api/v1/about-us/**" ).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.POST,
+                                "/api/v1/products/{id}/buy-now" ).hasRole ( "CUSTOMER" )
+                        .requestMatchers ( HttpMethod.POST,
+                                API_V_1_PRODUCTS,
+                                API_V_1_BANNERS,
+                                API_V_1_ABOUT_US,
+                                API_V_1_BRANDS,
+                                API_V_1_CLIENTS,
+                                API_V_1_OUR_SERVICES,
+                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.DELETE,
+                                API_V_1_PRODUCTS,
+                                API_V_1_BANNERS,
+                                API_V_1_ABOUT_US,
+                                API_V_1_BRANDS,
+                                API_V_1_CLIENTS,
+                                API_V_1_OUR_SERVICES,
+                                API_V_1_JOB_APPLICANTS,
+                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
+                        .requestMatchers ( HttpMethod.PUT,
+                                API_V_1_PRODUCTS,
+                                API_V_1_BANNERS,
+                                API_V_1_ABOUT_US,
+                                API_V_1_BRANDS,
+                                API_V_1_CLIENTS,
+                                API_V_1_OUR_SERVICES,
+                                API_V_1_JOB_APPLICANTS,
+                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
                         .requestMatchers (
                                 "/uploads/**",
                                 "/api/v1/auth/**",
+                                "/api/v1/payments/create-payment-intent",
+                                "/api/v1/payments/confirm/**",
                                 // Swagger UI endpoints
                                 "/swagger-ui/**",
                                 "/swagger-ui.html",
                                 "/v3/api-docs/**",
                                 "/api-docs/**",
                                 "/swagger-resources/**",
-                                "/webjars/**",
-                                "/api/v1/payments/create-payment-intent",
-                                "/api/v1/payments/confirm/**"
+                                "/webjars/**"
                         ).permitAll ( )
                         .anyRequest ( ).authenticated ( )
                 )
@@ -106,7 +137,9 @@ public class SecurityConfig {
         config.setAllowedOrigins ( List.of (
                 "http://localhost:5173",
                 "http://localhost:5174",
-                zrokUrl,
+                "https://newtest.rentro.ae",
+                "https://newone.rentro.ae",
+                 zrokUrl,
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://demo.rentro.ae",

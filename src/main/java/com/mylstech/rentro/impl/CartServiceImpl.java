@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.cart.CartItemRequest;
 import com.mylstech.rentro.dto.response.cart.CartResponse;
+import com.mylstech.rentro.exception.PermissionDeniedException;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CartItem;
@@ -90,7 +91,6 @@ public class CartServiceImpl implements CartService {
         logger.debug ( "Cart updated with {} items, total price: {}",
                 cart.getItems ( ).size ( ),
                 cart.getTotalPrice ( ) );
-
         return new CartResponse ( cart );
     }
 
@@ -106,7 +106,7 @@ public class CartServiceImpl implements CartService {
 
         // Verify the cart item belongs to the current user's cart
         if ( ! cartItem.getCart ( ).getCartId ( ).equals ( cart.getCartId ( ) ) ) {
-            throw new RuntimeException ( "You don't have permission to remove this item" );
+            throw new PermissionDeniedException ( "You don't have permission to remove this item" );
         }
 
         // Remove the item from the cart

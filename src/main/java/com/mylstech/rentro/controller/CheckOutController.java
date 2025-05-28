@@ -32,16 +32,12 @@ public class CheckOutController {
     })
     @GetMapping
     public ResponseEntity<List<CheckOutResponse>> getAllCheckOuts() {
-        try {
+
             logger.debug ( "Fetching all checkouts" );
             List<CheckOutResponse> checkOuts = checkOutService.getAllCheckOuts ( );
             logger.debug ( "Found {} checkouts", checkOuts.size ( ) );
             return ResponseEntity.ok ( checkOuts );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching all checkouts", e );
-            throw e;
-        }
+
     }
 
     @Operation(summary = "Get checkout by ID", description = "Retrieve a checkout by its ID")
@@ -51,16 +47,12 @@ public class CheckOutController {
     })
     @GetMapping("/{id}")
     public ResponseEntity<CheckOutResponse> getCheckOutById(@PathVariable Long id) {
-        try {
+
             logger.debug ( "Fetching checkout with ID: {}", id );
             CheckOutResponse checkOut = checkOutService.getCheckOutById ( id );
             logger.debug ( "Found checkout with ID: {}", id );
             return ResponseEntity.ok ( checkOut );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching checkout with ID: " + id, e );
-            throw e;
-        }
+
     }
 
     @Operation(summary = "Create checkout", description = "Create a new checkout. Delivery date must be at least 1 hour in the future.")
@@ -71,16 +63,12 @@ public class CheckOutController {
     })
     @PostMapping
     public ResponseEntity<CheckOutResponse> createCheckOut(@Valid @RequestBody CheckOutRequest request) {
-        try {
+
             logger.info ( "Creating new checkout: {}", request );
             CheckOutResponse checkOut = checkOutService.createCheckOut ( request );
             logger.info ( "Created checkout with ID: {}", checkOut.getCheckoutId ( ) );
             return new ResponseEntity<> ( checkOut, HttpStatus.CREATED );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error creating checkout", e );
-            throw e;
-        }
+
     }
 
     @Operation(summary = "Update checkout", description = "Update an existing checkout. If delivery date is provided, it must be at least 1 hour in the future.")
@@ -93,16 +81,12 @@ public class CheckOutController {
     public ResponseEntity<CheckOutResponse> updateCheckOut(
             @PathVariable Long id,
             @Valid @RequestBody CheckOutRequest request) {
-        try {
+
             logger.debug ( "Updating checkout with ID: {}", id );
             CheckOutResponse checkOut = checkOutService.updateCheckOut ( id, request );
             logger.debug ( "Updated checkout with ID: {}", id );
             return ResponseEntity.ok ( checkOut );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error updating checkout with ID: " + id, e );
-            throw e;
-        }
+
     }
 
     @Operation(summary = "Delete checkout", description = "Delete a checkout")
@@ -112,16 +96,11 @@ public class CheckOutController {
     })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteCheckOut(@PathVariable Long id) {
-        try {
+
             logger.debug ( "Deleting checkout with ID: {}", id );
             checkOutService.deleteCheckOut ( id );
             logger.debug ( "Deleted checkout with ID: {}", id );
             return ResponseEntity.noContent ( ).build ( );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error deleting checkout with ID: " + id, e );
-            throw e;
-        }
     }
 
     @Operation(summary = "Get checkouts by user ID", description = "Retrieve checkouts for a specific user")
@@ -130,16 +109,11 @@ public class CheckOutController {
     })
     @GetMapping("/user/{userId}")
     public ResponseEntity<List<CheckOutResponse>> getCheckOutsByUserId(@PathVariable Long userId) {
-        try {
+
             logger.debug ( "Fetching checkouts for user with ID: {}", userId );
             List<CheckOutResponse> checkOuts = checkOutService.getCheckOutsByUserId ( userId );
             logger.debug ( "Found {} checkouts for user with ID: {}", checkOuts.size ( ), userId );
             return ResponseEntity.ok ( checkOuts );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching checkouts for user with ID: " + userId, e );
-            throw e;
-        }
     }
 
 
@@ -150,15 +124,11 @@ public class CheckOutController {
     })
     @PostMapping("/{id}/place-order")
     public ResponseEntity<CheckOutResponse> placeOrder(@PathVariable("id") Long checkoutId) {
-        try {
+
             logger.debug ( "Placing order for checkout with ID: {}", checkoutId );
             CheckOutResponse response = checkOutService.placeOrder ( checkoutId );
             logger.debug ( "Placed order for checkout with ID: {}", checkoutId );
             return ResponseEntity.ok ( response );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error placing order for checkout with ID: " + checkoutId, e );
-            throw e;
-        }
+
     }
 }

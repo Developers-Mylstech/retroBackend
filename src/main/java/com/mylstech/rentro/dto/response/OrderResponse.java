@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -30,33 +29,33 @@ public class OrderResponse {
     private LocalDateTime paidAt;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     public OrderResponse(Order order) {
-        this.orderId = order.getOrderId();
-        this.orderNumber = order.getOrderNumber();
-        
-        if (order.getUser() != null) {
-            this.userId = order.getUser().getUserId();
-            this.userName = order.getUser().getName();
+        this.orderId = order.getOrderId ( );
+        this.orderNumber = order.getOrderNumber ( );
+
+        if ( order.getUser ( ) != null ) {
+            this.userId = order.getUser ( ).getUserId ( );
+            this.userName = order.getUser ( ).getName ( );
         }
-        
-        this.items = order.getItems().stream()
-                .map(OrderItemResponse::new)
-                .collect(Collectors.toList());
-        this.userMobile=order.getCheckout ().getMobile ().isEmpty ()?" ":order.getCheckout ().getMobile ();
-        this.totalAmount = order.getTotalAmount();
-        this.status = order.getStatus();
-        
-        if (order.getDeliveryAddress() != null) {
-            this.deliveryAddress = new AddressResponse(order.getDeliveryAddress());
+
+        this.items = order.getItems ( ).stream ( )
+                .map ( OrderItemResponse::new )
+                .toList ( );
+        this.userMobile = order.getCheckout ( ).getMobile ( ).isEmpty ( ) ? " " : order.getCheckout ( ).getMobile ( );
+        this.totalAmount = order.getTotalAmount ( );
+        this.status = order.getStatus ( );
+
+        if ( order.getDeliveryAddress ( ) != null ) {
+            this.deliveryAddress = new AddressResponse ( order.getDeliveryAddress ( ) );
         }
-        
-        this.deliveryDate = order.getDeliveryDate();
-        this.paymentId = order.getPaymentId();
-        this.paymentMethod = order.getPaymentMethod();
-        this.isPaid = order.getIsPaid();
-        this.paidAt = order.getPaidAt();
-        this.createdAt = order.getCreatedAt();
-        this.updatedAt = order.getUpdatedAt();
+
+        this.deliveryDate = order.getDeliveryDate ( );
+        this.paymentId = order.getPaymentId ( );
+        this.paymentMethod = order.getPaymentMethod ( );
+        this.isPaid = order.getIsPaid ( );
+        this.paidAt = order.getPaidAt ( );
+        this.createdAt = order.getCreatedAt ( );
+        this.updatedAt = order.getUpdatedAt ( );
     }
 }

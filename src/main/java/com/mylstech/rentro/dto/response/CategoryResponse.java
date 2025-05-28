@@ -6,7 +6,6 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -19,20 +18,20 @@ public class CategoryResponse {
     private List<String> images;
 
     public CategoryResponse(Category category) {
-        this.categoryId = category.getCategoryId();
-        this.name = category.getName();
-        
-        if (category.getParentCategory() != null) {
-            this.parentCategoryId = category.getParentCategory().getCategoryId();
+        this.categoryId = category.getCategoryId ( );
+        this.name = category.getName ( );
+
+        if ( category.getParentCategory ( ) != null ) {
+            this.parentCategoryId = category.getParentCategory ( ).getCategoryId ( );
         }
-        
-        if (category.getSubCategories() != null) {
-            this.subCategories = category.getSubCategories().stream()
-                .map(CategoryResponse::new)
-                .toList();
+
+        if ( category.getSubCategories ( ) != null ) {
+            this.subCategories = category.getSubCategories ( ).stream ( )
+                    .map ( CategoryResponse::new )
+                    .toList ( );
         }
-        if (category.getImageUrls() != null) {
-            this.images = category.getImageUrls();
+        if ( category.getImageUrls ( ) != null ) {
+            this.images = category.getImageUrls ( );
         }
     }
 }

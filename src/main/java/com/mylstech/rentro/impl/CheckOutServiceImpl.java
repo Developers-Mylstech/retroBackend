@@ -3,6 +3,8 @@ package com.mylstech.rentro.impl;
 import com.mylstech.rentro.dto.request.CheckOutRequest;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.OrderResponse;
+import com.mylstech.rentro.exception.PermissionDeniedException;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Address;
 import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CheckOut;
@@ -24,6 +26,7 @@ import java.util.List;
 @Service
 @RequiredArgsConstructor
 public class CheckOutServiceImpl implements CheckOutService {
+    private static final String CHECKOUT_NOT_FOUND_WITH_ID = "Checkout not found with id: ";
     private final CheckOutRepository checkOutRepository;
     private final CartRepository cartRepository;
     private final CartService cartService;
@@ -43,7 +46,7 @@ public class CheckOutServiceImpl implements CheckOutService {
     public CheckOutResponse getCheckOutById(Long id) {
         logger.debug ( "Fetching checkout with ID: {}", id );
         CheckOut checkOut = checkOutRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( CHECKOUT_NOT_FOUND_WITH_ID + id ) );
         return new CheckOutResponse ( checkOut );
     }
 
@@ -55,18 +58,18 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         // Find the cart
         Cart cart = cartRepository.findById ( request.getCartId ( ) )
-                .orElseThrow ( () -> new RuntimeException ( "Cart not found with id: " + request.getCartId ( ) ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Cart not found with id: " + request.getCartId ( ) ) );
 
         // Create checkout
         CheckOut checkOut = request.toCheckOut ( cart );
 
         // Set the delivery address from addressId
         Address address = addressRepository.findById ( request.getAddressId ( ) )
-                .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Address not found with id: " + request.getAddressId ( ) ) );
 
         // Verify address belongs to current user
         if ( ! address.getUser ( ).getUserId ( ).equals ( cart.getUser ( ).getUserId ( ) ) ) {
-            throw new RuntimeException ( "You don't have permission to use this address" );
+            throw new PermissionDeniedException ( "You don't have permission to use this address" );
         }
 
         checkOut.setDeliveryAddress ( address );
@@ -87,12 +90,12 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         // Find the checkout
         CheckOut checkOut = checkOutRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( CHECKOUT_NOT_FOUND_WITH_ID + id ) );
 
         // Find the cart if cart ID is provided
         if ( request.getCartId ( ) != null ) {
             Cart cart = cartRepository.findById ( request.getCartId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "Cart not found with id: " + request.getCartId ( ) ) );
+                    .orElseThrow ( () -> new ResourceNotFoundException ( "Cart not found with id: " + request.getCartId ( ) ) );
             checkOut.setCart ( cart );
         }
 
@@ -115,12 +118,8 @@ public class CheckOutServiceImpl implements CheckOutService {
         // Update the delivery address if addressId is provided
         if ( request.getAddressId ( ) != null ) {
             Address address = addressRepository.findById ( request.getAddressId ( ) )
-                    .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
+                    .orElseThrow ( () -> new ResourceNotFoundException ( "Address not found with id: " + request.getAddressId ( ) ) );
 
-            // Verify address belongs to current user
-//            if ( ! address.getUser ( ).getUserId ( ).equals ( checkOut.getCart ( ).getUser ( ).getUserId ( ) ) ) {
-//                throw new RuntimeException ( "You don't have permission to use this address" );
-//            }
 
             checkOut.setDeliveryAddress ( address );
             // Update homeAddress with formatted address
@@ -141,7 +140,7 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         // Find the checkout
         CheckOut checkOut = checkOutRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( CHECKOUT_NOT_FOUND_WITH_ID + id ) );
 
         // Delete the checkout
         checkOutRepository.delete ( checkOut );
@@ -167,7 +166,7 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         // Get the checkout
         CheckOut checkout = checkOutRepository.findById ( checkoutId )
-                .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + checkoutId ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( CHECKOUT_NOT_FOUND_WITH_ID + checkoutId ) );
 
 
         CheckOut updatedCheckout = checkOutRepository.save ( checkout );

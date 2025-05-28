@@ -14,12 +14,7 @@ public class JobPostRequest {
     private String requirements;
     private Boolean isActive;
     
-    /**
-     * @deprecated This field is only for backward compatibility.
-     * Use imageId instead.
-     */
-    @Deprecated
-    private String image;
+
     
     private Long imageId;
 

@@ -2,7 +2,6 @@ package com.mylstech.rentro.controller;
 
 import com.mylstech.rentro.dto.response.EntityImagesResponse;
 import com.mylstech.rentro.dto.response.FileUploadResponse;
-import com.mylstech.rentro.model.Image;
 import com.mylstech.rentro.service.ImageEntityService;
 import io.swagger.v3.oas.annotations.Operation;
 import lombok.RequiredArgsConstructor;
@@ -19,6 +18,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class ImageEntityController {
     private final ImageEntityService imageEntityService;
+
     @Operation(summary = "Upload image and get image entity with ID")
     @PostMapping("/upload")
     public ResponseEntity<FileUploadResponse> uploadImage(
@@ -26,10 +26,11 @@ public class ImageEntityController {
             @RequestParam(value = "quality", defaultValue = "80") int quality,
             @RequestParam(value = "fallbackToJpeg", defaultValue = "true") boolean fallbackToJpeg) {
         try {
-            FileUploadResponse response = imageEntityService.uploadImage(file, quality, fallbackToJpeg);
-            return ResponseEntity.ok(response);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+            FileUploadResponse response = imageEntityService.uploadImage ( file, quality, fallbackToJpeg );
+            return ResponseEntity.ok ( response );
+        }
+        catch ( IOException e ) {
+            return ResponseEntity.internalServerError ( ).build ( );
         }
     }
 
@@ -40,35 +41,37 @@ public class ImageEntityController {
             @RequestParam(value = "quality", defaultValue = "80") int quality,
             @RequestParam(value = "fallbackToJpeg", defaultValue = "true") boolean fallbackToJpeg) {
         try {
-            List<FileUploadResponse> responses = imageEntityService.uploadMultipleImages(files, quality, fallbackToJpeg);
-            return ResponseEntity.ok(responses);
-        } catch (IOException e) {
-            return ResponseEntity.internalServerError().build();
+            List<FileUploadResponse> responses = imageEntityService.uploadMultipleImages ( files, quality, fallbackToJpeg );
+            return ResponseEntity.ok ( responses );
+        }
+        catch ( IOException e ) {
+            return ResponseEntity.internalServerError ( ).build ( );
         }
     }
 
     @Operation(summary = "Get all images")
     @GetMapping
     public ResponseEntity<List<EntityImagesResponse>> getAllImages() {
-        List<EntityImagesResponse> images = imageEntityService.getAllImages();
-        return ResponseEntity.ok(images);
+        List<EntityImagesResponse> images = imageEntityService.getAllImages ( );
+        return ResponseEntity.ok ( images );
     }
 
     @Operation(summary = "Get image by ID")
     @GetMapping("/{imageId}")
     public ResponseEntity<EntityImagesResponse> getImageById(@PathVariable Long imageId) {
         EntityImagesResponse image = imageEntityService.getImageById ( imageId );
-        return ResponseEntity.ok(image);
+        return ResponseEntity.ok ( image );
     }
 
     @Operation(summary = "Delete image by ID")
     @DeleteMapping("/{imageId}")
     public ResponseEntity<Void> deleteImage(@PathVariable Long imageId) {
         try {
-            imageEntityService.deleteImage(imageId);
-            return ResponseEntity.noContent().build();
-        } catch (IOException e) {
-            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+            imageEntityService.deleteImage ( imageId );
+            return ResponseEntity.noContent ( ).build ( );
+        }
+        catch ( IOException e ) {
+            return ResponseEntity.status ( HttpStatus.INTERNAL_SERVER_ERROR ).build ( );
         }
     }
 }

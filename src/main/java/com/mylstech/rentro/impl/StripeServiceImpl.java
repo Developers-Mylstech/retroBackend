@@ -45,8 +45,7 @@ public class StripeServiceImpl implements StripeService {
                     .build ( );
 
             PaymentIntent paymentIntent = PaymentIntent.create ( params );
-            return new PaymentResponse (
-
+            PaymentResponse paymentIntentCreatedSuccessfully = new PaymentResponse (
                     paymentIntent.getId ( ),
                     paymentIntent.getClientSecret ( ),
                     paymentIntent.getStatus ( ),
@@ -54,6 +53,8 @@ public class StripeServiceImpl implements StripeService {
                     true,
                     "Payment intent created successfully"
             );
+            logger.info ( "Payment intent created successfully: {}", paymentIntentCreatedSuccessfully);
+            return paymentIntentCreatedSuccessfully;
         }
         catch ( StripeException e ) {
             logger.error ( "Error creating payment intent", e );
@@ -76,11 +77,15 @@ public class StripeServiceImpl implements StripeService {
 
                 String checkout = paymentIntent.getMetadata ( ).get ( "checkout" );
                 Long checkoutId = Long.parseLong ( checkout );
+                logger.info( "Clearing cart for checkout: {}", checkoutId );
                 CheckOut checkOut = checkOutRepository.findById ( checkoutId )
                         .orElseThrow ( () -> new ResourceNotFoundException ( "Checkout not found with id: " + checkoutId ) );
                 Cart cart = checkOut.getCart ( );
+                logger.info ( "is Cart temporary: {}", cart.isTemporary () );
                 if ( ! cart.isTemporary ( ) ) {
+                    logger.info ( "------------------------------------->Clearing cart");
                     cartService.clearCart ( );
+                    logger.info ( "----------------------------------->Cart cleared");
                 }
             }
             return new PaymentResponse (

@@ -16,13 +16,7 @@ public class JobPostResponse {
     private String requirements;
     private Boolean isActive;
     
-    /**
-     * @deprecated This field is only for backward compatibility.
-     * Use image object instead.
-     */
-//    @Deprecated
-//    private String image;
-    
+
     private ImageDTO imageDetails;
     private Integer totalApplicants;
 
@@ -32,7 +26,7 @@ public class JobPostResponse {
         this.jobDescription = jobPost.getJobDescription();
         this.requirements = jobPost.getRequirements();
         this.isActive = jobPost.getIsActive();
-//        this.image = jobPost.getImageUrl (); // For backward compatibility
+
         if (jobPost.getImage () != null) {
             this.imageDetails = new ImageDTO(jobPost.getImage ());
         }

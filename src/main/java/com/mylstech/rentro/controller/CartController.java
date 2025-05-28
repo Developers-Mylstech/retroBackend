@@ -20,54 +20,42 @@ public class CartController {
 
     @GetMapping
     public ResponseEntity<CartResponse> getCurrentUserCart() {
-        try {
-            CartResponse cart = cartService.getCurrentUserCart();
-            return ResponseEntity.ok(cart);
-        } catch (Exception e) {
-            throw e;
-        }
+
+        CartResponse cart = cartService.getCurrentUserCart ( );
+        return ResponseEntity.ok ( cart );
+
     }
 
     @PostMapping("/items")
     public ResponseEntity<CartResponse> addItemToCart(@Valid @RequestBody CartItemRequest request) {
-        try {
 
-            CartResponse cart = cartService.addItemToCart(request);
-            return new ResponseEntity<>(cart, HttpStatus.CREATED);
-        } catch (Exception e) {
-            throw e;
-        }
+
+        CartResponse cart = cartService.addItemToCart ( request );
+        return new ResponseEntity<> ( cart, HttpStatus.CREATED );
+
     }
-    
+
     @PostMapping("/items/batch")
     public ResponseEntity<CartResponse> addItemsToCart(@Valid @RequestBody List<CartItemRequest> requests) {
-        try {
-            // Validate all requests
+        // Validate all requests
 
-            CartResponse cart = cartService.addItemsToCart(requests);
-            return new ResponseEntity<>(cart, HttpStatus.CREATED);
-        } catch (Exception e) {
-            throw e;
-        }
+        CartResponse cart = cartService.addItemsToCart ( requests );
+        return new ResponseEntity<> ( cart, HttpStatus.CREATED );
+
     }
 
     @DeleteMapping("/items/{cartItemId}")
     public ResponseEntity<CartResponse> removeItemFromCart(@PathVariable Long cartItemId) {
-        try {
-            CartResponse cart = cartService.removeItemFromCart(cartItemId);
-            return ResponseEntity.ok(cart);
-        } catch (Exception e) {
-            throw e;
-        }
+
+        CartResponse cart = cartService.removeItemFromCart ( cartItemId );
+        return ResponseEntity.ok ( cart );
     }
 
     @DeleteMapping("/items")
     public ResponseEntity<CartResponse> clearCart() {
-        try {
-            CartResponse cart = cartService.clearCart();
-            return ResponseEntity.ok(cart);
-        } catch (Exception e) {
-            throw e;
-        }
+
+        CartResponse cart = cartService.clearCart ( );
+        return ResponseEntity.ok ( cart );
+
     }
 }

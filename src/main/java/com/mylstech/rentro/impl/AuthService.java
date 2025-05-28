@@ -25,6 +25,7 @@ import java.util.UUID;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+    private static final String USER_NOT_FOUND = "User not found";
     private final OtpService otpService;
     private final AppUserRepository appUserRepository;
     private final PasswordEncoder passwordEncoder;
@@ -151,7 +152,7 @@ public class AuthService {
     public void initiateAuthenticationWithEmail(EmailAuthRequest request) {
         // Check if user exists
         AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException( USER_NOT_FOUND ));
         
         // Generate and send OTP
         otpService.generateOTPViaEmail (user.getEmail());
@@ -167,7 +168,7 @@ public class AuthService {
         
         // Get user
         AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException( USER_NOT_FOUND ));
         
         // Check if user is verified (for registration verification)
         if (!user.isVerified()) {
@@ -207,7 +208,7 @@ public class AuthService {
 
     public void initiateAuthenticationWithPhoneNo(PhoneAuthRequest request) {
         AppUser user = appUserRepository.findByPhone(request.getPhoneNo ())
-                .orElseThrow(() -> new RuntimeException("User not found"));
+                .orElseThrow(() -> new RuntimeException( USER_NOT_FOUND ));
 
         // Generate and send OTP
         otpService.generateOTPViaPhoneNo (user.getPhone ());

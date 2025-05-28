@@ -14,7 +14,6 @@ import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
-import java.time.LocalDateTime;
 
 @RestController
 @RequestMapping("/api/v1/files")
@@ -34,7 +33,7 @@ public class FileUploadController {
         }
         catch ( IOException e ) {
             return ResponseEntity.status ( HttpStatus.BAD_REQUEST )
-                    .body ( new FileUploadResponse ());
+                    .body ( new FileUploadResponse ( ) );
         }
     }
 }

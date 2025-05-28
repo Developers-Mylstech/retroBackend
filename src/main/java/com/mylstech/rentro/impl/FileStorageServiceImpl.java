@@ -38,7 +38,11 @@ public class FileStorageServiceImpl implements FileStorageService {
         Files.createDirectories(uploadPath);
         
         // Generate a unique file name
-        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename());
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            originalFileName = "noName";
+        }
+        originalFileName = StringUtils.cleanPath(originalFileName);
         String baseName = originalFileName;
         if (originalFileName.contains(".")) {
             baseName = originalFileName.substring(0, originalFileName.lastIndexOf("."));
@@ -134,7 +138,11 @@ public class FileStorageServiceImpl implements FileStorageService {
         Files.createDirectories(uploadPath);
         
         // Generate a unique file name
-        String originalFileName = StringUtils.cleanPath(file.getOriginalFilename()==null?"noName":file.getOriginalFilename());
+        String originalFileName = file.getOriginalFilename();
+        if (originalFileName == null) {
+            originalFileName = "noName";
+        }
+        originalFileName = StringUtils.cleanPath(originalFileName);
         String baseName = originalFileName;
         if (originalFileName.contains(".")) {
             baseName = originalFileName.substring(0, originalFileName.lastIndexOf("."));

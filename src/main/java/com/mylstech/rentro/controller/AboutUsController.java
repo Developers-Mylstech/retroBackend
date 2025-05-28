@@ -2,6 +2,7 @@ package com.mylstech.rentro.controller;
 
 import com.mylstech.rentro.dto.request.AboutUsRequest;
 import com.mylstech.rentro.dto.response.AboutUsResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.service.AboutUsService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -46,7 +47,7 @@ public class AboutUsController {
             return new ResponseEntity<>(aboutUs, HttpStatus.CREATED);
         } catch (Exception e) {
             logger.error("Error creating about us entry", e);
-            throw e;
+            throw new ResourceNotFoundException ( "error creating About us" );
         }
     }
     
@@ -62,7 +63,7 @@ public class AboutUsController {
             return ResponseEntity.ok(aboutUs);
         } catch (Exception e) {
             logger.error("Error updating about us entry with ID: " + id, e);
-            throw e;
+            throw new ResourceNotFoundException ( "error updating About us", "id", id);
         }
     }
     
@@ -76,7 +77,7 @@ public class AboutUsController {
             return ResponseEntity.noContent().build();
         } catch (Exception e) {
             logger.error("Error deleting about us entry with ID: " + id, e);
-            throw e;
+            throw new ResourceNotFoundException ( "error deleting About us", "id", id);
         }
     }
     
@@ -92,7 +93,7 @@ public class AboutUsController {
             return ResponseEntity.ok(aboutUs);
         } catch (Exception e) {
             logger.error("Error setting image for about us entry with ID: " + id, e);
-            throw e;
+            throw new ResourceNotFoundException ( "error setting About us image", "id", imageId);
         }
     }
     
@@ -106,7 +107,7 @@ public class AboutUsController {
             return ResponseEntity.ok(aboutUs);
         } catch (Exception e) {
             logger.error("Error removing image from about us entry with ID: " + id, e);
-            throw e;
+            throw new ResourceNotFoundException ( "error removing About us image as ", "id", id);
         }
     }
 }

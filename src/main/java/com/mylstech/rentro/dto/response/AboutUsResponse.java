@@ -14,9 +14,7 @@ public class AboutUsResponse {
     private String subtitle;
     private String description;
     
-    // Old field for backward compatibility
-//    private String imageUrl;
-    
+
     // New field for Image entity integration
     private ImageDTO image;
     
@@ -26,8 +24,7 @@ public class AboutUsResponse {
         this.subtitle = aboutUs.getSubtitle();
         this.description = aboutUs.getDescription();
         
-        // For backward compatibility
-//        this.imageUrl = aboutUs.getImageUrl();
+
         
         // For Image entity integration
         if (aboutUs.getImage() != null) {
