@@ -29,16 +29,12 @@ public class WishlistController {
             @ApiResponse(responseCode = "401", description = "Unauthorized - user not authenticated")
     })
     public ResponseEntity<WishlistResponse> getCurrentUserWishlist() {
-        try {
             logger.debug("Getting current user's wishlist");
             WishlistResponse wishlist = wishlistService.getCurrentUserWishlist();
             logger.debug("Found wishlist with {} products", 
                     wishlist.getProducts() != null ? wishlist.getProducts().size() : 0);
             return ResponseEntity.ok(wishlist);
-        } catch (Exception e) {
-            logger.error("Error getting current user's wishlist", e);
-            throw e;
-        }
+
     }
     
     @PostMapping("/products/{productId}")
@@ -49,16 +45,13 @@ public class WishlistController {
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<WishlistResponse> addProductToWishlist(@PathVariable Long productId) {
-        try {
+
             logger.debug("Adding product with ID: {} to wishlist", productId);
             WishlistResponse wishlist = wishlistService.addProductToWishlist(productId);
             logger.debug("Product added to wishlist, now has {} products", 
                     wishlist.getProducts() != null ? wishlist.getProducts().size() : 0);
             return ResponseEntity.ok(wishlist);
-        } catch (Exception e) {
-            logger.error("Error adding product to wishlist", e);
-            throw e;
-        }
+
     }
     
     @DeleteMapping("/products/{productId}")
@@ -69,16 +62,13 @@ public class WishlistController {
             @ApiResponse(responseCode = "404", description = "Product not found")
     })
     public ResponseEntity<WishlistResponse> removeProductFromWishlist(@PathVariable Long productId) {
-        try {
+
             logger.debug("Removing product with ID: {} from wishlist", productId);
             WishlistResponse wishlist = wishlistService.removeProductFromWishlist(productId);
             logger.debug("Product removed from wishlist, now has {} products", 
                     wishlist.getProducts() != null ? wishlist.getProducts().size() : 0);
             return ResponseEntity.ok(wishlist);
-        } catch (Exception e) {
-            logger.error("Error removing product from wishlist", e);
-            throw e;
-        }
+
     }
     
     @GetMapping("/products/{productId}")
@@ -86,15 +76,12 @@ public class WishlistController {
     @ApiResponses
 
     public ResponseEntity<Boolean> isProductInWishlist(@PathVariable Long productId) {
-        try {
+
             logger.debug("Checking if product with ID: {} is in wishlist", productId);
             boolean inWishlist = wishlistService.isProductInWishlist(productId);
             logger.debug("Product with ID: {} is {} in wishlist", productId, inWishlist ? "present" : "not present");
             return ResponseEntity.ok(inWishlist);
-        } catch (Exception e) {
-            logger.error("Error checking if product is in wishlist", e);
-            throw e;
-        }
+
     }
 
     @PostMapping("/products/batch")
@@ -105,15 +92,12 @@ public class WishlistController {
             @ApiResponse(responseCode = "404", description = "One or more products not found")
     })
     public ResponseEntity<WishlistResponse> addProductsToWishlist(@RequestBody List<Long> productIds) {
-        try {
+
             logger.debug("Adding {} products to wishlist", productIds.size());
             WishlistResponse wishlist = wishlistService.addProductsToWishlist(productIds);
             logger.debug("Products added to wishlist, now has {} products", 
                     wishlist.getProducts() != null ? wishlist.getProducts().size() : 0);
             return ResponseEntity.ok(wishlist);
-        } catch (Exception e) {
-            logger.error("Error adding products to wishlist", e);
-            throw e;
-        }
+
     }
 }

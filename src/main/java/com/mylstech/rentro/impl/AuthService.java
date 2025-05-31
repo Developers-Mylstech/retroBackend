@@ -2,6 +2,10 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.AuthResponse;
+import com.mylstech.rentro.exception.EmailNotVerifiedException;
+import com.mylstech.rentro.exception.InvalidOtpException;
+import com.mylstech.rentro.exception.PermissionDeniedException;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.model.RefreshToken;
 import com.mylstech.rentro.repository.AppUserRepository;
@@ -66,7 +70,7 @@ public class AuthService {
         String accessToken = jwtUtil.generateAccessToken(userDetails);
         // Check if user is verified
         if (!user.isVerified()) {
-            throw new RuntimeException("Account not verified. Please verify your email first.");
+            throw new EmailNotVerifiedException ("Account not verified. Please verify your email first.");
         }
 
 
@@ -116,15 +120,15 @@ public class AuthService {
     public AuthResponse registerAdmin(RegisterRequest request, String requestingAdminEmail) {
         // Verify the requesting user is an admin
         AppUser requestingAdmin = appUserRepository.findByEmail(requestingAdminEmail)
-                .orElseThrow(() -> new RuntimeException("Requesting admin not found"));
+                .orElseThrow(() -> new ResourceNotFoundException ("Requesting admin not found"));
 
         if (!Role.ADMIN.equals(requestingAdmin.getRole())) {
-            throw new RuntimeException("Only admins can add other admins");
+            throw new PermissionDeniedException ("Only admins can add other admins");
         }
 
         // Check if user with this email already exists
         if (appUserRepository.findByEmail(request.getEmail()).isPresent()) {
-            throw new RuntimeException("User with this email already exists");
+            throw new PermissionDeniedException ("User with this email already exists");
         }
 
         // Create the new admin user
@@ -152,7 +156,7 @@ public class AuthService {
     public void initiateAuthenticationWithEmail(EmailAuthRequest request) {
         // Check if user exists
         AppUser user = appUserRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new RuntimeException( USER_NOT_FOUND ));
+                .orElseThrow(() -> new ResourceNotFoundException ( USER_NOT_FOUND ));
         
         // Generate and send OTP
         otpService.generateOTPViaEmail (user.getEmail());
@@ -163,7 +167,7 @@ public class AuthService {
         boolean isValid = otpService.verifyOTP(request.getEmail(), request.getOtp());
         
         if (!isValid) {
-            throw new RuntimeException("Invalid OTP or OTP expired");
+            throw new InvalidOtpException ("Invalid OTP or OTP expired");
         }
         
         // Get user

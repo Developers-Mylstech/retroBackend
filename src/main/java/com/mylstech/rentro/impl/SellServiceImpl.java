@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.SellRequest;
 import com.mylstech.rentro.dto.response.SellResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Sell;
 import com.mylstech.rentro.repository.SellRepository;
 import com.mylstech.rentro.service.SellService;
@@ -15,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SellServiceImpl implements SellService {
 
+    private static final String SELL_NOT_FOUND_WITH_ID = "Sell not found with id: ";
     private final SellRepository sellRepository;
     @Value ( "${vat.value}" )
     private Double vat;
@@ -27,7 +29,7 @@ public class SellServiceImpl implements SellService {
     @Override
     public SellResponse getSellById(Long id) {
         Sell sell = sellRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sell not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SELL_NOT_FOUND_WITH_ID + id));
         return new SellResponse(sell);
     }
 
@@ -41,7 +43,7 @@ public class SellServiceImpl implements SellService {
     @Override
     public SellResponse updateSell(Long id, SellRequest request) {
         Sell sell = sellRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sell not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SELL_NOT_FOUND_WITH_ID + id));
         sell.setActualPrice(request.getActualPrice());
 
 
@@ -51,7 +53,7 @@ public class SellServiceImpl implements SellService {
     @Override
     public void deleteSell(Long id) {
         Sell sell = sellRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Sell not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SELL_NOT_FOUND_WITH_ID + id));
         sellRepository.delete(sell);
     }
 }

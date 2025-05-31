@@ -40,6 +40,7 @@ public class SecurityConfig {
     private static final String API_V_1_OUR_SERVICES = "/api/v1/our-services/**";
     private static final String API_V_1_JOB_APPLICANTS = "/api/v1/job-applicants/**";
     private static final String API_V_1_JOB_POSTS = "/api/v1/job-posts/**";
+    private static final String ADMIN = "ADMIN";
     private final JwtAuthenticationFilter jwtAuthFilter;
     private final UserDetailsService userDetailsService;
     @Value("${zrok.url}")
@@ -52,7 +53,7 @@ public class SecurityConfig {
                 .cors ( cors -> cors.configurationSource ( corsConfigurationSource ( ) ) )
                 .authorizeHttpRequests ( auth -> auth
                         .requestMatchers ( HttpMethod.GET,
-                                API_V_1_PRODUCTS ,
+                                API_V_1_PRODUCTS,
                                 API_V_1_JOB_POSTS,
                                 API_V_1_OUR_SERVICES,
                                 API_V_1_CLIENTS,
@@ -75,7 +76,7 @@ public class SecurityConfig {
                                 API_V_1_BRANDS,
                                 API_V_1_CLIENTS,
                                 API_V_1_OUR_SERVICES,
-                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
+                                API_V_1_JOB_POSTS ).hasRole ( ADMIN )
                         .requestMatchers ( HttpMethod.DELETE,
                                 API_V_1_PRODUCTS,
                                 API_V_1_BANNERS,
@@ -84,7 +85,7 @@ public class SecurityConfig {
                                 API_V_1_CLIENTS,
                                 API_V_1_OUR_SERVICES,
                                 API_V_1_JOB_APPLICANTS,
-                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
+                                API_V_1_JOB_POSTS ).hasRole ( ADMIN )
                         .requestMatchers ( HttpMethod.PUT,
                                 API_V_1_PRODUCTS,
                                 API_V_1_BANNERS,
@@ -93,7 +94,7 @@ public class SecurityConfig {
                                 API_V_1_CLIENTS,
                                 API_V_1_OUR_SERVICES,
                                 API_V_1_JOB_APPLICANTS,
-                                API_V_1_JOB_POSTS).hasRole ( "ADMIN" )
+                                API_V_1_JOB_POSTS ).hasRole ( ADMIN )
                         .requestMatchers (
                                 "/uploads/**",
                                 "/api/v1/auth/**",
@@ -139,7 +140,7 @@ public class SecurityConfig {
                 "http://localhost:5174",
                 "https://newtest.rentro.ae",
                 "https://newone.rentro.ae",
-                 zrokUrl,
+                zrokUrl,
                 "https://testing.rentro.ae",
                 "https://rentro.ae",
                 "https://demo.rentro.ae",

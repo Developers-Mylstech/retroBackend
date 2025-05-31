@@ -19,7 +19,6 @@ public class RequestQuotationResponse {
     private String companyName;
     private LocationResponse location;
     private ImageDTO image;
-    //    private List<String> productImages;
     private RequestQuotationStatus status;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
@@ -42,7 +41,7 @@ public class RequestQuotationResponse {
             );
         }
 
-//        this.productImages = requestQuotation.getProductImages();
+
         this.status = requestQuotation.getStatus ( );
         this.createdAt = requestQuotation.getCreatedAt ( );
         this.updatedAt = requestQuotation.getUpdatedAt ( );

@@ -51,11 +51,11 @@ public class CartServiceImpl implements CartService {
         Cart cart1 = addItemToCartInternal ( request, cart );
 
         // Calculate total price for cart
-        double totalPrice = cart1.getItems ( ).stream ( )
-                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
-                .sum ( );
-        cart1.setTotalPrice ( totalPrice );
-
+//        double totalPrice = cart1.getItems ( ).stream ( )
+//                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
+//                .sum ( );
+//        cart1.setTotalPrice ( totalPrice );
+        cart1.calculateTotalPrice ();
         cart = cartRepository.save ( cart1 );
 
         return new CartResponse ( cart );
@@ -80,11 +80,11 @@ public class CartServiceImpl implements CartService {
         }
 
         // Calculate total price for cart
-        double totalPrice = cart.getItems ( ).stream ( )
-                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
-                .sum ( );
-        cart.setTotalPrice ( totalPrice );
-
+//        double totalPrice = cart.getItems ( ).stream ( )
+//                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
+//                .sum ( );
+//        cart.setTotalPrice ( totalPrice );
+        cart.calculateTotalPrice ();
         // Save the cart once with all new items
         cart = cartRepository.save ( cart );
 
@@ -160,12 +160,33 @@ public class CartServiceImpl implements CartService {
                 } );
     }
 
+
     /**
      * Helper method to add an item to a cart without saving the cart
      *
      * @param request The cart item request
      * @param cart    The cart to add the item to
      */
+    /*addItemToCart(CartItemRequest)
+├── Get current user and cart
+├── Call addItemToCartInternal(request, cart)
+│   ├── Validate product exists
+│   ├── Validate product configuration (productFor not null)
+│   ├── Validate product type compatibility
+│   │   ├── SELL: Check if sell configuration exists
+│   │   └── RENT: Check if rent configuration exists
+│   ├── Create CartItem with:
+│   │   ├── Product reference
+│   │   ├── Product type (SELL/RENT)
+│   │   ├── Quantity (default: 1)
+│   │   └── Calculate price based on type:
+│   │       ├── SELL: (discountPrice || actualPrice) × quantity
+│   │       └── RENT: (discountPrice || monthlyPrice) × quantity
+│   ├── Save CartItem to repository
+│   └── Add item to cart
+├── Calculate total cart price (sum of all item prices)
+├── Save updated cart
+└── Return CartResponse*/
     private Cart addItemToCartInternal(CartItemRequest request, Cart cart) {
         // Find the product
         Product product = productRepository.findById ( request.getProductId ( ) )
@@ -195,7 +216,7 @@ public class CartServiceImpl implements CartService {
         cartItem.setCart ( cart );
         cartItem.setProduct ( product );
         cartItem.setProductType ( request.getProductType ( ) );
-        cartItem.setQuantity ( request.getQuantity ( )!=null ? request.getQuantity ( ) : 1 );
+        cartItem.setQuantity ( request.getQuantity ( ) != null ? request.getQuantity ( ) : 1 );
 
         // Set quantity and rent period based on product type
         if ( request.getProductType ( ) == ProductType.SELL ) {
@@ -203,6 +224,9 @@ public class CartServiceImpl implements CartService {
             double unitPrice = product.getProductFor ( ).getSell ( ).getDiscountPrice ( );
             if ( unitPrice <= 0 ) {
                 unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
+            }
+            if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null && product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
+                unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
             }
             cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
 
@@ -213,16 +237,34 @@ public class CartServiceImpl implements CartService {
             if ( monthlyPrice <= 0 ) {
                 monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
             }
+            if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
+                monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
+            }
             cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
         }
+//        else if ( request.getProductType ( ) == ProductType.OTS ) {
+//            cartItem.setQuantity ( 1 );
+//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
+//        } else if ( request.getProductType ( ) == ProductType.MMC ) {
+//            cartItem.setQuantity ( 1 );
+//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
+//
+//        } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
+//            cartItem.setQuantity ( 1 );
+//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
+//
+//        } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
+//            cartItem.setQuantity ( 1 );
+//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
+//        }
 
         logger.debug ( "Created cart item: type={}, price={}",
                 cartItem.getProductType ( ),
                 cartItem.getPrice ( ) );
-logger.info("before adding in cart item Quantity {}",cartItem.getQuantity());
-        cart.addItem (  cartItemRepository.save ( cartItem ) ) ;
-logger.info("after adding in cart  item Quantity {}",cart.getItems().get(cart.getItems().size()-1).getQuantity());
-    return cart;
+        logger.info ( "before adding in cart item Quantity {}", cartItem.getQuantity ( ) );
+        cart.addItem ( cartItemRepository.save ( cartItem ) );
+        logger.info ( "after adding in cart  item Quantity {}", cart.getItems ( ).get ( cart.getItems ( ).size ( ) - 1 ).getQuantity ( ) );
+        return cart;
     }
 
     @Override

@@ -2,7 +2,6 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.BrandRequest;
 import com.mylstech.rentro.dto.response.BrandResponse;
-import com.mylstech.rentro.exception.EntityCreationException;
 import com.mylstech.rentro.exception.ImageAssociationException;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.exception.UniqueConstraintViolationException;
@@ -215,7 +214,7 @@ public class BrandServiceImpl implements BrandService {
             logger.debug ( "No image currently associated with brand" );
         }
 
-        try {
+
             // First approach: Use JPA entity
             brand.setImage ( null );
 
@@ -244,10 +243,6 @@ public class BrandServiceImpl implements BrandService {
             }
 
             return new BrandResponse ( savedBrand );
-        }
-        catch ( ResourceNotFoundException e ) {
-            logger.error ( "Error while removing image from brand", e );
-            throw new ResourceNotFoundException ( "Error while removing image from brand",e );
-        }
+
     }
 }

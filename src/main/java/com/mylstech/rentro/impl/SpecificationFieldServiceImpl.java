@@ -2,6 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.SpecificationFieldRequest;
 import com.mylstech.rentro.dto.response.SpecificationFieldResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.exception.UniqueConstraintViolationException;
 import com.mylstech.rentro.model.SpecificationField;
 import com.mylstech.rentro.repository.SpecificationFieldRepository;
@@ -15,6 +16,8 @@ import java.util.List;
 @RequiredArgsConstructor
 public class SpecificationFieldServiceImpl implements SpecificationFieldService {
 
+    private static final String A_SPECIFICATION_FIELD_WITH_NAME = "A specification field with name '";
+    private static final String SPECIFICATION_FIELD_NOT_FOUND_WITH_ID = "SpecificationField not found with id: ";
     private final SpecificationFieldRepository specificationFieldRepository;
 
     @Override
@@ -25,7 +28,7 @@ public class SpecificationFieldServiceImpl implements SpecificationFieldService 
     @Override
     public SpecificationFieldResponse getSpecificationFieldById(Long id) {
         SpecificationField specificationField = specificationFieldRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SpecificationField not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SPECIFICATION_FIELD_NOT_FOUND_WITH_ID + id));
         return new SpecificationFieldResponse(specificationField);
     }
 
@@ -33,7 +36,7 @@ public class SpecificationFieldServiceImpl implements SpecificationFieldService 
     public SpecificationFieldResponse createSpecificationField(SpecificationFieldRequest request) {
         // Check if a specification field with the same name already exists
         if (specificationFieldRepository.existsByName(request.getName())) {
-            throw new UniqueConstraintViolationException("A specification field with name '" + request.getName() + "' already exists");
+            throw new UniqueConstraintViolationException( A_SPECIFICATION_FIELD_WITH_NAME + request.getName() + "' already exists");
         }
 
         SpecificationField specificationField = request.requestToSpecificationField();
@@ -43,13 +46,13 @@ public class SpecificationFieldServiceImpl implements SpecificationFieldService 
     @Override
     public SpecificationFieldResponse updateSpecificationField(Long id, SpecificationFieldRequest request) {
         SpecificationField specificationField = specificationFieldRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SpecificationField not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SPECIFICATION_FIELD_NOT_FOUND_WITH_ID + id));
 
         if (request.getName() != null) {
             // Check if another specification field with the same name already exists
             if (!request.getName().equals(specificationField.getName()) &&
                 specificationFieldRepository.existsByName(request.getName())) {
-                throw new UniqueConstraintViolationException("A specification field with name '" + request.getName() + "' already exists");
+                throw new UniqueConstraintViolationException( A_SPECIFICATION_FIELD_WITH_NAME + request.getName() + "' already exists");
             }
             specificationField.setName(request.getName());
         }
@@ -60,7 +63,7 @@ public class SpecificationFieldServiceImpl implements SpecificationFieldService 
     @Override
     public void deleteSpecificationField(Long id) {
         SpecificationField specificationField = specificationFieldRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("SpecificationField not found with id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException ( SPECIFICATION_FIELD_NOT_FOUND_WITH_ID + id));
         specificationFieldRepository.delete(specificationField);
     }
 }

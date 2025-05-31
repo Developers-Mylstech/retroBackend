@@ -1,9 +1,13 @@
 package com.mylstech.rentro.repository;
 
+import com.mylstech.rentro.model.Product;
 import com.mylstech.rentro.model.Wishlist;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
+import java.util.List;
 import java.util.Optional;
 
 @Repository
@@ -22,4 +26,8 @@ public interface WishlistRepository extends JpaRepository<Wishlist, Long> {
      * @return true if the product is in the wishlist, false otherwise
      */
     boolean existsByUserUserIdAndProductsProductId(Long userId, Long productId);
+
+
+    @Query("SELECT DISTINCT w FROM Wishlist w JOIN w.products p WHERE p = :product")
+    List<Wishlist> findByProductsContaining(@Param("product") Product product);
 }

@@ -53,7 +53,7 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
     @Override
     @Transactional
     public RequestQuotationResponse createRequestQuotation(RequestQuotationRequest request) {
-        try {
+
             // Convert request to entity
             RequestQuotation requestQuotation = request.requestToRequestQuotation();
             
@@ -87,10 +87,7 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
             logger.info("Created request quotation with ID: {} and code: {}", 
                 requestQuotation.getRequestQuotationId(), requestQuotation.getRequestQuotationCode());
             return new RequestQuotationResponse(requestQuotation);
-        } catch (Exception e) {
-            logger.error("Error creating request quotation: {}", e.getMessage(), e);
-            throw e;
-        }
+
     }
 
     @Override
@@ -196,8 +193,7 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
                 String sequencePart = latestCode.substring(codePrefix.length());
                 nextSequence = Integer.parseInt(sequencePart) + 1;
             } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                // If parsing fails, start from 1
-                nextSequence = 1;
+                logger.warn("Failed to parse sequence number, starting from 1", e);
             }
         }
         

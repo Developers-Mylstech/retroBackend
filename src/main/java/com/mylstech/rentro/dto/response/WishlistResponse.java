@@ -8,7 +8,6 @@ import lombok.NoArgsConstructor;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Data
 @NoArgsConstructor
@@ -20,24 +19,24 @@ public class WishlistResponse {
     private List<ProductResponse> products;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
-    
+
     public WishlistResponse(Wishlist wishlist) {
-        this.wishlistId = wishlist.getWishlistId();
-        
-        if (wishlist.getUser() != null) {
-            this.userId = wishlist.getUser().getUserId();
-            this.userName = wishlist.getUser().getName ();
+        this.wishlistId = wishlist.getWishlistId ( );
+
+        if ( wishlist.getUser ( ) != null ) {
+            this.userId = wishlist.getUser ( ).getUserId ( );
+            this.userName = wishlist.getUser ( ).getName ( );
         }
-        
-        if (wishlist.getProducts() != null) {
-            this.products = wishlist.getProducts().stream()
-                    .map(ProductResponse::new)
-                    .collect(Collectors.toList());
+
+        if ( wishlist.getProducts ( ) != null ) {
+            this.products = wishlist.getProducts ( ).stream ( )
+                    .map ( ProductResponse::new )
+                    .toList ( );
         } else {
-            this.products = new ArrayList<>();
+            this.products = new ArrayList<> ( );
         }
-        
-        this.createdAt = wishlist.getCreatedAt();
-        this.updatedAt = wishlist.getUpdatedAt();
+
+        this.createdAt = wishlist.getCreatedAt ( );
+        this.updatedAt = wishlist.getUpdatedAt ( );
     }
 }

@@ -12,15 +12,16 @@ import com.stripe.exception.StripeException;
 import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class StripeServiceImpl implements StripeService {
 
-    private final Logger logger = LoggerFactory.getLogger ( StripeServiceImpl.class );
     private final CheckOutRepository checkOutRepository;
     private final CartService cartService;
 
@@ -29,10 +30,10 @@ public class StripeServiceImpl implements StripeService {
         try {
             CheckOut checkOut = checkOutRepository.findById ( request.getCheckoutId ( ) )
                     .orElseThrow ( () -> new RuntimeException ( "Checkout not found with id: " + request.getCheckoutId ( ) ) );
-            System.out.println ( checkOut.getCart ( ).getTotalPrice ( ) );
+            log.info ("total price:" +checkOut.getCart ( ).getTotalPrice ( ) );
             // Convert amount to cents (Stripe uses smallest currency unit)
             long amountInCents = Math.round ( checkOut.getCart ( ).getTotalPrice ( ) * 100 );
-            System.out.println ( "Amount in cents: " + amountInCents );
+            log.info ( "Amount in cents: " + amountInCents );
             PaymentIntentCreateParams params = PaymentIntentCreateParams.builder ( )
                     .setAmount ( amountInCents )
                     .setCurrency ( "AED" )
@@ -53,11 +54,11 @@ public class StripeServiceImpl implements StripeService {
                     true,
                     "Payment intent created successfully"
             );
-            logger.info ( "Payment intent created successfully: {}", paymentIntentCreatedSuccessfully);
+            log.info ( "Payment intent created successfully: {}", paymentIntentCreatedSuccessfully);
             return paymentIntentCreatedSuccessfully;
         }
         catch ( StripeException e ) {
-            logger.error ( "Error creating payment intent", e );
+            log.error ( "Error creating payment intent", e );
             return new PaymentResponse (
                     null,
                     null,
@@ -77,15 +78,15 @@ public class StripeServiceImpl implements StripeService {
 
                 String checkout = paymentIntent.getMetadata ( ).get ( "checkout" );
                 Long checkoutId = Long.parseLong ( checkout );
-                logger.info( "Clearing cart for checkout: {}", checkoutId );
+                log.info( "Clearing cart for checkout: {}", checkoutId );
                 CheckOut checkOut = checkOutRepository.findById ( checkoutId )
                         .orElseThrow ( () -> new ResourceNotFoundException ( "Checkout not found with id: " + checkoutId ) );
                 Cart cart = checkOut.getCart ( );
-                logger.info ( "is Cart temporary: {}", cart.isTemporary () );
+                log.info ( "is Cart temporary: {}", cart.isTemporary () );
                 if ( ! cart.isTemporary ( ) ) {
-                    logger.info ( "------------------------------------->Clearing cart");
+                    log.info ( "------------------------------------->Clearing cart");
                     cartService.clearCart ( );
-                    logger.info ( "----------------------------------->Cart cleared");
+                    log.info ( "----------------------------------->Cart cleared");
                 }
             }
             return new PaymentResponse (
@@ -98,7 +99,7 @@ public class StripeServiceImpl implements StripeService {
             );
         }
         catch ( StripeException e ) {
-            logger.error ( "Error confirming payment", e );
+            log.error ( "Error confirming payment", e );
             return new PaymentResponse (
                     e.getRequestId ( ),
                     null,

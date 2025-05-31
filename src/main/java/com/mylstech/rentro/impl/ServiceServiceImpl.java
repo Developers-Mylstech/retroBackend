@@ -2,33 +2,33 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.request.ServiceRequest;
 import com.mylstech.rentro.dto.response.ServiceResponse;
+import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Service;
-import com.mylstech.rentro.repository.ServiceFieldRepository;
 import com.mylstech.rentro.repository.ServiceRepository;
 import com.mylstech.rentro.service.ServiceService;
 import lombok.RequiredArgsConstructor;
 
 import java.util.List;
-import java.util.stream.Collectors;
 
 @org.springframework.stereotype.Service
 @RequiredArgsConstructor
 public class ServiceServiceImpl implements ServiceService {
 
+    private static final String SERVICE_NOT_FOUND_WITH_ID = "Service not found with id: ";
     private final ServiceRepository serviceRepository;
-    private final ServiceFieldRepository serviceFieldRepository;
+
 
     @Override
     public List<ServiceResponse> getAllServices() {
         return serviceRepository.findAll ( ).stream ( )
                 .map ( ServiceResponse::new )
-                .collect ( Collectors.toList ( ) );
+                .toList ( );
     }
 
     @Override
     public ServiceResponse getServiceById(Long id) {
         Service service = serviceRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Service not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( SERVICE_NOT_FOUND_WITH_ID + id ) );
         return new ServiceResponse ( service );
     }
 
@@ -59,7 +59,7 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public ServiceResponse updateService(Long id, ServiceRequest request) {
         Service service = serviceRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Service not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( SERVICE_NOT_FOUND_WITH_ID + id ) );
 
         if ( request != null ) {
 
@@ -84,7 +84,7 @@ public class ServiceServiceImpl implements ServiceService {
     @Override
     public void deleteService(Long id) {
         Service service = serviceRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Service not found with id: " + id ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( SERVICE_NOT_FOUND_WITH_ID + id ) );
         serviceRepository.delete ( service );
     }
 }

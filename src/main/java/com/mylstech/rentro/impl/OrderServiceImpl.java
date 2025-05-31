@@ -65,7 +65,9 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setProductType ( cartItem.getProductType ( ) );
                     orderItem.setQuantity ( cartItem.getQuantity ( ) );
                     orderItem.setPrice ( cartItem.getPrice ( ) / cartItem.getQuantity ( ) ); // Unit price
+                    logger.debug ( "Cart item price: {}", cartItem.getPrice ( ) );
                     orderItem.setTotalPrice ( cartItem.getPrice ( ) );
+
                     return orderItem;
                 } )
                 .toList ( );

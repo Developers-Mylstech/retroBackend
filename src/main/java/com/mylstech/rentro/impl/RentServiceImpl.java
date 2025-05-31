@@ -16,6 +16,7 @@ import java.util.List;
 @RequiredArgsConstructor
 public class RentServiceImpl implements RentService {
 
+    private static final String RENT_NOT_FOUND_WITH_ID = "Rent not found with id: ";
     private final RentRepository rentRepository;
 
     @Value("${vat.value}")
@@ -23,26 +24,26 @@ public class RentServiceImpl implements RentService {
 
     @Override
     public List<RentResponse> getAllRents() {
-        return rentRepository.findAll().stream().map(RentResponse::new).toList();
+        return rentRepository.findAll ( ).stream ( ).map ( RentResponse::new ).toList ( );
     }
 
     @Override
     public RentResponse getRentById(Long id) {
-        Rent rent = rentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rent not found with id: " + id));
-        return new RentResponse(rent);
+        Rent rent = rentRepository.findById ( id )
+                .orElseThrow ( () -> new RuntimeException ( RENT_NOT_FOUND_WITH_ID + id ) );
+        return new RentResponse ( rent );
     }
 
     @Override
     public RentResponse createRent(RentRequest request) {
-        Rent rent = request.requestToRent();
-        return new RentResponse(rentRepository.save(rent));
+        Rent rent = request.requestToRent ( );
+        return new RentResponse ( rentRepository.save ( rent ) );
     }
 
     @Override
     public RentResponse updateRent(Long id, RentRequest request) {
-        Rent rent = rentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rent not found with id: " + id));
+        Rent rent = rentRepository.findById ( id )
+                .orElseThrow ( () -> new RuntimeException ( RENT_NOT_FOUND_WITH_ID + id ) );
         if ( request.getMonthlyPrice ( ) != null ) {
             rent.setMonthlyPrice ( request.getMonthlyPrice ( ) );
         }
@@ -53,13 +54,13 @@ public class RentServiceImpl implements RentService {
                     (rent.getMonthlyPrice ( ) * (request.getDiscountValue ( )
                             / 100)) );
         }
-        if (request.getIsVatIncluded () ) {
-            rent.setVat (vat);
+        if ( Boolean.TRUE.equals ( request.getIsVatIncluded ( ) ) ) {
+            rent.setVat ( vat );
             rent.setDiscountPrice ( rent.getMonthlyPrice ( ) -
-                    (rent.getMonthlyPrice ( ) * (rent.getVat ()
+                    (rent.getMonthlyPrice ( ) * (rent.getVat ( )
                             / 100)) );
-        } else if (! request.getIsVatIncluded () ) {
-            rent.setVat (0.0);
+        } else if ( Boolean.FALSE.equals ( request.getIsVatIncluded ( ) ) ) {
+            rent.setVat ( 0.0 );
         }
         if ( request.getDiscountValue ( ) != null ) {
             rent.setDiscountValue ( request.getDiscountValue ( ) );
@@ -68,13 +69,13 @@ public class RentServiceImpl implements RentService {
         if ( request.getBenefits ( ) != null ) {
             rent.setBenefits ( request.getBenefits ( ) );
         }
-           return new RentResponse(rentRepository.save(rent));
+        return new RentResponse ( rentRepository.save ( rent ) );
     }
 
     @Override
     public void deleteRent(Long id) {
-        Rent rent = rentRepository.findById(id)
-                .orElseThrow(() -> new RuntimeException("Rent not found with id: " + id));
-        rentRepository.delete(rent);
+        Rent rent = rentRepository.findById ( id )
+                .orElseThrow ( () -> new RuntimeException ( RENT_NOT_FOUND_WITH_ID + id ) );
+        rentRepository.delete ( rent );
     }
 }

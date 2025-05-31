@@ -1,5 +1,7 @@
 package com.mylstech.rentro.util;
 
+import com.mylstech.rentro.exception.ResourceNotFoundException;
+import com.mylstech.rentro.exception.UnauthorizedException;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.repository.AppUserRepository;
 import com.mylstech.rentro.security.AppUserSecurityDetails;
@@ -24,26 +26,23 @@ public class SecurityUtils {
     public AppUser getCurrentUser() {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         if (authentication == null || !authentication.isAuthenticated()) {
-            throw new RuntimeException("User not authenticated");
+            throw new UnauthorizedException ("User not authenticated");
         }
 
         Object principal = authentication.getPrincipal();
 
         // Check what type of principal we have
-        if (principal instanceof AppUserSecurityDetails) {
+        if (principal instanceof AppUserSecurityDetails userDetails) {
             // If principal is AppUserSecurityDetails, get the wrapped AppUser
-            AppUserSecurityDetails userDetails = (AppUserSecurityDetails) principal;
             String email = userDetails.getUsername(); // This returns user.getEmail()
             return appUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
-        } else if (principal instanceof String) {
-            // If principal is a String (likely username/email), find the user
-            String email = (String) principal;
+                    .orElseThrow(() -> new ResourceNotFoundException ("User not found with email: " + email));
+        } else if (principal instanceof String email) {
             return appUserRepository.findByEmail(email)
-                    .orElseThrow(() -> new RuntimeException("User not found with email: " + email));
+                    .orElseThrow(() -> new ResourceNotFoundException ("User not found with email: " + email));
         } else {
             // Handle other cases based on your security configuration
-            throw new RuntimeException("Unexpected principal type: " + principal.getClass().getName());
+            throw new UnauthorizedException ("Unexpected principal type: " + principal.getClass().getName());
         }
     }
 

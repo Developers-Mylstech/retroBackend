@@ -1,5 +1,7 @@
 package com.mylstech.rentro.impl;
 
+import com.mylstech.rentro.exception.RefreshTokenExpiredException;
+import com.mylstech.rentro.exception.RefreshTokenRevokedException;
 import com.mylstech.rentro.model.AppUser;
 import com.mylstech.rentro.model.RefreshToken;
 import com.mylstech.rentro.repository.RefreshTokenRepository;
@@ -33,12 +35,12 @@ public class RefreshTokenService {
     public RefreshToken verifyExpiration(RefreshToken token) {
         if (token.isRevoked()) {
             refreshTokenRepository.delete(token);
-            throw new RuntimeException("Refresh token was revoked");
+            throw new RefreshTokenRevokedException ("Refresh token was revoked");
         }
         
         if (token.getExpiryDate().compareTo(Instant.now()) < 0) {
             refreshTokenRepository.delete(token);
-            throw new RuntimeException("Refresh token was expired");
+            throw new RefreshTokenExpiredException ("Refresh token was expired");
         }
         
         return token;

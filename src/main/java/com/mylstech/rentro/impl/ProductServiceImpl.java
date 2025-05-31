@@ -18,6 +18,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
+import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -30,6 +31,7 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class ProductServiceImpl implements ProductService {
 
+    private static final String PRODUCT_NOT_FOUND_WITH_ID = "Product not found with id: ";
     private final ProductRepository productRepository;
     private final Logger logger = LoggerFactory.getLogger ( ProductServiceImpl.class );
     private final CategoryRepository categoryRepository;
@@ -46,6 +48,9 @@ public class ProductServiceImpl implements ProductService {
     private final CheckOutService checkOutService;
     private final ImageRepository imageRepository;
     private final OurServiceRepository ourServiceRepository;
+    private final CartItemRepository cartItemRepository;
+    private final WishlistRepository wishlistRepository;
+    private final OrderItemRepository orderItemRepository;
 
 
     @Value("${vat.value}")
@@ -334,7 +339,7 @@ public class ProductServiceImpl implements ProductService {
     )
     public ProductResponse updateProduct(Long id, ProductRequest request) {
         Product product = productRepository.findById ( id )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + id ) );
 
         // Update basic fields if provided
         if ( request.getName ( ) != null ) {
@@ -649,7 +654,23 @@ public class ProductServiceImpl implements ProductService {
             logger.debug ( "Attempting to delete product with id: {}", id );
 
             Product product = productRepository.findById ( id )
-                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + id ) );
+                    .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + id ) );
+
+            List<Wishlist> wishlists = wishlistRepository.findByProductsContaining(product);
+            for (Wishlist wishlist : wishlists) {
+                wishlist.getProducts().remove(product);
+            }
+            wishlistRepository.saveAll(wishlists);
+
+            List<CartItem> byProductProductId = cartItemRepository.findByProductProductId ( product.getProductId ( ) );
+            for (CartItem cartItem : byProductProductId) {
+                cartItemRepository.delete ( cartItem );
+            }
+
+            List<OrderItem> orderItems = orderItemRepository.findByProductProductId(product.getProductId());
+            if (!orderItems.isEmpty()) {
+                orderItemRepository.deleteAll(orderItems);
+            }
 
             // First, remove all service associations
             if ( product.getOurServices ( ) != null && ! product.getOurServices ( ).isEmpty ( ) ) {
@@ -697,7 +718,7 @@ public class ProductServiceImpl implements ProductService {
 
         // Find the product
         Product product = productRepository.findById ( productId )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         // Find the image
         Image image = imageRepository.findById ( imageId )
@@ -729,11 +750,11 @@ public class ProductServiceImpl implements ProductService {
 
         // Find the product
         Product product = productRepository.findById ( productId )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         // Find the image
         Image image = imageRepository.findById ( imageId )
-                .orElseThrow ( () -> new RuntimeException ( "Image not found with id: " + imageId ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Image not found with id: " + imageId ) );
 
         // Check if the product has this image
         boolean hasImage = product.getImages ( ).stream ( )
@@ -741,7 +762,7 @@ public class ProductServiceImpl implements ProductService {
 
         if ( ! hasImage ) {
             logger.warn ( "Image {} is not associated with product {}", imageId, productId );
-            throw new RuntimeException ( "Image is not associated with this product" );
+            throw new ResourceNotFoundException ( "Image is not associated with this product" );
         }
 
         // Remove the image from the product
@@ -807,12 +828,12 @@ public class ProductServiceImpl implements ProductService {
             existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) - (existingSell.getActualPrice ( ) * (sellRequest.getDiscountValue ( ) / 100)) );
             existingSell.setDiscountValue ( sellRequest.getDiscountValue ( ) );
         }
-        if ( sellRequest.getIsVatIncluded ( ) ) {
+        if ( Boolean.TRUE.equals ( sellRequest.getIsVatIncluded ( )) ) {
             existingSell.setVat ( vat );
             existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) +
                     (existingSell.getActualPrice ( ) * (existingSell.getVat ( )
                             / 100)) );
-        } else if ( ! sellRequest.getIsVatIncluded ( ) ) {
+        } else if ( Boolean.FALSE.equals ( sellRequest.getIsVatIncluded ( )) ) {
             existingSell.setVat ( 0.0 );
         }
         if ( sellRequest.getWarrantPeriod ( ) != null && sellRequest.getWarrantPeriod ( ) > 0 ) {
@@ -900,7 +921,7 @@ public class ProductServiceImpl implements ProductService {
 
             // Find the product
             Product product = productRepository.findById ( productId )
-                    .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+                    .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
             // Validate product configuration
             if ( product.getProductFor ( ) == null ) {
@@ -931,7 +952,7 @@ public class ProductServiceImpl implements ProductService {
             CartItem cartItem = new CartItem ( );
             cartItem.setProduct ( product );
             cartItem.setProductType ( request.getProductType ( ) );
-            cartItem.setQuantity ( 1 );
+//            cartItem.setQuantity ( 1 );
 
             // Set quantity and rent period based on product type
             if ( request.getProductType ( ) == ProductType.SELL ) {
@@ -943,9 +964,11 @@ public class ProductServiceImpl implements ProductService {
                 if ( unitPrice <= 0 ) {
                     unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
                 }
+                logger.info ( "---->Unit price without vat: {}", unitPrice*cartItem.getQuantity ( ) );
                 if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null&& product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
                     unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
                 }
+                logger.info ( "----->Unit price with vat: {}", unitPrice*cartItem.getQuantity ( ) );
                 cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
             } else if ( request.getProductType ( ) == ProductType.RENT ) {
                 cartItem.setQuantity ( request.getQuantity ( ) );
@@ -956,19 +979,25 @@ public class ProductServiceImpl implements ProductService {
                 if ( monthlyPrice <= 0 ) {
                     monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
                 }
+                logger.info ( "---->Unit price without vat: {}", monthlyPrice*cartItem.getQuantity ( ) );
                 if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
                     monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
                 }
+                logger.info ( "----->Unit price with vat: {}", monthlyPrice*cartItem.getQuantity ( ) );
                 cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
             } else if ( request.getProductType ( ) == ProductType.OTS ) {
+                cartItem.setQuantity ( 1 );
                 cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
             } else if ( request.getProductType ( ) == ProductType.MMC ) {
+                cartItem.setQuantity ( 1 );
                 cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
 
             } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
+                cartItem.setQuantity ( 1 );
                 cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
 
             } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
+                cartItem.setQuantity ( 1 );
                 cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
             }
 
@@ -1040,7 +1069,7 @@ public class ProductServiceImpl implements ProductService {
         logger.debug ( "Adding service {} to product {}", ourServiceId, productId );
 
         Product product = productRepository.findById ( productId )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         OurService ourService = ourServiceRepository.findById ( ourServiceId )
                 .orElseThrow ( () -> new RuntimeException ( "OurService not found with id: " + ourServiceId ) );
@@ -1071,7 +1100,7 @@ public class ProductServiceImpl implements ProductService {
         logger.debug ( "Removing service {} from product {}", ourServiceId, productId );
 
         Product product = productRepository.findById ( productId )
-                .orElseThrow ( () -> new RuntimeException ( "Product not found with id: " + productId ) );
+                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         if ( product.getOurServices ( ) == null || product.getOurServices ( ).isEmpty ( ) ) {
             logger.warn ( "Product {} has no services", productId );

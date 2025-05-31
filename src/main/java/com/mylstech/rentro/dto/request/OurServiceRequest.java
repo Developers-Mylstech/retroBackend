@@ -6,9 +6,9 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.ArrayList;
+
 import java.util.List;
-import java.util.stream.Collectors;
+
 
 @Data
 @NoArgsConstructor
@@ -19,9 +19,6 @@ public class OurServiceRequest {
     private String detailedHeading;
     private String detailedDescription;
     
-    // Changed from List<String> to String
-//    @Deprecated
-//    private String imageUrl;
 
     private Long imageId;
     
@@ -33,7 +30,7 @@ public class OurServiceRequest {
         ourService.setShortDescription(this.shortDescription);
         ourService.setDetailedHeading(this.detailedHeading);
         ourService.setDetailedDescription(this.detailedDescription);
-//        ourService.setImageUrl(this.imageUrl);
+
         
         if (this.features != null) {
             List<Feature> featureList = this.features.stream()
