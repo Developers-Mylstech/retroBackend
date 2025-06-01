@@ -1,6 +1,6 @@
 package com.mylstech.rentro.controller;
 
-import com.mylstech.rentro.dto.BannerRequest;
+import com.mylstech.rentro.dto.request.BannerRequest;
 import com.mylstech.rentro.dto.response.BannerResponse;
 import com.mylstech.rentro.service.BannerService;
 import io.swagger.v3.oas.annotations.Operation;

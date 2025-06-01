@@ -78,11 +78,7 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
                     .orElseThrow ( () -> new ResourceNotFoundException ( "Image not found with id: " + request.getImage ( ).getImageId ( ) ) );
             requestQuotation.setImage ( image );
 
-            // For backward compatibility
-//                if (requestQuotation.getProductImages() == null) {
-//                    requestQuotation.setProductImages(new ArrayList<>());
-//                }
-//                requestQuotation.getProductImages().add(image.getImageUrl());
+
         }
 
         // Save the entity
@@ -134,14 +130,6 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
             Image image = imageRepository.findById ( request.getImage ( ).getImageId ( ) )
                     .orElseThrow ( () -> new ResourceNotFoundException ( "Image not found with id: " + request.getImage ( ).getImageId ( ) ) );
             existingRequestQuotation.setImage ( image );
-
-            // For backward compatibility
-//            if (existingRequestQuotation.getProductImages() == null) {
-//                existingRequestQuotation.setProductImages(new ArrayList<>());
-//            } else {
-//                existingRequestQuotation.getProductImages().clear();
-//            }
-//            existingRequestQuotation.getProductImages().add(image.getImageUrl());
         }
 
         if ( request.getStatus ( ) != null ) {

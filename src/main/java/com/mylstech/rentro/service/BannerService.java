@@ -1,6 +1,6 @@
 package com.mylstech.rentro.service;
 
-import com.mylstech.rentro.dto.BannerRequest;
+import com.mylstech.rentro.dto.request.BannerRequest;
 import com.mylstech.rentro.dto.response.BannerResponse;
 
 import java.util.List;

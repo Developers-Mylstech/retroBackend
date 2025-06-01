@@ -1,4 +1,4 @@
-package com.mylstech.rentro.dto.request.cart;
+package com.mylstech.rentro.dto.request;
 
 import com.mylstech.rentro.util.ProductType;
 import jakarta.validation.constraints.Min;

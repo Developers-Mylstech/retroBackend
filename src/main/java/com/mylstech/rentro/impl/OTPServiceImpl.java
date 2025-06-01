@@ -42,7 +42,7 @@ public class OTPServiceImpl implements OtpService {
         // Store OTP with expiry time
         otpStorage.put ( email, new SimpleEntry<> ( otp, expiryTime ) );
         // Send OTP via email
-//        sendOtpViaEmail ( email, otp );
+//
 
         sendOtpEmail ( email, email, otp, otpExpiryMinutes );
 
@@ -105,13 +105,6 @@ public class OTPServiceImpl implements OtpService {
         return String.valueOf ( random.nextInt ( 900000 ) + 100000 );
     }
 
-    private void sendOtpViaEmail(String email, String otp) {
-        String subject = "Your OTP for Login";
-        String body = "Your OTP for login is: " + otp + ". It will expire in " + otpExpiryMinutes + " minutes.";
-
-        emailService.sendEmail ( email, subject, body );
-
-    }
 
     /**
      * Send an OTP (One-Time Password) email
@@ -131,8 +124,6 @@ public class OTPServiceImpl implements OtpService {
         templateModel.put ( "recipientName", recipientName );
         templateModel.put ( "otp", formattedOtp );
         templateModel.put ( "expiryMinutes", expiryMinutes );
-//        String serverUrl = System.getenv().getOrDefault("ZROK_URL", "http://localhost:8080");
-//        templateModel.put("logoUrl", serverUrl + "/00f84822-e77f-4728-9fbe-6ea5ee7a0c27_renroLogo-p3-PWqCh.webp");
         templateModel.put ( "websiteUrl", "https://newone.rentro.ae" );
         templateModel.put ( "supportEmail", "support@rentro.ae" );
 

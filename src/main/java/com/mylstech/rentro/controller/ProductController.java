@@ -29,44 +29,32 @@ public class ProductController {
 
     @GetMapping
     public ResponseEntity<List<ProductResponse>> getAllProducts() {
-        try {
-            logger.debug ( "Fetching all products" );
-            List<ProductResponse> products = productService.getAllProducts ( );
-            logger.debug ( "Found {} products", products.size ( ) );
-            return ResponseEntity.ok ( products );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching all products", e );
-            throw e;
-        }
+
+        logger.debug ( "Fetching all products" );
+        List<ProductResponse> products = productService.getAllProducts ( );
+        logger.debug ( "Found {} products", products.size ( ) );
+        return ResponseEntity.ok ( products );
+
     }
 
     @GetMapping("/{id}")
     public ResponseEntity<ProductResponse> getProductById(@PathVariable Long id) {
-        try {
-            logger.debug ( "Fetching product with id: {}", id );
-            ProductResponse product = productService.getProductById ( id );
-            logger.debug ( "Found product: {}", product );
-            return ResponseEntity.ok ( product );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching product with id: " + id, e );
-            throw e;
-        }
+
+        logger.debug ( "Fetching product with id: {}", id );
+        ProductResponse product = productService.getProductById ( id );
+        logger.debug ( "Found product: {}", product );
+        return ResponseEntity.ok ( product );
+
     }
 
     @PostMapping
     public ResponseEntity<ProductResponse> createProduct(@RequestBody ProductRequest request) {
-        try {
-            logger.debug ( "Creating new product: {}", request );
-            ProductResponse product = productService.createProduct ( request );
-            logger.debug ( "Created product: {}", product );
-            return new ResponseEntity<> ( product, HttpStatus.CREATED );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error creating product", e );
-            throw e;
-        }
+
+        logger.debug ( "Creating new product: {}", request );
+        ProductResponse product = productService.createProduct ( request );
+        logger.debug ( "Created product: {}", product );
+        return new ResponseEntity<> ( product, HttpStatus.CREATED );
+
     }
 
     @PutMapping("/{id}")
@@ -80,13 +68,6 @@ public class ProductController {
         return ResponseEntity.ok ( "Product deleted successfully" );
     }
 
-//    // We're keeping these methods for backward compatibility and individual image management
-//    @PostMapping("/{id}/images")
-//    public ResponseEntity<ProductResponse> addImageToProduct(
-//            @PathVariable Long id,
-//            @RequestBody String imageUrl) {
-//        return ResponseEntity.ok(productService.addImageToProduct(id,  imageUrl));
-//    }
 
     @DeleteMapping("/{productId}/images/{imageId}")
     @Operation(summary = "Remove a specific image from a product",
@@ -123,16 +104,11 @@ public class ProductController {
     @Operation(summary = "Get products by type", description = "Retrieve products filtered by type (SELL, RENT, SERVICE)")
     @GetMapping("/by-type/{productType}")
     public ResponseEntity<List<ProductResponse>> getProductsByType(@PathVariable ProductType productType) {
-        try {
-            logger.debug ( "Fetching products by type: {}", productType );
-            List<ProductResponse> products = productService.getProductsByType ( productType );
-            logger.debug ( "Found {} products of type {}", products.size ( ), productType );
-            return ResponseEntity.ok ( products );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error fetching products by type: " + productType, e );
-            throw e;
-        }
+
+        logger.debug ( "Fetching products by type: {}", productType );
+        List<ProductResponse> products = productService.getProductsByType ( productType );
+        logger.debug ( "Found {} products of type {}", products.size ( ), productType );
+        return ResponseEntity.ok ( products );
     }
 
     @Operation(
@@ -142,21 +118,16 @@ public class ProductController {
     @GetMapping("/filter")
     public ResponseEntity<List<ProductResponse>> filterProducts(
             @RequestParam(required = false) ProductType type) {
-        try {
-            if ( type != null ) {
-                logger.debug ( "Filtering products by type: {}", type );
-                List<ProductResponse> products = productService.getProductsByType ( type );
-                logger.debug ( "Found {} products of type {}", products.size ( ), type );
-                return ResponseEntity.ok ( products );
-            } else {
-                // If no type is specified, return all products
-                logger.debug ( "No filter specified, returning all products" );
-                return getAllProducts ( );
-            }
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error filtering products", e );
-            throw e;
+
+        if ( type != null ) {
+            logger.debug ( "Filtering products by type: {}", type );
+            List<ProductResponse> products = productService.getProductsByType ( type );
+            logger.debug ( "Found {} products of type {}", products.size ( ), type );
+            return ResponseEntity.ok ( products );
+        } else {
+            // If no type is specified, return all products
+            logger.debug ( "No filter specified, returning all products" );
+            return getAllProducts ( );
         }
     }
 
@@ -173,16 +144,12 @@ public class ProductController {
     public ResponseEntity<CheckOutResponse> buyNow(
             @PathVariable Long id,
             @RequestBody BuyNowRequest request) {
-        try {
-            logger.debug ( "Buy now request for product ID: {}", id );
-            CheckOutResponse response = productService.buyNow ( id, request );
-            logger.debug ( "Created checkout with ID: {}", response.getCheckoutId ( ) );
-            return ResponseEntity.ok ( response );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error processing buy now request for product ID: " + id, e );
-            throw e;
-        }
+
+        logger.debug ( "Buy now request for product ID: {}", id );
+        CheckOutResponse response = productService.buyNow ( id, request );
+        logger.debug ( "Created checkout with ID: {}", response.getCheckoutId ( ) );
+        return ResponseEntity.ok ( response );
+
     }
 
     @PostMapping("/{productId}/services/{ourServiceId}")
@@ -191,14 +158,10 @@ public class ProductController {
     public ResponseEntity<ProductResponse> addServiceToProduct(
             @PathVariable Long productId,
             @PathVariable Long ourServiceId) {
-        try {
-            ProductResponse response = productService.addServiceToProduct ( productId, ourServiceId );
-            return ResponseEntity.ok ( response );
-        }
-        catch ( Exception e ) {
-            return ResponseEntity.status ( HttpStatus.INTERNAL_SERVER_ERROR )
-                    .body ( null );
-        }
+
+        ProductResponse response = productService.addServiceToProduct ( productId, ourServiceId );
+        return ResponseEntity.ok ( response );
+
     }
 
     @DeleteMapping("/{productId}/services/{ourServiceId}")
@@ -207,14 +170,10 @@ public class ProductController {
     public ResponseEntity<ProductResponse> removeServiceFromProduct(
             @PathVariable Long productId,
             @PathVariable Long ourServiceId) {
-        try {
-            ProductResponse response = productService.removeServiceFromProduct ( productId, ourServiceId );
-            return ResponseEntity.ok ( response );
-        }
-        catch ( Exception e ) {
-            return ResponseEntity.status ( HttpStatus.INTERNAL_SERVER_ERROR )
-                    .body ( null );
-        }
+
+        ProductResponse response = productService.removeServiceFromProduct ( productId, ourServiceId );
+        return ResponseEntity.ok ( response );
+
     }
 
     @GetMapping("/search/{query}")

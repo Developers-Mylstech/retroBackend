@@ -1,6 +1,6 @@
 package com.mylstech.rentro.controller;
 
-import com.mylstech.rentro.dto.request.cart.CartItemRequest;
+import com.mylstech.rentro.dto.request.CartItemRequest;
 import com.mylstech.rentro.dto.response.cart.CartItemResponse;
 import com.mylstech.rentro.service.CartItemService;
 import io.swagger.v3.oas.annotations.Operation;

@@ -10,13 +10,13 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 public class BannerRequest {
     private String title;
-    
+    private String imageUrl;
     private Long imageId;
 
-    public Banner requestToBanner() {
-        Banner banner = new Banner();
-        banner.setTitle(this.title);
-        // Image will be set separately in the service
+    public Banner requestToBanner(){
+        Banner banner = new Banner ( );
+        banner.setTitle ( title );
+        banner.setImageUrl ( imageUrl );
         return banner;
     }
 }

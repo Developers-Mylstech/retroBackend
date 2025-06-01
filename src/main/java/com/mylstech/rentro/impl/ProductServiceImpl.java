@@ -83,18 +83,14 @@ public class ProductServiceImpl implements ProductService {
     @Override
     @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponse> getAllProducts() {
-        try {
+
             List<Product> products = productRepository.findAllWithRelationships ( );
             logger.debug ( "Found {} products in database", products.size ( ) );
             return products.stream ( )
                     .map ( ProductResponse::new )
                     .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
                     .toList ( );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error retrieving products from database", e );
-            throw new RuntimeException ( "Failed to retrieve products", e );
-        }
+
     }
 
     @Override

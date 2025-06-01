@@ -1,4 +1,4 @@
-package com.mylstech.rentro.dto;
+package com.mylstech.rentro.dto.request;
 
 import lombok.Data;
 

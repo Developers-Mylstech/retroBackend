@@ -7,7 +7,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
-import java.util.ArrayList;
 import java.util.List;
 
 @Entity
@@ -29,7 +28,6 @@ public class Category {
     @JoinColumn(name = "parent_id")
     @JsonBackReference
     private Category parentCategory;
-
 
 
 }

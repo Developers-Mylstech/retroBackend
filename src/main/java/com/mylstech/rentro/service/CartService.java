@@ -1,6 +1,6 @@
 package com.mylstech.rentro.service;
 
-import com.mylstech.rentro.dto.request.cart.CartItemRequest;
+import com.mylstech.rentro.dto.request.CartItemRequest;
 import com.mylstech.rentro.dto.response.cart.CartResponse;
 import com.mylstech.rentro.model.Cart;
 

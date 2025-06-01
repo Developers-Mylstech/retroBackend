@@ -1,6 +1,6 @@
 package com.mylstech.rentro.impl;
 
-import com.mylstech.rentro.dto.BannerRequest;
+import com.mylstech.rentro.dto.request.BannerRequest;
 import com.mylstech.rentro.dto.response.BannerResponse;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Banner;

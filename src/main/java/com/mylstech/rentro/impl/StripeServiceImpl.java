@@ -1,7 +1,7 @@
 package com.mylstech.rentro.impl;
 
-import com.mylstech.rentro.dto.PaymentResponse;
-import com.mylstech.rentro.dto.StripePaymentRequest;
+import com.mylstech.rentro.dto.response.PaymentResponse;
+import com.mylstech.rentro.dto.request.StripePaymentRequest;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.Cart;
 import com.mylstech.rentro.model.CheckOut;
@@ -13,8 +13,6 @@ import com.stripe.model.PaymentIntent;
 import com.stripe.param.PaymentIntentCreateParams;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
 
 @Service

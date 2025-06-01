@@ -1,7 +1,7 @@
 package com.mylstech.rentro.controller;
 
-import com.mylstech.rentro.dto.PaymentResponse;
-import com.mylstech.rentro.dto.StripePaymentRequest;
+import com.mylstech.rentro.dto.response.PaymentResponse;
+import com.mylstech.rentro.dto.request.StripePaymentRequest;
 import com.mylstech.rentro.service.OrderService;
 import com.mylstech.rentro.service.StripeService;
 import io.swagger.v3.oas.annotations.Operation;
