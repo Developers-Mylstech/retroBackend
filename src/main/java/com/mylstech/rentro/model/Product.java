@@ -25,6 +25,9 @@ public class Product {
     private String supplierName;
     private String supplierCode;
     private String modelNo;
+    @Column(unique = true)
+    private String productCode;
+
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 

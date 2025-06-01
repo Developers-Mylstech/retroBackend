@@ -21,6 +21,7 @@ import org.springframework.cache.annotation.Caching;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
@@ -119,9 +120,9 @@ public class ProductServiceImpl implements ProductService {
     public ProductResponse createProduct(ProductRequest request) {
         try {
             logger.debug ( "Starting product creation process" );
+            
 
-            // Bottom-up approach: Create all related entities first, then the product
-
+            
             // 1. Create or fetch the inventory
             Inventory inventory = null;
             if ( request.getInventory ( ) != null ) {
@@ -223,7 +224,8 @@ public class ProductServiceImpl implements ProductService {
             product.setSupplierName ( request.getSupplierName ( ) );
             product.setSupplierCode ( request.getSupplierCode ( ) );
             product.setModelNo ( request.getModelNo ( ) );
-
+            product.setProductCode ( generateProductCode ( ) );
+            
             // Set category if categoryId is provided
             if ( request.getCategoryId ( ) != null ) {
                 Category category = categoryRepository.findById ( request.getCategoryId ( ) )
@@ -290,27 +292,7 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
 
-            // For backward compatibility - handle imageUrls if provided
-            /* 
-            if ( request.getImageUrls ( ) != null && ! request.getImageUrls ( ).isEmpty ( ) ) {
-                for (String url : request.getImageUrls ( )) {
-                    // Check if this URL already exists in our images list to avoid duplicates
-                    boolean urlAlreadyExists = product.getImages ( ).stream ( )
-                            .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
 
-                    if ( ! urlAlreadyExists ) {
-                        // Try to find existing image entity with this URL
-                        Image image = imageRepository.findByImageUrl ( url )
-                                .orElseGet ( () -> {
-                                    Image newImage = new Image ( );
-                                    newImage.setImageUrl ( url );
-                                    return imageRepository.save ( newImage );
-                                } );
-                        product.addImage ( image );
-                    }
-                }
-            }
-            */
 
             // Save the product
             Product savedProduct = productRepository.save ( product );
@@ -330,6 +312,29 @@ public class ProductServiceImpl implements ProductService {
             e.printStackTrace ( );
             throw e;
         }
+    }
+
+    private String generateProductCode() {
+        LocalDate now = LocalDate.now ( );
+        String yearMonth = String.format ( "%02d%02d", now.getYear ( ) % 100, now.getMonthValue ( ) );
+
+        // Find the latest product code for this month
+        String prefix = "PRO" + yearMonth;
+        String latestCode = productRepository.findLatestProductCodeByPrefix ( prefix );
+
+        int sequence = 1;
+        if ( latestCode != null ) {
+            // Extract the sequence number from the latest code
+            try {
+                sequence = Integer.parseInt ( latestCode.substring ( 7 ) ) + 1;
+            }
+            catch ( NumberFormatException | IndexOutOfBoundsException e ) {
+// ksdfj
+            }
+        }
+
+        // Format: proYYMM0001
+        return String.format ( "%s%04d", prefix, sequence );
     }
 
     @Override
@@ -569,40 +574,6 @@ public class ProductServiceImpl implements ProductService {
                 }
             }
         }
-
-        // For backward compatibility - handle imageUrls if provided
-        /*
-        if ( request.getImageUrls ( ) != null ) {
-            // Clear existing images if we're explicitly setting new ones and imageIds wasn't provided
-            if ( request.getImageIds ( ) == null ) {
-                // Create a copy of the current images to safely remove them
-                List<Image> currentImages = new ArrayList<> ( product.getImages ( ) );
-
-                // Remove all current images from the product
-                for (Image image : currentImages) {
-                    product.removeImage ( image );
-                }
-            }
-
-            // Add images from URLs
-            for (String url : request.getImageUrls ( )) {
-                // Check if this URL already exists in our images list to avoid duplicates
-                boolean urlAlreadyExists = product.getImages ( ).stream ( )
-                        .anyMatch ( img -> img.getImageUrl ( ).equals ( url ) );
-
-                if ( ! urlAlreadyExists ) {
-                    // Try to find existing image entity with this URL
-                    Image image = imageRepository.findByImageUrl ( url )
-                            .orElseGet ( () -> {
-                                Image newImage = new Image ( );
-                                newImage.setImageUrl ( url );
-                                return imageRepository.save ( newImage );
-                            } );
-                    product.addImage ( image );
-                }
-            }
-        }
-        */
 
         //update Tag N Keyword
         if ( request.getTagNKeywords ( ) != null ) {
@@ -912,10 +883,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     public CheckOutResponse buyNow(Long productId, BuyNowRequest request) {
         logger.debug ( "Processing buy now request for product ID: {}", productId );
-//
-//        if (!request.isValid()) {
-//            throw new IllegalArgumentException("Invalid buy now request");
-//        }
+
 
         try {
             // Get the current user
@@ -954,7 +922,7 @@ public class ProductServiceImpl implements ProductService {
             CartItem cartItem = new CartItem ( );
             cartItem.setProduct ( product );
             cartItem.setProductType ( request.getProductType ( ) );
-//            cartItem.setQuantity ( 1 );
+
 
             // Set quantity and rent period based on product type
             if ( request.getProductType ( ) == ProductType.SELL ) {
@@ -1145,31 +1113,4 @@ public class ProductServiceImpl implements ProductService {
                 .map ( ProductResponse::new )
                 .toList ( );
     }
-
-//    private String generateQuotationCode() {
-//        // Get current year and month
-//        LocalDateTime now = LocalDateTime.now();
-//        String yearMonth = now.format( DateTimeFormatter.ofPattern("yyMM"));
-//
-//        // Format: RQ-YYMM-XXXX
-//        String codePrefix = "RQ-" + yearMonth + "-";
-//
-//        // Find the latest code for this prefix
-//        List<String> latestCodes = productRepository.findLatestProductId();
-//
-//        int nextSequence = 1;
-//        if (!latestCodes.isEmpty()) {
-//            String latestCode = latestCodes.get(0);
-//            try {
-//                // Extract the sequence number from the latest code
-//                String sequencePart = latestCode.substring(codePrefix.length());
-//                nextSequence = Integer.parseInt(sequencePart) + 1;
-//            } catch (NumberFormatException | IndexOutOfBoundsException e) {
-//                logger.warn("Failed to parse sequence number, starting from 1", e);
-//            }
-//        }
-//
-//        // Format the final code with the sequence padded to 4 digits
-//        return String.format("%s%06d", codePrefix, nextSequence);
-//    }
 }

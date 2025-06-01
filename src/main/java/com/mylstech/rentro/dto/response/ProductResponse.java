@@ -34,12 +34,15 @@ public class ProductResponse {
     private List<String> tagNKeywords;
     private List<ImageDTO> images;
     private List<OurServiceResponse> ourServices;
+    private String productCode;
+
 
     public ProductResponse(Product product) {
         this.productId = product.getProductId ( );
         this.name = product.getName ( );
         this.description = product.getDescription ( );
         this.longDescription = product.getLongDescription ( );
+        this.productCode = product.getProductCode ( );
         this.manufacturer = product.getManufacturer ( );
         if ( product.getCategory ( ) != null ) {
             this.category = new CategoryResponse ( product.getCategory ( ) );

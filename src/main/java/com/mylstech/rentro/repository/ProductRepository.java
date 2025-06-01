@@ -1,7 +1,6 @@
 package com.mylstech.rentro.repository;
 
 import com.mylstech.rentro.model.Product;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.jpa.repository.EntityGraph;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -15,7 +14,7 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Find products available for sell
     @Query("SELECT p FROM Product p WHERE p.productFor.sell IS NOT NULL")
     List<Product> findByProductForSellNotNull();
-    
+
     // Find products available for rent
     @Query("SELECT p FROM Product p WHERE p.productFor.rent IS NOT NULL")
     List<Product> findByProductForRentNotNull();
@@ -48,24 +47,28 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
 
     // For direct database search (better for large datasets)
     @Query("""
-        SELECT DISTINCT p FROM Product p
-        LEFT JOIN FETCH p.brand b
-        LEFT JOIN FETCH p.category c
-        LEFT JOIN FETCH p.subCategory sc
-        WHERE (:query IS NULL OR :query = '') OR (
-            LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
-            OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
-            OR LOWER(b.name) LIKE LOWER(CONCAT('%', :query, '%'))
-            OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :query, '%'))
-        )
-        ORDER BY
-            CASE
-                WHEN LOWER(p.name) = LOWER(:query) THEN 1
-                WHEN LOWER(p.name) LIKE LOWER(CONCAT(:query, '%')) THEN 2
-                WHEN LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) THEN 3
-                ELSE 4
-            END,
-            p.name
-        """)
+            SELECT DISTINCT p FROM Product p
+            LEFT JOIN FETCH p.brand b
+            LEFT JOIN FETCH p.category c
+            LEFT JOIN FETCH p.subCategory sc
+            WHERE (:query IS NULL OR :query = '') OR (
+                LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(c.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(b.name) LIKE LOWER(CONCAT('%', :query, '%'))
+                OR LOWER(sc.name) LIKE LOWER(CONCAT('%', :query, '%'))
+            )
+            ORDER BY
+                CASE
+                    WHEN LOWER(p.name) = LOWER(:query) THEN 1
+                    WHEN LOWER(p.name) LIKE LOWER(CONCAT(:query, '%')) THEN 2
+                    WHEN LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%')) THEN 3
+                    ELSE 4
+                END,
+                p.name
+            """)
     List<Product> searchWithRelationships(@Param("query") String query);
+
+
+    @Query(value = "SELECT product_code FROM products WHERE product_code LIKE :prefix% ORDER BY product_code DESC LIMIT 1", nativeQuery = true)
+    String findLatestProductCodeByPrefix(@Param("prefix") String prefix);
 }
