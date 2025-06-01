@@ -92,9 +92,9 @@ public class ImageServiceImpl implements ImageService {
 
         switch (entityType.toLowerCase ( )) {
             case PRODUCT:
-                Product product = productRepository.findById ( entityId )
-                        .orElseThrow ( () -> new ResourceNotFoundException ( PRODUCT_NOT_FOUND_WITH_ID + entityId ) );
-                response.setImageUrls ( product.getImageUrls ( ) );
+//                Product product = productRepository.findById ( entityId )
+//                        .orElseThrow ( () -> new ResourceNotFoundException ( PRODUCT_NOT_FOUND_WITH_ID + entityId ) );
+//                response.setImageUrls ( product.getImageUrls ( ) );
                 break;
 
             case BRAND:
@@ -104,9 +104,9 @@ public class ImageServiceImpl implements ImageService {
                 break;
 
             case CATEGORY:
-                Category category = categoryRepository.findById ( entityId )
-                        .orElseThrow ( () -> new ResourceNotFoundException ( CATEGORY_NOT_FOUND_WITH_ID + entityId ) );
-                response.setImageUrls ( category.getImageUrls ( ) );
+//                Category category = categoryRepository.findById ( entityId )
+//                        .orElseThrow ( () -> new ResourceNotFoundException ( CATEGORY_NOT_FOUND_WITH_ID + entityId ) );
+//                response.setImageUrls ( category.getImageUrls ( ) );
                 break;
 
             case JOBPOST:
@@ -133,13 +133,14 @@ public class ImageServiceImpl implements ImageService {
     public List<EntityImagesResponse> getAllImagesByEntityType(String entityType) {
         switch (entityType.toLowerCase ( )) {
             case PRODUCT:
-                return productRepository.findAll ( ).stream ( )
-                        .map ( pi -> new EntityImagesResponse (
-                                pi.getProductId ( ),
-                                PRODUCT,
-                                pi.getImageUrls ( ),
-                                null ) )
-                        .toList ( );
+//                return productRepository.findAll ( ).stream ( )
+//                        .map ( pi -> new EntityImagesResponse (
+//                                pi.getProductId ( ),
+//                                PRODUCT,
+//                                pi.getImageUrls ( ),
+//                                null ) )
+//                        .toList ( );
+                return new ArrayList<> ( );
 
             case BRAND:
                 return brandRepository.findAll ( ).stream ( )
@@ -151,13 +152,14 @@ public class ImageServiceImpl implements ImageService {
                         .toList ( );
 
             case CATEGORY:
-                return categoryRepository.findAll ( ).stream ( )
-                        .map ( c -> new EntityImagesResponse (
-                                c.getCategoryId ( ),
-                                CATEGORY,
-                                c.getImageUrls ( ),
-                                null ) )
-                        .toList ( );
+//                return categoryRepository.findAll ( ).stream ( )
+//                        .map ( c -> new EntityImagesResponse (
+//                                c.getCategoryId ( ),
+//                                CATEGORY,
+//                                c.getImageUrls ( ),
+//                                null ) )
+//                        .toList ( );
+                return new ArrayList<> ( );
 
             case JOBPOST:
                 return jobPostRepository.findAll ( ).stream ( )
@@ -263,10 +265,10 @@ public class ImageServiceImpl implements ImageService {
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
-        if ( product.getImageUrls ( ) == null ) {
-            product.setImageUrls ( new ArrayList<> ( ) );
-        }
-        product.getImageUrls ( ).add ( fileUrl );
+//        if ( product.getImageUrls ( ) == null ) {
+//            product.setImageUrls ( new ArrayList<> ( ) );
+//        }
+//        product.getImageUrls ( ).add ( fileUrl );
         productRepository.save ( product );
     }
 
@@ -288,10 +290,10 @@ public class ImageServiceImpl implements ImageService {
         Category category = categoryRepository.findById ( categoryId )
                 .orElseThrow ( () -> new RuntimeException ( CATEGORY_NOT_FOUND_WITH_ID + categoryId ) );
 
-        if ( category.getImageUrls ( ) == null ) {
-            category.setImageUrls ( new ArrayList<> ( ) );
-        }
-        category.getImageUrls ( ).add ( fileUrl );
+//        if ( category.getImageUrls ( ) == null ) {
+//            category.setImageUrls ( new ArrayList<> ( ) );
+//        }
+//        category.getImageUrls ( ).add ( fileUrl );
         categoryRepository.save ( category );
     }
 
@@ -306,11 +308,11 @@ public class ImageServiceImpl implements ImageService {
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
-        if ( product.getImageUrls ( ) != null && ! product.getImageUrls ( ).isEmpty ( ) ) {
-            String imageUrl = product.getImageUrls ( ).get ( product.getImageUrls ( ).size ( ) - 1 );
-            product.getImageUrls ( ).remove ( imageUrl );
+        if ( product.getImages ( ) != null && ! product.getImages ( ).isEmpty ( ) ) {
+//            String imageUrl = product.getImageUrls ( ).get ( product.getImageUrls ( ).size ( ) - 1 );
+//            product.getImageUrls ( ).remove ( imageUrl );
             productRepository.save ( product );
-            deleteImageFile ( imageUrl );
+//            deleteImageFile ( imageUrl );
         }
     }
 
@@ -338,15 +340,15 @@ public class ImageServiceImpl implements ImageService {
     }
 
     private void deleteCategoryImage(Long categoryId) {
-        Category category = categoryRepository.findById ( categoryId )
-                .orElseThrow ( () -> new RuntimeException ( CATEGORY_NOT_FOUND_WITH_ID + categoryId ) );
+//        Category category = categoryRepository.findById ( categoryId )
+//                .orElseThrow ( () -> new RuntimeException ( CATEGORY_NOT_FOUND_WITH_ID + categoryId ) );
 
-        if ( category.getImageUrls ( ) != null && ! category.getImageUrls ( ).isEmpty ( ) ) {
-            String imageUrl = category.getImageUrls ( ).get ( category.getImageUrls ( ).size ( ) - 1 );
-            category.getImageUrls ( ).remove ( imageUrl );
-            categoryRepository.save ( category );
-            deleteImageFile ( imageUrl );
-        }
+//        if ( category.getImageUrls ( ) != null && ! category.getImageUrls ( ).isEmpty ( ) ) {
+//            String imageUrl = category.getImageUrls ( ).get ( category.getImageUrls ( ).size ( ) - 1 );
+//            category.getImageUrls ( ).remove ( imageUrl );
+//            categoryRepository.save ( category );
+//            deleteImageFile ( imageUrl );
+//        }
     }
 
     private void deleteJobPostImage(Long jobPostId) {

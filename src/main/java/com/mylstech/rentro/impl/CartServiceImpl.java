@@ -50,11 +50,6 @@ public class CartServiceImpl implements CartService {
         // Use the helper method
         Cart cart1 = addItemToCartInternal ( request, cart );
 
-        // Calculate total price for cart
-//        double totalPrice = cart1.getItems ( ).stream ( )
-//                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
-//                .sum ( );
-//        cart1.setTotalPrice ( totalPrice );
         cart1.calculateTotalPrice ();
         cart = cartRepository.save ( cart1 );
 
@@ -79,11 +74,6 @@ public class CartServiceImpl implements CartService {
             addItemToCartInternal ( request, cart );
         }
 
-        // Calculate total price for cart
-//        double totalPrice = cart.getItems ( ).stream ( )
-//                .mapToDouble ( item -> item.getPrice ( ) != null ? item.getPrice ( ) : 0.0 )
-//                .sum ( );
-//        cart.setTotalPrice ( totalPrice );
         cart.calculateTotalPrice ();
         // Save the cart once with all new items
         cart = cartRepository.save ( cart );
@@ -242,21 +232,6 @@ public class CartServiceImpl implements CartService {
             }
             cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
         }
-//        else if ( request.getProductType ( ) == ProductType.OTS ) {
-//            cartItem.setQuantity ( 1 );
-//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
-//        } else if ( request.getProductType ( ) == ProductType.MMC ) {
-//            cartItem.setQuantity ( 1 );
-//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
-//
-//        } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
-//            cartItem.setQuantity ( 1 );
-//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
-//
-//        } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
-//            cartItem.setQuantity ( 1 );
-//            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
-//        }
 
         logger.debug ( "Created cart item: type={}, price={}",
                 cartItem.getProductType ( ),

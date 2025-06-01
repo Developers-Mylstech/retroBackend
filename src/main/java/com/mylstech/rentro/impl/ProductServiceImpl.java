@@ -18,7 +18,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.cache.annotation.Caching;
-import org.springframework.data.jpa.repository.support.SimpleJpaRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -61,16 +60,19 @@ public class ProductServiceImpl implements ProductService {
             service.setOts ( serviceRequest.getOts ( ).requestToServiceField ( ) );
         }
     }
+
     private static void addMmc(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getMmc ( ) != null ) {
             service.setMmc ( serviceRequest.getMmc ( ).requestToServiceField ( ) );
         }
     }
+
     private static void addAmcGold(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getAmcGold ( ) != null ) {
             service.setAmcGold ( serviceRequest.getAmcGold ( ).requestToServiceField ( ) );
         }
     }
+
     private static void addAmcBasic(ServiceRequest serviceRequest, com.mylstech.rentro.model.Service service) {
         if ( serviceRequest.getAmcBasic ( ) != null ) {
             service.setAmcBasic ( serviceRequest.getAmcBasic ( ).requestToServiceField ( ) );
@@ -656,20 +658,20 @@ public class ProductServiceImpl implements ProductService {
             Product product = productRepository.findById ( id )
                     .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + id ) );
 
-            List<Wishlist> wishlists = wishlistRepository.findByProductsContaining(product);
+            List<Wishlist> wishlists = wishlistRepository.findByProductsContaining ( product );
             for (Wishlist wishlist : wishlists) {
-                wishlist.getProducts().remove(product);
+                wishlist.getProducts ( ).remove ( product );
             }
-            wishlistRepository.saveAll(wishlists);
+            wishlistRepository.saveAll ( wishlists );
 
             List<CartItem> byProductProductId = cartItemRepository.findByProductProductId ( product.getProductId ( ) );
             for (CartItem cartItem : byProductProductId) {
                 cartItemRepository.delete ( cartItem );
             }
 
-            List<OrderItem> orderItems = orderItemRepository.findByProductProductId(product.getProductId());
-            if (!orderItems.isEmpty()) {
-                orderItemRepository.deleteAll(orderItems);
+            List<OrderItem> orderItems = orderItemRepository.findByProductProductId ( product.getProductId ( ) );
+            if ( ! orderItems.isEmpty ( ) ) {
+                orderItemRepository.deleteAll ( orderItems );
             }
 
             // First, remove all service associations
@@ -828,12 +830,12 @@ public class ProductServiceImpl implements ProductService {
             existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) - (existingSell.getActualPrice ( ) * (sellRequest.getDiscountValue ( ) / 100)) );
             existingSell.setDiscountValue ( sellRequest.getDiscountValue ( ) );
         }
-        if ( Boolean.TRUE.equals ( sellRequest.getIsVatIncluded ( )) ) {
+        if ( Boolean.TRUE.equals ( sellRequest.getIsVatIncluded ( ) ) ) {
             existingSell.setVat ( vat );
             existingSell.setDiscountPrice ( existingSell.getActualPrice ( ) +
                     (existingSell.getActualPrice ( ) * (existingSell.getVat ( )
                             / 100)) );
-        } else if ( Boolean.FALSE.equals ( sellRequest.getIsVatIncluded ( )) ) {
+        } else if ( Boolean.FALSE.equals ( sellRequest.getIsVatIncluded ( ) ) ) {
             existingSell.setVat ( 0.0 );
         }
         if ( sellRequest.getWarrantPeriod ( ) != null && sellRequest.getWarrantPeriod ( ) > 0 ) {
@@ -964,11 +966,11 @@ public class ProductServiceImpl implements ProductService {
                 if ( unitPrice <= 0 ) {
                     unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
                 }
-                logger.info ( "---->Unit price without vat: {}", unitPrice*cartItem.getQuantity ( ) );
-                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null&& product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
+                logger.info ( "---->Unit price without vat: {}", unitPrice * cartItem.getQuantity ( ) );
+                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null && product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
                     unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
                 }
-                logger.info ( "----->Unit price with vat: {}", unitPrice*cartItem.getQuantity ( ) );
+                logger.info ( "----->Unit price with vat: {}", unitPrice * cartItem.getQuantity ( ) );
                 cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
             } else if ( request.getProductType ( ) == ProductType.RENT ) {
                 cartItem.setQuantity ( request.getQuantity ( ) );
@@ -979,11 +981,11 @@ public class ProductServiceImpl implements ProductService {
                 if ( monthlyPrice <= 0 ) {
                     monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
                 }
-                logger.info ( "---->Unit price without vat: {}", monthlyPrice*cartItem.getQuantity ( ) );
+                logger.info ( "---->Unit price without vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
                 if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
                     monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
                 }
-                logger.info ( "----->Unit price with vat: {}", monthlyPrice*cartItem.getQuantity ( ) );
+                logger.info ( "----->Unit price with vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
                 cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
             } else if ( request.getProductType ( ) == ProductType.OTS ) {
                 cartItem.setQuantity ( 1 );
@@ -1034,9 +1036,9 @@ public class ProductServiceImpl implements ProductService {
 
             // Create checkout
             CheckOut checkOut = new CheckOut ( );
-            logger.info("cart id--------------------> {}",cart.getCartId());
+            logger.info ( "cart id--------------------> {}", cart.getCartId ( ) );
             checkOut.setCart ( cart );
-            logger.info("is cart temporary --------------------> {}",cart.isTemporary ());
+            logger.info ( "is cart temporary --------------------> {}", cart.isTemporary ( ) );
             checkOut.setFirstName ( request.getFirstName ( ) );
             checkOut.setLastName ( request.getLastName ( ) );
             checkOut.setMobile ( request.getMobile ( ) );
@@ -1144,4 +1146,30 @@ public class ProductServiceImpl implements ProductService {
                 .toList ( );
     }
 
+//    private String generateQuotationCode() {
+//        // Get current year and month
+//        LocalDateTime now = LocalDateTime.now();
+//        String yearMonth = now.format( DateTimeFormatter.ofPattern("yyMM"));
+//
+//        // Format: RQ-YYMM-XXXX
+//        String codePrefix = "RQ-" + yearMonth + "-";
+//
+//        // Find the latest code for this prefix
+//        List<String> latestCodes = productRepository.findLatestProductId();
+//
+//        int nextSequence = 1;
+//        if (!latestCodes.isEmpty()) {
+//            String latestCode = latestCodes.get(0);
+//            try {
+//                // Extract the sequence number from the latest code
+//                String sequencePart = latestCode.substring(codePrefix.length());
+//                nextSequence = Integer.parseInt(sequencePart) + 1;
+//            } catch (NumberFormatException | IndexOutOfBoundsException e) {
+//                logger.warn("Failed to parse sequence number, starting from 1", e);
+//            }
+//        }
+//
+//        // Format the final code with the sequence padded to 4 digits
+//        return String.format("%s%06d", codePrefix, nextSequence);
+//    }
 }

@@ -1,6 +1,7 @@
 package com.mylstech.rentro.dto.response.cart;
 
 import com.mylstech.rentro.model.CartItem;
+import com.mylstech.rentro.model.Image;
 import com.mylstech.rentro.util.ProductType;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
@@ -26,7 +27,7 @@ public class CartItemResponse {
     public CartItemResponse(CartItem cartItem) {
         this.cartItemId = cartItem.getCartItemId ();
         this.productName = cartItem.getProduct ().getName ();
-        this.productImages = cartItem.getProduct ().getImageUrls ();
+        this.productImages = cartItem.getProduct ().getImages ().stream ().map ( Image::getImageUrl ).toList ();
         this.productDescription = cartItem.getProduct ().getDescription ();
         this.productId = cartItem.getProduct ().getProductId ();
         this.productType = cartItem.getProductType ();

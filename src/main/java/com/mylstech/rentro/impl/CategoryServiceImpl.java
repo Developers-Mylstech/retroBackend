@@ -121,15 +121,6 @@ public class CategoryServiceImpl implements CategoryService {
                     productsWithSubCategory.size ( ) + " products using this as subcategory." );
         }
 
-        // Clear images if any
-        if ( category.getImages ( ) != null ) {
-            category.getImages ( ).clear ( );
-        }
-
-        // Clear image URLs if any
-        if ( category.getImageUrls ( ) != null ) {
-            category.getImageUrls ( ).clear ( );
-        }
 
         // Save the category with cleared collections first
         categoryRepository.save ( category );

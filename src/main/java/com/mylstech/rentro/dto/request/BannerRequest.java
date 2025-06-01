@@ -11,13 +11,6 @@ import lombok.NoArgsConstructor;
 public class BannerRequest {
     private String title;
     
-    /**
-     * @deprecated This field is only for backward compatibility.
-     * Use imageId instead.
-     */
-    @Deprecated
-    private String imageUrl;
-    
     private Long imageId;
 
     public Banner requestToBanner() {

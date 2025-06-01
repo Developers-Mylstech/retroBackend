@@ -22,10 +22,6 @@ public class Banner {
     @ManyToOne(fetch = FetchType.EAGER)
     @JoinColumn(name = "image_id")
     private Image image;
-    
-    @Column(name = "image_url")
-    @Deprecated
-    private String imageUrl;
 
     // Helper methods for backward compatibility
     public String getImageUrl() {

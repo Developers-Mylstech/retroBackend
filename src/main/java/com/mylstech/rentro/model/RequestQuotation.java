@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Entity
 @Getter
@@ -34,14 +33,6 @@ public class RequestQuotation {
     @ManyToOne(cascade = CascadeType.ALL)
     @JoinColumn(name = "image_id")
     private Image image;
-
-    // Keep the old field for backward compatibility during migration
-    @ElementCollection
-    @CollectionTable(name = "request_quotation_image_urls",
-            joinColumns = @JoinColumn(name = "request_quotation_image_id"))
-    @Column(name = "image_url")
-    @Deprecated
-    private List<String> productImages;
 
     @Enumerated(EnumType.STRING)
     private RequestQuotationStatus status;

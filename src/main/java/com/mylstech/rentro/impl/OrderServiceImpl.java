@@ -2,10 +2,7 @@ package com.mylstech.rentro.impl;
 
 import com.mylstech.rentro.dto.response.OrderResponse;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
-import com.mylstech.rentro.model.Cart;
-import com.mylstech.rentro.model.CheckOut;
-import com.mylstech.rentro.model.Order;
-import com.mylstech.rentro.model.OrderItem;
+import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.OrderItemRepository;
 import com.mylstech.rentro.repository.OrderRepository;
 import com.mylstech.rentro.service.OrderService;
@@ -58,8 +55,8 @@ public class OrderServiceImpl implements OrderService {
                     orderItem.setProductName ( cartItem.getProduct ( ).getName ( ) );
 
                     // Set product image if available
-                    if ( cartItem.getProduct ( ).getImageUrls ( ) != null && ! cartItem.getProduct ( ).getImageUrls ( ).isEmpty ( ) ) {
-                        orderItem.setProductImage ( cartItem.getProduct ( ).getImageUrls ( ).get ( 0 ) );
+                    if ( cartItem.getProduct ( ).getImages ( ) != null && ! cartItem.getProduct ( ).getImages ( ).isEmpty ( ) ) {
+                        orderItem.setProductImage ( cartItem.getProduct ( ).getImages ().stream ().findAny ().map ( Image::getImageUrl ).orElse ( null ) );
                     }
 
                     orderItem.setProductType ( cartItem.getProductType ( ) );

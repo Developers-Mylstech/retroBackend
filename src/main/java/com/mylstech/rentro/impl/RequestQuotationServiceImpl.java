@@ -20,13 +20,12 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.time.format.DateTimeFormatter;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
 @RequiredArgsConstructor
 public class RequestQuotationServiceImpl implements RequestQuotationService {
-    private static final Logger logger = LoggerFactory.getLogger(RequestQuotationServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger ( RequestQuotationServiceImpl.class );
 
     private final RequestQuotationRepository requestQuotationRepository;
     private final ImageRepository imageRepository;
@@ -34,178 +33,184 @@ public class RequestQuotationServiceImpl implements RequestQuotationService {
 
     @Override
     public List<RequestQuotationResponse> getAllRequestQuotations() {
-        return requestQuotationRepository.findAll().stream().map(RequestQuotationResponse::new).toList();
+        return requestQuotationRepository
+                .findAll ( )
+                .stream ( )
+                .map ( RequestQuotationResponse::new )
+                .sorted ( (q1, q2) -> q2.getRequestQuotationId ( ).compareTo ( q1.getRequestQuotationId ( ) ) )
+                .toList ( );
     }
 
     @Override
     public RequestQuotationResponse getRequestQuotationById(Long id) {
-        RequestQuotation requestQuotation = findRequestQuotationById(id);
-        return new RequestQuotationResponse(requestQuotation);
+        RequestQuotation requestQuotation = findRequestQuotationById ( id );
+        return new RequestQuotationResponse ( requestQuotation );
     }
-    
+
     @Override
     public RequestQuotationResponse getRequestQuotationByCode(String code) {
-        RequestQuotation requestQuotation = requestQuotationRepository.findByRequestQuotationCode(code)
-            .orElseThrow(() -> new ResourceNotFoundException("Request quotation not found with code: " + code));
-        return new RequestQuotationResponse(requestQuotation);
+        RequestQuotation requestQuotation = requestQuotationRepository.findByRequestQuotationCode ( code )
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Request quotation not found with code: " + code ) );
+        return new RequestQuotationResponse ( requestQuotation );
     }
 
     @Override
     @Transactional
     public RequestQuotationResponse createRequestQuotation(RequestQuotationRequest request) {
 
-            // Convert request to entity
-            RequestQuotation requestQuotation = request.requestToRequestQuotation();
-            
-            // Generate a business-friendly code
-            String quotationCode = generateQuotationCode();
-            requestQuotation.setRequestQuotationCode(quotationCode);
-            
-            // Save location if provided
-            if (request.getLocation() != null) {
-                Location location = request.getLocation().toLocation();
-                location = locationRepository.save(location);
-                requestQuotation.setLocation(location);
-            }
-            
-            // Save image if provided
-            if (request.getImage() != null) {
-                Image image = imageRepository.findById(request.getImage().getImageId())
-                    .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + request.getImage().getImageId()));
-                requestQuotation.setImage(image);
-                
-                // For backward compatibility
-                if (requestQuotation.getProductImages() == null) {
-                    requestQuotation.setProductImages(new ArrayList<>());
-                }
-                requestQuotation.getProductImages().add(image.getImageUrl());
-            }
-            
-            // Save the entity
-            requestQuotation = requestQuotationRepository.save(requestQuotation);
-            
-            logger.info("Created request quotation with ID: {} and code: {}", 
-                requestQuotation.getRequestQuotationId(), requestQuotation.getRequestQuotationCode());
-            return new RequestQuotationResponse(requestQuotation);
+        // Convert request to entity
+        RequestQuotation requestQuotation = request.requestToRequestQuotation ( );
+
+        // Generate a business-friendly code
+        String quotationCode = generateQuotationCode ( );
+        requestQuotation.setRequestQuotationCode ( quotationCode );
+
+        // Save location if provided
+        if ( request.getLocation ( ) != null ) {
+            Location location = request.getLocation ( ).toLocation ( );
+            location = locationRepository.save ( location );
+            requestQuotation.setLocation ( location );
+        }
+
+        // Save image if provided
+        if ( request.getImage ( ) != null ) {
+            Image image = imageRepository.findById ( request.getImage ( ).getImageId ( ) )
+                    .orElseThrow ( () -> new ResourceNotFoundException ( "Image not found with id: " + request.getImage ( ).getImageId ( ) ) );
+            requestQuotation.setImage ( image );
+
+            // For backward compatibility
+//                if (requestQuotation.getProductImages() == null) {
+//                    requestQuotation.setProductImages(new ArrayList<>());
+//                }
+//                requestQuotation.getProductImages().add(image.getImageUrl());
+        }
+
+        // Save the entity
+        requestQuotation = requestQuotationRepository.save ( requestQuotation );
+
+        logger.info ( "Created request quotation with ID: {} and code: {}",
+                requestQuotation.getRequestQuotationId ( ), requestQuotation.getRequestQuotationCode ( ) );
+        return new RequestQuotationResponse ( requestQuotation );
 
     }
 
     @Override
     @Transactional
     public RequestQuotationResponse updateRequestQuotation(Long id, RequestQuotationRequest request) {
-        RequestQuotation existingRequestQuotation = findRequestQuotationById(id);
-        
-        if (request.getCompanyName() != null) {
-            existingRequestQuotation.setCompanyName(request.getCompanyName());
+        RequestQuotation existingRequestQuotation = findRequestQuotationById ( id );
+
+        if ( request.getCompanyName ( ) != null ) {
+            existingRequestQuotation.setCompanyName ( request.getCompanyName ( ) );
         }
-        if (request.getName() != null) {
-            existingRequestQuotation.setName(request.getName());
+        if ( request.getName ( ) != null ) {
+            existingRequestQuotation.setName ( request.getName ( ) );
         }
-        if (request.getMobile() != null) {
-            existingRequestQuotation.setMobile(request.getMobile());
+        if ( request.getMobile ( ) != null ) {
+            existingRequestQuotation.setMobile ( request.getMobile ( ) );
         }
-        
+
         // Update location if provided
-        if (request.getLocation() != null) {
+        if ( request.getLocation ( ) != null ) {
             Location location;
-            if (existingRequestQuotation.getLocation() != null) {
+            if ( existingRequestQuotation.getLocation ( ) != null ) {
                 // Update existing location
-                location = existingRequestQuotation.getLocation();
-                location.setStreet(request.getLocation().getStreet());
-                location.setArea(request.getLocation().getArea());
-                location.setBuilding(request.getLocation().getBuilding());
-                location.setVillaNo(request.getLocation().getVillaNo());
-                location.setCountry(request.getLocation().getCountry());
-                location.setGmapLink(request.getLocation().getGmapLink());
+                location = existingRequestQuotation.getLocation ( );
+                location.setStreet ( request.getLocation ( ).getStreet ( ) );
+                location.setArea ( request.getLocation ( ).getArea ( ) );
+                location.setBuilding ( request.getLocation ( ).getBuilding ( ) );
+                location.setVillaNo ( request.getLocation ( ).getVillaNo ( ) );
+                location.setCountry ( request.getLocation ( ).getCountry ( ) );
+                location.setGmapLink ( request.getLocation ( ).getGmapLink ( ) );
             } else {
                 // Create new location
-                location = request.getLocation().toLocation();
+                location = request.getLocation ( ).toLocation ( );
             }
-            location = locationRepository.save(location);
-            existingRequestQuotation.setLocation(location);
+            location = locationRepository.save ( location );
+            existingRequestQuotation.setLocation ( location );
         }
-        
+
         // Update image if provided
-        if (request.getImage() != null) {
-            Image image = imageRepository.findById(request.getImage().getImageId())
-                .orElseThrow(() -> new ResourceNotFoundException("Image not found with id: " + request.getImage().getImageId()));
-            existingRequestQuotation.setImage(image);
-            
+        if ( request.getImage ( ) != null ) {
+            Image image = imageRepository.findById ( request.getImage ( ).getImageId ( ) )
+                    .orElseThrow ( () -> new ResourceNotFoundException ( "Image not found with id: " + request.getImage ( ).getImageId ( ) ) );
+            existingRequestQuotation.setImage ( image );
+
             // For backward compatibility
-            if (existingRequestQuotation.getProductImages() == null) {
-                existingRequestQuotation.setProductImages(new ArrayList<>());
-            } else {
-                existingRequestQuotation.getProductImages().clear();
-            }
-            existingRequestQuotation.getProductImages().add(image.getImageUrl());
+//            if (existingRequestQuotation.getProductImages() == null) {
+//                existingRequestQuotation.setProductImages(new ArrayList<>());
+//            } else {
+//                existingRequestQuotation.getProductImages().clear();
+//            }
+//            existingRequestQuotation.getProductImages().add(image.getImageUrl());
         }
-        
-        if (request.getStatus() != null) {
-            existingRequestQuotation.setStatus(request.getStatus());
+
+        if ( request.getStatus ( ) != null ) {
+            existingRequestQuotation.setStatus ( request.getStatus ( ) );
         }
-        
-        return new RequestQuotationResponse(requestQuotationRepository.save(existingRequestQuotation));
+
+        return new RequestQuotationResponse ( requestQuotationRepository.save ( existingRequestQuotation ) );
     }
 
     @Override
     @Transactional
     public void deleteRequestQuotation(Long id) {
-        RequestQuotation requestQuotation = findRequestQuotationById(id);
-        requestQuotationRepository.delete(requestQuotation);
-        logger.info("Deleted request quotation with ID: {}", id);
+        RequestQuotation requestQuotation = findRequestQuotationById ( id );
+        requestQuotationRepository.delete ( requestQuotation );
+        logger.info ( "Deleted request quotation with ID: {}", id );
     }
-    
+
     @Override
     public List<RequestQuotationResponse> getRequestQuotationsByStatus(RequestQuotationStatus status) {
-        return requestQuotationRepository.findByStatus(status).stream()
-            .map(RequestQuotationResponse::new)
-            .toList();
+        return requestQuotationRepository.findByStatus ( status ).stream ( )
+                .map ( RequestQuotationResponse::new )
+                .toList ( );
     }
 
     @Override
     public List<RequestQuotationResponse> searchRequestQuotationsByCompany(String companyName) {
-        return requestQuotationRepository.findByCompanyNameContainingIgnoreCase(companyName).stream()
-            .map(RequestQuotationResponse::new)
-            .toList();
+        return requestQuotationRepository.findByCompanyNameContainingIgnoreCase ( companyName ).stream ( )
+                .map ( RequestQuotationResponse::new )
+                .toList ( );
     }
-    
+
     /**
      * Generate a business-friendly quotation code
      * Format: RQ-YYMM-XXXX (Year-Month-SequentialNumber)
      */
     private String generateQuotationCode() {
         // Get current year and month
-        LocalDateTime now = LocalDateTime.now();
-        String yearMonth = now.format(DateTimeFormatter.ofPattern("yyMM"));
-        
+        LocalDateTime now = LocalDateTime.now ( );
+        String yearMonth = now.format ( DateTimeFormatter.ofPattern ( "yyMM" ) );
+
         // Format: RQ-YYMM-XXXX
         String codePrefix = "RQ-" + yearMonth + "-";
-        
+
         // Find the latest code for this prefix
-        List<String> latestCodes = requestQuotationRepository.findLatestCodesByPrefix(
-            codePrefix, PageRequest.of(0, 1));
-        
+        List<String> latestCodes = requestQuotationRepository.findLatestCodesByPrefix (
+                codePrefix, PageRequest.of ( 0, 1 ) );
+
         int nextSequence = 1;
-        if (!latestCodes.isEmpty()) {
-            String latestCode = latestCodes.get(0);
+        if ( ! latestCodes.isEmpty ( ) ) {
+            String latestCode = latestCodes.get ( 0 );
             try {
                 // Extract the sequence number from the latest code
-                String sequencePart = latestCode.substring(codePrefix.length());
-                nextSequence = Integer.parseInt(sequencePart) + 1;
-            } catch (NumberFormatException | IndexOutOfBoundsException e) {
-                logger.warn("Failed to parse sequence number, starting from 1", e);
+                String sequencePart = latestCode.substring ( codePrefix.length ( ) );
+                nextSequence = Integer.parseInt ( sequencePart ) + 1;
+            }
+            catch ( NumberFormatException | IndexOutOfBoundsException e ) {
+                logger.warn ( "Failed to parse sequence number, starting from 1", e );
             }
         }
-        
+
         // Format the final code with the sequence padded to 4 digits
-        return String.format("%s%06d", codePrefix, nextSequence);
+        return String.format ( "%s%06d", codePrefix, nextSequence );
     }
-    
+
     /**
      * Helper method to find a request quotation by ID
      */
     private RequestQuotation findRequestQuotationById(Long id) {
-        return requestQuotationRepository.findById(id)
-            .orElseThrow(() -> new ResourceNotFoundException("Request quotation not found with id: " + id));
+        return requestQuotationRepository.findById ( id )
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Request quotation not found with id: " + id ) );
     }
 }

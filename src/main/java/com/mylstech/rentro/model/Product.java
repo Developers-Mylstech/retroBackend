@@ -8,7 +8,6 @@ import lombok.Setter;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.stream.Collectors;
 
 @Entity
 @Getter
@@ -26,31 +25,18 @@ public class Product {
     private String supplierName;
     private String supplierCode;
     private String modelNo;
-
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 
     // Many-to-many relationship with Image
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "product_images",
-        joinColumns = @JoinColumn(name = "product_id"),
-        inverseJoinColumns = @JoinColumn(name = "image_id")
+            name = "product_images",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "image_id")
     )
-    private List<Image> images = new ArrayList<>();
-    
-    // Keep the old field for backward compatibility during migration
-    @ElementCollection
-    @CollectionTable(name = "product_image_urls",
-            joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "image_url")
-    @Access(AccessType.PROPERTY)
-    @Deprecated
-    /* 
-     * This field is deprecated and only kept for backward compatibility.
-     * Use the 'images' relationship instead.
-     */
-    private List<String> imageUrls;
+    private List<Image> images = new ArrayList<> ( );
+
 
     @OneToMany(cascade = CascadeType.ALL, fetch = FetchType.LAZY)
     private List<Specification> specification;
@@ -69,11 +55,11 @@ public class Product {
 
     @ManyToMany(cascade = {CascadeType.PERSIST, CascadeType.MERGE})
     @JoinTable(
-        name = "product_services",
-        joinColumns = @JoinColumn(name = "product_id"),
-        inverseJoinColumns = @JoinColumn(name = "service_id")
+            name = "product_services",
+            joinColumns = @JoinColumn(name = "product_id"),
+            inverseJoinColumns = @JoinColumn(name = "service_id")
     )
-    private List<OurService> ourServices = new ArrayList<>();
+    private List<OurService> ourServices = new ArrayList<> ( );
 
     @ElementCollection
     @CollectionTable(name = "key_features",
@@ -91,111 +77,67 @@ public class Product {
 
     private String manufacturer;
 
-    // Helper methods for backward compatibility
-    /**
-     * @deprecated This method is only for backward compatibility.
-     * Use getImages() instead.
-     */
-    @Deprecated
-    public List<String> getImageUrls() {
-        if (images == null || images.isEmpty()) {
-            return new ArrayList<>();
-        }
-        return images.stream()
-                .map(Image::getImageUrl)
-                .collect(Collectors.toList());
-    }
-
-    /**
-     * @deprecated This method is only for backward compatibility.
-     * Use addImage(Image) instead.
-     */
-    @Deprecated
-    public void setImageUrls(List<String> urls) {
-        if (urls == null) {
-            return;
-        }
-        
-        if (this.images == null) {
-            this.images = new ArrayList<>();
-        }
-        
-        // Convert URLs to Image entities
-        for (String url : urls) {
-            // Check if we already have this URL to avoid duplicates
-            boolean urlExists = this.images.stream()
-                    .anyMatch(img -> img.getImageUrl().equals(url));
-                    
-            if (!urlExists) {
-                Image image = new Image();
-                image.setImageUrl(url);
-                image.addProduct(this); // Add this product to the image
-                this.images.add(image);
-            }
-        }
-    }
-
     // Helper method to add an image
     public void addImage(Image image) {
-        if (this.images == null) {
-            this.images = new ArrayList<>();
+        if ( this.images == null ) {
+            this.images = new ArrayList<> ( );
         }
-        
+
         // Check if we already have this image to avoid duplicates
-        boolean imageExists = this.images.stream()
-                .anyMatch(img -> img.getImageId() != null && 
-                                 img.getImageId().equals(image.getImageId()));
-                                 
-        if (!imageExists) {
-            this.images.add(image);
-            image.addProduct(this); // Add this product to the image
+        boolean imageExists = this.images.stream ( )
+                .anyMatch ( img -> img.getImageId ( ) != null &&
+                        img.getImageId ( ).equals ( image.getImageId ( ) ) );
+
+        if ( ! imageExists ) {
+            this.images.add ( image );
+            image.addProduct ( this ); // Add this product to the image
         }
     }
-    
+
     // Helper method to remove an image
     public void removeImage(Image image) {
-        if (this.images != null) {
-            this.images.remove(image);
+        if ( this.images != null ) {
+            this.images.remove ( image );
             // Remove this product from the image's products list
-            if (image.getProducts() != null) {
-                image.getProducts().remove(this);
+            if ( image.getProducts ( ) != null ) {
+                image.getProducts ( ).remove ( this );
             }
         }
     }
 
     // Helper method to add a service
     public void addOurService(OurService ourService) {
-        if (this.ourServices == null) {
-            this.ourServices = new ArrayList<>();
+        if ( this.ourServices == null ) {
+            this.ourServices = new ArrayList<> ( );
         }
-        
+
         // Check if we already have this service to avoid duplicates
-        boolean serviceExists = this.ourServices.stream()
-                .anyMatch(svc -> svc.getOurServiceId() != null && 
-                                 svc.getOurServiceId().equals(ourService.getOurServiceId()));
-                                 
-        if (!serviceExists) {
-            this.ourServices.add(ourService);
+        boolean serviceExists = this.ourServices.stream ( )
+                .anyMatch ( svc -> svc.getOurServiceId ( ) != null &&
+                        svc.getOurServiceId ( ).equals ( ourService.getOurServiceId ( ) ) );
+
+        if ( ! serviceExists ) {
+            this.ourServices.add ( ourService );
             // Add this product to the service's products list
-            if (ourService.getProducts() != null) {
-                if (!ourService.getProducts().contains(this)) {
-                    ourService.getProducts().add(this);
+            if ( ourService.getProducts ( ) != null ) {
+                if ( ! ourService.getProducts ( ).contains ( this ) ) {
+                    ourService.getProducts ( ).add ( this );
                 }
             } else {
-                List<Product> products = new ArrayList<>();
-                products.add(this);
-                ourService.setProducts(products);
+                List<Product> products = new ArrayList<> ( );
+                products.add ( this );
+                ourService.setProducts ( products );
             }
         }
     }
 
     // Helper method to remove a service
     public void removeOurService(OurService ourService) {
-        if (this.ourServices != null) {
-            this.ourServices.remove(ourService);
+        if ( this.ourServices != null ) {
+            this.ourServices.remove ( ourService );
             // Remove this product from the service's products list
-            if (ourService.getProducts() != null) {
-                ourService.getProducts().remove(this);
+            if ( ourService.getProducts ( ) != null ) {
+                ourService.getProducts ( ).remove ( this );
             }
         }
     }
