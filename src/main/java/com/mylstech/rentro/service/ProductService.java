@@ -58,4 +58,6 @@ public interface ProductService {
     List<ProductResponse> searchByProductName(String query);
 
     List<ProductResponse> searchByProductName1(String query);
+
+    List<ProductResponse> getProductsByBrand(Long brandId);
 }

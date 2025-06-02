@@ -184,5 +184,9 @@ public class ProductController {
 
     }
 
+    @GetMapping("/brand/{brandId}")
+    public ResponseEntity<List<ProductResponse>> getProductsByBrand(@PathVariable Long brandId) {
+        return ResponseEntity.ok ( productService.getProductsByBrand ( brandId ) );
+    }
 
 }

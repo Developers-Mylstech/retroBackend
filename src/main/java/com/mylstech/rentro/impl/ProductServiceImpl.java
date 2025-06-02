@@ -114,7 +114,7 @@ public class ProductServiceImpl implements ProductService {
     @Transactional
     @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse createProduct(ProductRequest request) {
-        try {
+
             logger.debug ( "Starting product creation process" );
             
 
@@ -301,13 +301,7 @@ public class ProductServiceImpl implements ProductService {
 
             logger.debug ( "Successfully created product" );
             return new ProductResponse ( savedProduct );
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error creating product: {}", e.getMessage ( ), e );
-            // Print the stack trace to see exactly where the error is occurring
-            e.printStackTrace ( );
-            throw e;
-        }
+
     }
 
     private String generateProductCode() {
@@ -881,7 +875,7 @@ public class ProductServiceImpl implements ProductService {
         logger.debug ( "Processing buy now request for product ID: {}", productId );
 
 
-        try {
+
             // Get the current user
             AppUser currentUser = securityUtils.getCurrentUser ( );
 
@@ -1022,11 +1016,7 @@ public class ProductServiceImpl implements ProductService {
             logger.debug ( "Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
 
             return checkOutResponse;
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error processing buy now request: {}", e.getMessage ( ), e );
-            throw e;
-        }
+
     }
 
     @Override
@@ -1108,5 +1098,10 @@ public class ProductServiceImpl implements ProductService {
         return results.stream ( )
                 .map ( ProductResponse::new )
                 .toList ( );
+    }
+
+    @Override
+    public List<ProductResponse> getProductsByBrand(Long brandId) {
+        return productRepository.findByBrandBrandId(brandId).stream().map(ProductResponse::new).toList();
     }
 }
