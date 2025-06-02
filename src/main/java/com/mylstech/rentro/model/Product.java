@@ -28,6 +28,8 @@ public class Product {
     @Column(unique = true)
     private String productCode;
 
+    private Boolean isActive;
+
     @ManyToOne(cascade = CascadeType.PERSIST, fetch = FetchType.LAZY)
     private Brand brand;
 

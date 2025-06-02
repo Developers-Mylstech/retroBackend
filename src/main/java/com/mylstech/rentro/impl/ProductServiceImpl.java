@@ -3,6 +3,7 @@ package com.mylstech.rentro.impl;
 import com.mylstech.rentro.dto.request.*;
 import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.ProductResponse;
+import com.mylstech.rentro.exception.PermissionDeniedException;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
 import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.*;
@@ -49,8 +50,6 @@ public class ProductServiceImpl implements ProductService {
     private final ImageRepository imageRepository;
     private final OurServiceRepository ourServiceRepository;
     private final CartItemRepository cartItemRepository;
-    private final WishlistRepository wishlistRepository;
-    private final OrderItemRepository orderItemRepository;
 
 
     @Value("${vat.value}")
@@ -84,30 +83,23 @@ public class ProductServiceImpl implements ProductService {
     @Cacheable(value = "products", key = "'allProducts'")
     public List<ProductResponse> getAllProducts() {
 
-            List<Product> products = productRepository.findAllWithRelationships ( );
-            logger.debug ( "Found {} products in database", products.size ( ) );
-            return products.stream ( )
-                    .map ( ProductResponse::new )
-                    .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
-                    .toList ( );
+        List<Product> products = productRepository.findAllWithRelationships ( );
+        logger.debug ( "Found {} products in database", products.size ( ) );
+        return products.stream ( )
+                .map ( ProductResponse::new )
+                .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
+                .toList ( );
 
     }
 
     @Override
     public ProductResponse getProductById(Long id) {
-        try {
-            Product product = productRepository.findById ( id )
-                    .orElseThrow ( () -> new ResourceNotFoundException ( "Product", "id", id ) );
-            logger.debug ( "Found product with id {}: {}", id, product );
-            return new ProductResponse ( product );
-        }
-        catch ( ResourceNotFoundException e ) {
-            throw e;  // Let it propagate to be handled by GlobalExceptionHandler
-        }
-        catch ( Exception e ) {
-            logger.error ( "Error retrieving product with id: " + id, e );
-            throw e;
-        }
+
+        Product product = productRepository.findById ( id )
+                .orElseThrow ( () -> new ResourceNotFoundException ( "Product", "id", id ) );
+        logger.debug ( "Found product with id {}: {}", id, product );
+        return new ProductResponse ( product );
+
     }
 
     @Override
@@ -115,192 +107,191 @@ public class ProductServiceImpl implements ProductService {
     @CacheEvict(value = "products", key = "'allProducts'")
     public ProductResponse createProduct(ProductRequest request) {
 
-            logger.debug ( "Starting product creation process" );
-            
+        logger.debug ( "Starting product creation process" );
 
-            
-            // 1. Create or fetch the inventory
-            Inventory inventory = null;
-            if ( request.getInventory ( ) != null ) {
-                inventory = request.getInventory ( ).requestToInventory ( );
-            }
 
-            // 2. Create or fetch the ProductFor entity and its related entities
-            ProductFor productFor = null;
+        // 1. Create or fetch the inventory
+        Inventory inventory = null;
+        if ( request.getInventory ( ) != null ) {
+            inventory = request.getInventory ( ).requestToInventory ( );
+        }
 
-            if ( request.getProductFor ( ) != null ) {
-                productFor = new ProductFor ( );
+        // 2. Create or fetch the ProductFor entity and its related entities
+        ProductFor productFor = null;
 
-                // Set request quotation flag first
-                if ( request.getProductFor ( ).getIsAvailableForRequestQuotation ( ) == Boolean.TRUE ) {
-                    productFor.setIsAvailableForRequestQuotation ( Boolean.TRUE );
-                } else {
-                    // Default to false for backward compatibility
-                    productFor.setIsAvailableForRequestQuotation ( Boolean.FALSE );
-                    // Handle Sell entity
-                    if ( request.getProductFor ( ).getSell ( ) != null ) {
+        if ( request.getProductFor ( ) != null ) {
+            productFor = new ProductFor ( );
 
-                        // Create new Sell entity
-                        Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
-                        sell = sellRepository.save ( sell );
-                        productFor.setSell ( sell );
-                    }
+            // Set request quotation flag first
+            if ( request.getProductFor ( ).getIsAvailableForRequestQuotation ( ) == Boolean.TRUE ) {
+                productFor.setIsAvailableForRequestQuotation ( Boolean.TRUE );
+            } else {
+                // Default to false for backward compatibility
+                productFor.setIsAvailableForRequestQuotation ( Boolean.FALSE );
+                // Handle Sell entity
+                if ( request.getProductFor ( ).getSell ( ) != null ) {
 
-                    // Handle Rent entity
-                    if ( request.getProductFor ( ).getRent ( ) != null ) {
-                        // Create new Rent entity
-                        Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
-                        rent = rentRepository.save ( rent );
-                        productFor.setRent ( rent );
-                    }
-
-                    // Handle Service entity
-                    if ( request.getProductFor ( ).getService ( ) != null ) {
-                        com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
-                        ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
-                        addAmcBasic ( serviceRequest, service );
-                        addAmcGold ( serviceRequest, service );
-                        addMmc ( serviceRequest, service );
-                        addOts ( serviceRequest, service );
-                        service = serviceRepository.save ( service );
-                        productFor.setServices ( service );
-                    }
+                    // Create new Sell entity
+                    Sell sell = request.getProductFor ( ).getSell ( ).requestToSell ( );
+                    sell = sellRepository.save ( sell );
+                    productFor.setSell ( sell );
                 }
 
-
-                // Save the ProductFor entity first
-                productFor = productForRepository.save ( productFor );
-            }
-
-            // 3. Create specifications
-            List<Specification> specifications = null;
-            if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
-                // Get all specification names from the request
-                List<String> requestNameList = request.getSpecifications ( ).stream ( )
-                        .map ( SpecificationRequest::getName )
-                        .toList ( );
-
-                // Get all existing specification fields from DB
-                List<SpecificationField> existingFields = specificationFieldRepository.findAll ( );
-                Map<String, SpecificationField> existingFieldsMap = existingFields.stream ( )
-                        .collect ( Collectors.toMap ( SpecificationField::getName, field -> field ) );
-
-                // Create any missing specification fields
-                requestNameList.stream ( )
-                        .filter ( name -> ! existingFieldsMap.containsKey ( name ) )
-                        .forEach ( name -> {
-                            SpecificationField field = new SpecificationField ( );
-                            field.setName ( name );
-                            SpecificationField savedField = specificationFieldRepository.save ( field );
-                            existingFieldsMap.put ( name, savedField );
-                        } );
-
-                // Create specifications with proper references to specification fields
-                specifications = request.getSpecifications ( ).stream ( )
-                        .filter ( spec -> spec.getName ( ) != null
-                                && ! spec.getName ( ).trim ( ).isEmpty ( )
-                                && spec.getValue ( ) != null
-                                && ! spec.getValue ( ).trim ( ).isEmpty ( ) )
-                        .map ( specRequest -> {
-                            Specification spec = new Specification ( );
-                            spec.setName ( specRequest.getName ( ) );
-                            spec.setValue ( specRequest.getValue ( ) );
-                            return spec;
-                        } )
-                        .toList ( );
-            }
-
-            // 4. Create the product
-            Product product = new Product ( );
-            product.setName ( request.getName ( ) );
-            product.setDescription ( request.getDescription ( ) );
-            product.setLongDescription ( request.getLongDescription ( ) );
-            product.setManufacturer ( request.getManufacturer ( ) );
-            product.setKeyFeatures ( request.getKeyFeatures ( ) );
-            product.setSupplierName ( request.getSupplierName ( ) );
-            product.setSupplierCode ( request.getSupplierCode ( ) );
-            product.setModelNo ( request.getModelNo ( ) );
-            product.setProductCode ( generateProductCode ( ) );
-            
-            // Set category if categoryId is provided
-            if ( request.getCategoryId ( ) != null ) {
-                Category category = categoryRepository.findById ( request.getCategoryId ( ) )
-                        .orElseThrow ( () -> new RuntimeException ( "Category not found with id: " + request.getCategoryId ( ) ) );
-                product.setCategory ( category );
-            }
-
-            // Set subcategory if subCategoryId is provided
-            if ( request.getSubCategoryId ( ) != null ) {
-                Category subCategory = categoryRepository.findById ( request.getSubCategoryId ( ) )
-                        .orElseThrow ( () -> new RuntimeException ( "SubCategory not found with id: " + request.getSubCategoryId ( ) ) );
-                product.setSubCategory ( subCategory );
-            }
-
-            // Set brand if brandId is provided
-            if ( request.getBrandId ( ) != null ) {
-                Brand brand = brandRepository.findById ( request.getBrandId ( ) )
-                        .orElseThrow ( () -> new RuntimeException ( "Brand not found with id: " + request.getBrandId ( ) ) );
-                product.setBrand ( brand );
-            }
-
-            // Set the inventory
-            if ( inventory != null ) {
-                product.setInventory ( inventory );
-            }
-
-            // Set the productFor
-            if ( productFor != null ) {
-                product.setProductFor ( productFor );
-            }
-
-            // Set specifications
-            if ( specifications != null ) {
-                product.setSpecification ( specifications );
-            }
-            //set Tag N Keyword
-            if ( request.getTagNKeywords ( ) != null ) {
-                product.setTagNKeywords ( request.getTagNKeywords ( ) );
-            }
-
-            // Handle OurServices if IDs are provided
-            if ( request.getOurServiceIds ( ) != null && ! request.getOurServiceIds ( ).isEmpty ( ) ) {
-                List<OurService> ourServices = ourServiceRepository.findAllById ( request.getOurServiceIds ( ) );
-
-                if ( ourServices.size ( ) != request.getOurServiceIds ( ).size ( ) ) {
-                    logger.warn ( "Some OurService IDs were not found. Found {} out of {} requested services.",
-                            ourServices.size ( ), request.getOurServiceIds ( ).size ( ) );
+                // Handle Rent entity
+                if ( request.getProductFor ( ).getRent ( ) != null ) {
+                    // Create new Rent entity
+                    Rent rent = request.getProductFor ( ).getRent ( ).requestToRent ( );
+                    rent = rentRepository.save ( rent );
+                    productFor.setRent ( rent );
                 }
 
-                product.setOurServices ( ourServices );
-            }
-
-            // Initialize images list
-            product.setImages ( new ArrayList<> ( ) );
-
-            // Set images using imageIds if provided
-            if ( request.getImageIds ( ) != null && ! request.getImageIds ( ).isEmpty ( ) ) {
-                List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
-                logger.debug ( "Found {} images by IDs", images.size ( ) );
-
-                // Add each image individually to maintain bidirectional relationship
-                for (Image image : images) {
-                    product.addImage ( image );
+                // Handle Service entity
+                if ( request.getProductFor ( ).getService ( ) != null ) {
+                    com.mylstech.rentro.model.Service service = new com.mylstech.rentro.model.Service ( );
+                    ServiceRequest serviceRequest = request.getProductFor ( ).getService ( );
+                    addAmcBasic ( serviceRequest, service );
+                    addAmcGold ( serviceRequest, service );
+                    addMmc ( serviceRequest, service );
+                    addOts ( serviceRequest, service );
+                    service = serviceRepository.save ( service );
+                    productFor.setServices ( service );
                 }
             }
 
 
+            // Save the ProductFor entity first
+            productFor = productForRepository.save ( productFor );
+        }
 
-            // Save the product
-            Product savedProduct = productRepository.save ( product );
+        // 3. Create specifications
+        List<Specification> specifications = null;
+        if ( request.getSpecifications ( ) != null && ! request.getSpecifications ( ).isEmpty ( ) ) {
+            // Get all specification names from the request
+            List<String> requestNameList = request.getSpecifications ( ).stream ( )
+                    .map ( SpecificationRequest::getName )
+                    .toList ( );
 
-            if ( logger.isDebugEnabled ( ) ) {
-                logger.debug ( "Saved product with ID: {} and {} images",
-                        savedProduct.getProductId ( ),
-                        savedProduct.getImages ( ).size ( ) );
+            // Get all existing specification fields from DB
+            List<SpecificationField> existingFields = specificationFieldRepository.findAll ( );
+            Map<String, SpecificationField> existingFieldsMap = existingFields.stream ( )
+                    .collect ( Collectors.toMap ( SpecificationField::getName, field -> field ) );
+
+            // Create any missing specification fields
+            requestNameList.stream ( )
+                    .filter ( name -> ! existingFieldsMap.containsKey ( name ) )
+                    .forEach ( name -> {
+                        SpecificationField field = new SpecificationField ( );
+                        field.setName ( name );
+                        SpecificationField savedField = specificationFieldRepository.save ( field );
+                        existingFieldsMap.put ( name, savedField );
+                    } );
+
+            // Create specifications with proper references to specification fields
+            specifications = request.getSpecifications ( ).stream ( )
+                    .filter ( spec -> spec.getName ( ) != null
+                            && ! spec.getName ( ).trim ( ).isEmpty ( )
+                            && spec.getValue ( ) != null
+                            && ! spec.getValue ( ).trim ( ).isEmpty ( ) )
+                    .map ( specRequest -> {
+                        Specification spec = new Specification ( );
+                        spec.setName ( specRequest.getName ( ) );
+                        spec.setValue ( specRequest.getValue ( ) );
+                        return spec;
+                    } )
+                    .toList ( );
+        }
+
+        // 4. Create the product
+        Product product = new Product ( );
+        product.setName ( request.getName ( ) );
+        product.setDescription ( request.getDescription ( ) );
+        product.setLongDescription ( request.getLongDescription ( ) );
+        product.setManufacturer ( request.getManufacturer ( ) );
+        product.setKeyFeatures ( request.getKeyFeatures ( ) );
+        product.setSupplierName ( request.getSupplierName ( ) );
+        product.setSupplierCode ( request.getSupplierCode ( ) );
+        product.setModelNo ( request.getModelNo ( ) );
+        product.setProductCode ( generateProductCode ( ) );
+        product.setIsActive ( Boolean.TRUE );
+
+        // Set category if categoryId is provided
+        if ( request.getCategoryId ( ) != null ) {
+            Category category = categoryRepository.findById ( request.getCategoryId ( ) )
+                    .orElseThrow ( () -> new RuntimeException ( "Category not found with id: " + request.getCategoryId ( ) ) );
+            product.setCategory ( category );
+        }
+
+        // Set subcategory if subCategoryId is provided
+        if ( request.getSubCategoryId ( ) != null ) {
+            Category subCategory = categoryRepository.findById ( request.getSubCategoryId ( ) )
+                    .orElseThrow ( () -> new RuntimeException ( "SubCategory not found with id: " + request.getSubCategoryId ( ) ) );
+            product.setSubCategory ( subCategory );
+        }
+
+        // Set brand if brandId is provided
+        if ( request.getBrandId ( ) != null ) {
+            Brand brand = brandRepository.findById ( request.getBrandId ( ) )
+                    .orElseThrow ( () -> new RuntimeException ( "Brand not found with id: " + request.getBrandId ( ) ) );
+            product.setBrand ( brand );
+        }
+
+        // Set the inventory
+        if ( inventory != null ) {
+            product.setInventory ( inventory );
+        }
+
+        // Set the productFor
+        if ( productFor != null ) {
+            product.setProductFor ( productFor );
+        }
+
+        // Set specifications
+        if ( specifications != null ) {
+            product.setSpecification ( specifications );
+        }
+        //set Tag N Keyword
+        if ( request.getTagNKeywords ( ) != null ) {
+            product.setTagNKeywords ( request.getTagNKeywords ( ) );
+        }
+
+        // Handle OurServices if IDs are provided
+        if ( request.getOurServiceIds ( ) != null && ! request.getOurServiceIds ( ).isEmpty ( ) ) {
+            List<OurService> ourServices = ourServiceRepository.findAllById ( request.getOurServiceIds ( ) );
+
+            if ( ourServices.size ( ) != request.getOurServiceIds ( ).size ( ) ) {
+                logger.warn ( "Some OurService IDs were not found. Found {} out of {} requested services.",
+                        ourServices.size ( ), request.getOurServiceIds ( ).size ( ) );
             }
 
-            logger.debug ( "Successfully created product" );
-            return new ProductResponse ( savedProduct );
+            product.setOurServices ( ourServices );
+        }
+
+        // Initialize images list
+        product.setImages ( new ArrayList<> ( ) );
+
+        // Set images using imageIds if provided
+        if ( request.getImageIds ( ) != null && ! request.getImageIds ( ).isEmpty ( ) ) {
+            List<Image> images = imageRepository.findAllById ( request.getImageIds ( ) );
+            logger.debug ( "Found {} images by IDs", images.size ( ) );
+
+            // Add each image individually to maintain bidirectional relationship
+            for (Image image : images) {
+                product.addImage ( image );
+            }
+        }
+
+
+        // Save the product
+        Product savedProduct = productRepository.save ( product );
+
+        if ( logger.isDebugEnabled ( ) ) {
+            logger.debug ( "Saved product with ID: {} and {} images",
+                    savedProduct.getProductId ( ),
+                    savedProduct.getImages ( ).size ( ) );
+        }
+
+        logger.debug ( "Successfully created product" );
+        return new ProductResponse ( savedProduct );
 
     }
 
@@ -613,65 +604,22 @@ public class ProductServiceImpl implements ProductService {
     }
     )
     public void deleteProduct(Long id) {
-        try {
-            logger.debug ( "Attempting to delete product with id: {}", id );
 
-            Product product = productRepository.findById ( id )
-                    .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + id ) );
+        logger.debug ( "Attempting to delete product with id: {}", id );
 
-            List<Wishlist> wishlists = wishlistRepository.findByProductsContaining ( product );
-            for (Wishlist wishlist : wishlists) {
-                wishlist.getProducts ( ).remove ( product );
-            }
-            wishlistRepository.saveAll ( wishlists );
+        Product product = productRepository.findById ( id )
+                .orElseThrow ( () -> new ResourceNotFoundException ( PRODUCT_NOT_FOUND_WITH_ID + id ) );
 
-            List<CartItem> byProductProductId = cartItemRepository.findByProductProductId ( product.getProductId ( ) );
-            for (CartItem cartItem : byProductProductId) {
-                cartItemRepository.delete ( cartItem );
-            }
-
-            List<OrderItem> orderItems = orderItemRepository.findByProductProductId ( product.getProductId ( ) );
-            if ( ! orderItems.isEmpty ( ) ) {
-                orderItemRepository.deleteAll ( orderItems );
-            }
-
-            // First, remove all service associations
-            if ( product.getOurServices ( ) != null && ! product.getOurServices ( ).isEmpty ( ) ) {
-                logger.debug ( "Removing {} service associations from product", product.getOurServices ( ).size ( ) );
-
-                // Create a copy to avoid ConcurrentModificationException
-                List<OurService> servicesToRemove = new ArrayList<> ( product.getOurServices ( ) );
-
-                // Remove each service association
-                for (OurService service : servicesToRemove) {
-                    product.removeOurService ( service );
-                }
-
-                // Save the product to update the associations
-                product = productRepository.save ( product );
-            }
-
-            // Remove image associations (existing code)
-            if ( product.getImages ( ) != null && ! product.getImages ( ).isEmpty ( ) ) {
-                logger.debug ( "Removing {} image associations from product", product.getImages ( ).size ( ) );
-
-                List<Image> imagesToRemove = new ArrayList<> ( product.getImages ( ) );
-
-                for (Image image : imagesToRemove) {
-                    product.removeImage ( image );
-                }
-
-                product = productRepository.save ( product );
-            }
-
-            // Now delete the product
-            productRepository.delete ( product );
-            logger.debug ( "Successfully deleted product with id: {}", id );
+        List<CartItem> byProductProductId = cartItemRepository.findByProductProductId ( product.getProductId ( ) );
+        for (CartItem cartItem : byProductProductId) {
+            cartItemRepository.delete ( cartItem );
         }
-        catch ( Exception e ) {
-            logger.error ( "Error deleting product with id: " + id, e );
-            throw new RuntimeException ( "Failed to delete product with id: " + id, e );
-        }
+        product.setIsActive ( false );
+        // Now delete the product
+        productRepository.save ( product );
+
+        logger.debug ( "Successfully deleted product with id: {}", id );
+
     }
 
     @Override
@@ -822,51 +770,47 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponse> getProductsByType(ProductType productType) {
-        try {
-            List<Product> products;
 
-            // Query products based on the product type
-            switch (productType) {
-                case SELL:
-                    logger.debug ( "Fetching products available for SELL" );
-                    products = productRepository.findByProductForSellNotNull ( );
-                    break;
-                case RENT:
-                    logger.debug ( "Fetching products available for RENT" );
-                    products = productRepository.findByProductForRentNotNull ( );
-                    break;
-                case OTS:
-                    logger.debug ( "Fetching products available for OTS" );
-                    products = productRepository.findByProductForServicesOtsNotNull ( );
-                    break;
-                case MMC:
-                    logger.debug ( "Fetching products available for MMC" );
-                    products = productRepository.findByProductForServicesMmcNotNull ( );
-                    break;
-                case AMC_GOLD:
-                    logger.debug ( "Fetching products available for AMC_GOLD" );
-                    products = productRepository.findByProductForServicesAmcGoldNotNull ( );
-                    break;
-                case AMC_BASIC:
-                    logger.debug ( "Fetching products available for AMC_BASIC" );
-                    products = productRepository.findByProductForServicesAmcBasicNotNull ( );
-                    break;
-                default:
-                    logger.warn ( "Unknown product type: {}", productType );
-                    throw new IllegalArgumentException ( "Unknown product type: " + productType );
-            }
+        List<Product> products;
 
-            logger.debug ( "Found {} products of type {}", products.size ( ), productType );
-
-            return products.stream ( )
-                    .map ( ProductResponse::new )
-                    .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
-                    .toList ( );
+        // Query products based on the product type
+        switch (productType) {
+            case SELL:
+                logger.debug ( "Fetching products available for SELL" );
+                products = productRepository.findByProductForSellNotNull ( );
+                break;
+            case RENT:
+                logger.debug ( "Fetching products available for RENT" );
+                products = productRepository.findByProductForRentNotNull ( );
+                break;
+            case OTS:
+                logger.debug ( "Fetching products available for OTS" );
+                products = productRepository.findByProductForServicesOtsNotNull ( );
+                break;
+            case MMC:
+                logger.debug ( "Fetching products available for MMC" );
+                products = productRepository.findByProductForServicesMmcNotNull ( );
+                break;
+            case AMC_GOLD:
+                logger.debug ( "Fetching products available for AMC_GOLD" );
+                products = productRepository.findByProductForServicesAmcGoldNotNull ( );
+                break;
+            case AMC_BASIC:
+                logger.debug ( "Fetching products available for AMC_BASIC" );
+                products = productRepository.findByProductForServicesAmcBasicNotNull ( );
+                break;
+            default:
+                logger.warn ( "Unknown product type: {}", productType );
+                throw new IllegalArgumentException ( "Unknown product type: " + productType );
         }
-        catch ( Exception e ) {
-            logger.error ( "Error retrieving products by type: " + productType, e );
-            throw new RuntimeException ( "Failed to retrieve products by type: " + productType, e );
-        }
+
+        logger.debug ( "Found {} products of type {}", products.size ( ), productType );
+
+        return products.stream ( )
+                .map ( ProductResponse::new )
+                .sorted ( (p1, p2) -> p2.getProductId ( ).compareTo ( p1.getProductId ( ) ) )
+                .toList ( );
+
     }
 
     @Override
@@ -875,147 +819,146 @@ public class ProductServiceImpl implements ProductService {
         logger.debug ( "Processing buy now request for product ID: {}", productId );
 
 
+        // Get the current user
+        AppUser currentUser = securityUtils.getCurrentUser ( );
 
-            // Get the current user
-            AppUser currentUser = securityUtils.getCurrentUser ( );
+        // Find the product
+        Product product = productRepository.findById ( productId )
+                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
-            // Find the product
-            Product product = productRepository.findById ( productId )
-                    .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
+        // Validate product configuration
+        if ( product.getProductFor ( ) == null ) {
+            throw new IllegalArgumentException ( "Product is not properly configured for purchase or rental" );
+        }
 
-            // Validate product configuration
-            if ( product.getProductFor ( ) == null ) {
-                throw new IllegalArgumentException ( "Product is not properly configured for purchase or rental" );
+        // Validate product type compatibility
+        if ( request.getProductType ( ) == ProductType.SELL &&
+                (product.getProductFor ( ).getSell ( ) == null) ) {
+            throw new IllegalArgumentException ( "This product is not available for purchase" );
+        }
+
+        if ( request.getProductType ( ) == ProductType.RENT &&
+                (product.getProductFor ( ).getRent ( ) == null) ) {
+            throw new IllegalArgumentException ( "This product is not available for rent" );
+        }
+
+        // Create a temporary cart for this purchase
+        Cart cart = new Cart ( );
+        cart.setUser ( currentUser );
+        cart.setTemporary ( true ); // Mark as temporary cart
+
+        // Save the cart first to ensure it has an ID
+        cart = cartRepository.save ( cart );
+        logger.debug ( "Created temporary cart with ID: {}", cart.getCartId ( ) );
+
+        // Create the cart item
+        CartItem cartItem = new CartItem ( );
+        cartItem.setProduct ( product );
+        cartItem.setProductType ( request.getProductType ( ) );
+
+
+        // Set quantity and rent period based on product type
+        if ( request.getProductType ( ) == ProductType.SELL ) {
+            cartItem.setQuantity ( request.getQuantity ( ) );
+
+
+            // Calculate price for sell item
+            double unitPrice = product.getProductFor ( ).getSell ( ).getDiscountPrice ( );
+            if ( unitPrice <= 0 ) {
+                unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
             }
-
-            // Validate product type compatibility
-            if ( request.getProductType ( ) == ProductType.SELL &&
-                    (product.getProductFor ( ).getSell ( ) == null) ) {
-                throw new IllegalArgumentException ( "This product is not available for purchase" );
+            logger.info ( "---->Unit price without vat: {}", unitPrice * cartItem.getQuantity ( ) );
+            if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null && product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
+                unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
             }
+            logger.info ( "----->Unit price with vat: {}", unitPrice * cartItem.getQuantity ( ) );
+            cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
+        } else if ( request.getProductType ( ) == ProductType.RENT ) {
+            cartItem.setQuantity ( request.getQuantity ( ) );
 
-            if ( request.getProductType ( ) == ProductType.RENT &&
-                    (product.getProductFor ( ).getRent ( ) == null) ) {
-                throw new IllegalArgumentException ( "This product is not available for rent" );
+
+            // Calculate price for rent item
+            double monthlyPrice = product.getProductFor ( ).getRent ( ).getDiscountPrice ( );
+            if ( monthlyPrice <= 0 ) {
+                monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
             }
-
-            // Create a temporary cart for this purchase
-            Cart cart = new Cart ( );
-            cart.setUser ( currentUser );
-            cart.setTemporary ( true ); // Mark as temporary cart
-
-            // Save the cart first to ensure it has an ID
-            cart = cartRepository.save ( cart );
-            logger.debug ( "Created temporary cart with ID: {}", cart.getCartId ( ) );
-
-            // Create the cart item
-            CartItem cartItem = new CartItem ( );
-            cartItem.setProduct ( product );
-            cartItem.setProductType ( request.getProductType ( ) );
-
-
-            // Set quantity and rent period based on product type
-            if ( request.getProductType ( ) == ProductType.SELL ) {
-                cartItem.setQuantity ( request.getQuantity ( ) );
-
-
-                // Calculate price for sell item
-                double unitPrice = product.getProductFor ( ).getSell ( ).getDiscountPrice ( );
-                if ( unitPrice <= 0 ) {
-                    unitPrice = product.getProductFor ( ).getSell ( ).getActualPrice ( );
-                }
-                logger.info ( "---->Unit price without vat: {}", unitPrice * cartItem.getQuantity ( ) );
-                if ( product.getProductFor ( ).getSell ( ).getVat ( ) != null && product.getProductFor ( ).getSell ( ).getVat ( ) != 0 ) {
-                    unitPrice = unitPrice + (unitPrice * (product.getProductFor ( ).getSell ( ).getVat ( ) / 100));
-                }
-                logger.info ( "----->Unit price with vat: {}", unitPrice * cartItem.getQuantity ( ) );
-                cartItem.setPrice ( unitPrice * cartItem.getQuantity ( ) );
-            } else if ( request.getProductType ( ) == ProductType.RENT ) {
-                cartItem.setQuantity ( request.getQuantity ( ) );
-
-
-                // Calculate price for rent item
-                double monthlyPrice = product.getProductFor ( ).getRent ( ).getDiscountPrice ( );
-                if ( monthlyPrice <= 0 ) {
-                    monthlyPrice = product.getProductFor ( ).getRent ( ).getMonthlyPrice ( );
-                }
-                logger.info ( "---->Unit price without vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
-                if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
-                    monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
-                }
-                logger.info ( "----->Unit price with vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
-                cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
-            } else if ( request.getProductType ( ) == ProductType.OTS ) {
-                cartItem.setQuantity ( 1 );
-                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
-            } else if ( request.getProductType ( ) == ProductType.MMC ) {
-                cartItem.setQuantity ( 1 );
-                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
-
-            } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
-                cartItem.setQuantity ( 1 );
-                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
-
-            } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
-                cartItem.setQuantity ( 1 );
-                cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
+            logger.info ( "---->Unit price without vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
+            if ( product.getProductFor ( ).getRent ( ).getVat ( ) != null && product.getProductFor ( ).getRent ( ).getVat ( ) != 0 ) {
+                monthlyPrice = monthlyPrice + (monthlyPrice * (product.getProductFor ( ).getRent ( ).getVat ( ) / 100));
             }
+            logger.info ( "----->Unit price with vat: {}", monthlyPrice * cartItem.getQuantity ( ) );
+            cartItem.setPrice ( monthlyPrice * cartItem.getQuantity ( ) );
+        } else if ( request.getProductType ( ) == ProductType.OTS ) {
+            cartItem.setQuantity ( 1 );
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getOts ( ).getPrice ( ) );
+        } else if ( request.getProductType ( ) == ProductType.MMC ) {
+            cartItem.setQuantity ( 1 );
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getMmc ( ).getPrice ( ) );
 
-            // Add to cart using the helper method
-            cart.addItem ( cartItem );
+        } else if ( request.getProductType ( ) == ProductType.AMC_GOLD ) {
+            cartItem.setQuantity ( 1 );
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcBasic ( ).getPrice ( ) );
 
-            // Calculate total price for cart
-            cart.calculateTotalPrice ( );
+        } else if ( request.getProductType ( ) == ProductType.AMC_BASIC ) {
+            cartItem.setQuantity ( 1 );
+            cartItem.setPrice ( product.getProductFor ( ).getServices ( ).getAmcGold ( ).getPrice ( ) );
+        }
 
-            // Save the cart again with the item
-            cart = cartRepository.save ( cart );
-            logger.debug ( "Updated cart with item, total price: {}", cart.getTotalPrice ( ) );
+        // Add to cart using the helper method
+        cart.addItem ( cartItem );
 
-            // Handle address
-            Address deliveryAddress = null;
+        // Calculate total price for cart
+        cart.calculateTotalPrice ( );
 
-            // If addressId is provided, use that address
-            if ( request.getAddressId ( ) != null ) {
-                deliveryAddress = addressRepository.findById ( request.getAddressId ( ) )
-                        .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
+        // Save the cart again with the item
+        cart = cartRepository.save ( cart );
+        logger.debug ( "Updated cart with item, total price: {}", cart.getTotalPrice ( ) );
 
-                // Verify address belongs to current user
-                if ( ! deliveryAddress.getUser ( ).getUserId ( ).equals ( currentUser.getUserId ( ) ) ) {
-                    throw new RuntimeException ( "You don't have permission to use this address" );
-                }
+        // Handle address
+        Address deliveryAddress = null;
+
+        // If addressId is provided, use that address
+        if ( request.getAddressId ( ) != null ) {
+            deliveryAddress = addressRepository.findById ( request.getAddressId ( ) )
+                    .orElseThrow ( () -> new RuntimeException ( "Address not found with id: " + request.getAddressId ( ) ) );
+
+            // Verify address belongs to current user
+            if ( ! deliveryAddress.getUser ( ).getUserId ( ).equals ( currentUser.getUserId ( ) ) ) {
+                throw new PermissionDeniedException ( "You don't have permission to use this address" );
             }
-            // If inline address is provided, create a new address
-            else if ( request.getAddress ( ) != null ) {
-                AddressRequest addressRequest = request.getAddress ( );
-                deliveryAddress = addressRequest.toAddress ( );
-                deliveryAddress.setUser ( currentUser );
-                deliveryAddress = addressRepository.save ( deliveryAddress );
-            }
+        }
+        // If inline address is provided, create a new address
+        else if ( request.getAddress ( ) != null ) {
+            AddressRequest addressRequest = request.getAddress ( );
+            deliveryAddress = addressRequest.toAddress ( );
+            deliveryAddress.setUser ( currentUser );
+            deliveryAddress = addressRepository.save ( deliveryAddress );
+        }
 
-            // Create checkout
-            CheckOut checkOut = new CheckOut ( );
-            logger.info ( "cart id--------------------> {}", cart.getCartId ( ) );
-            checkOut.setCart ( cart );
-            logger.info ( "is cart temporary --------------------> {}", cart.isTemporary ( ) );
-            checkOut.setFirstName ( request.getFirstName ( ) );
-            checkOut.setLastName ( request.getLastName ( ) );
-            checkOut.setMobile ( request.getMobile ( ) );
-            checkOut.setEmail ( request.getEmail ( ) );
+        // Create checkout
+        CheckOut checkOut = new CheckOut ( );
+        logger.info ( "cart id--------------------> {}", cart.getCartId ( ) );
+        checkOut.setCart ( cart );
+        logger.info ( "is cart temporary --------------------> {}", cart.isTemporary ( ) );
+        checkOut.setFirstName ( request.getFirstName ( ) );
+        checkOut.setLastName ( request.getLastName ( ) );
+        checkOut.setMobile ( request.getMobile ( ) );
+        checkOut.setEmail ( request.getEmail ( ) );
 
 
-            if ( deliveryAddress != null ) {
-                checkOut.setDeliveryAddress ( deliveryAddress );
-                checkOut.setHomeAddress ( deliveryAddress.getFormattedAddress ( ) );
-            }
-            // Save checkout
-            CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
-            logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
+        if ( deliveryAddress != null ) {
+            checkOut.setDeliveryAddress ( deliveryAddress );
+            checkOut.setHomeAddress ( deliveryAddress.getFormattedAddress ( ) );
+        }
+        // Save checkout
+        CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
+        logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
 
-            // Place order immediately
-            CheckOutResponse checkOutResponse = checkOutService.placeOrder ( savedCheckOut.getCheckoutId ( ) );
-            logger.debug ( "Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
+        // Place order immediately
+        CheckOutResponse checkOutResponse = checkOutService.placeOrder ( savedCheckOut.getCheckoutId ( ) );
+        logger.debug ( "Placed order for checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
 
-            return checkOutResponse;
+        return checkOutResponse;
 
     }
 
@@ -1025,10 +968,10 @@ public class ProductServiceImpl implements ProductService {
         logger.debug ( "Adding service {} to product {}", ourServiceId, productId );
 
         Product product = productRepository.findById ( productId )
-                .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         OurService ourService = ourServiceRepository.findById ( ourServiceId )
-                .orElseThrow ( () -> new RuntimeException ( "OurService not found with id: " + ourServiceId ) );
+                .orElseThrow ( () -> new ResourceNotFoundException ( "OurService not found with id: " + ourServiceId ) );
 
         // Check if the service is already associated with the product
         boolean serviceExists = false;
@@ -1102,6 +1045,6 @@ public class ProductServiceImpl implements ProductService {
 
     @Override
     public List<ProductResponse> getProductsByBrand(Long brandId) {
-        return productRepository.findByBrandBrandId(brandId).stream().map(ProductResponse::new).toList();
+        return productRepository.findByBrandBrandId ( brandId ).stream ( ).map ( ProductResponse::new ).toList ( );
     }
 }

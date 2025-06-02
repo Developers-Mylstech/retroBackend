@@ -12,37 +12,38 @@ import java.util.List;
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
     // Find products available for sell
-    @Query("SELECT p FROM Product p WHERE p.productFor.sell IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.sell IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForSellNotNull();
 
     // Find products available for rent
-    @Query("SELECT p FROM Product p WHERE p.productFor.rent IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.rent IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForRentNotNull();
 
-    @Query("SELECT p FROM Product p WHERE p.productFor.services.ots IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.ots IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForServicesOtsNotNull();
 
-    @Query("SELECT p FROM Product p WHERE p.productFor.services.mmc IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.mmc IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForServicesMmcNotNull();
 
-    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcBasic IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcBasic IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForServicesAmcBasicNotNull();
 
-    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcGold IS NOT NULL")
+    @Query("SELECT p FROM Product p WHERE p.productFor.services.amcGold IS NOT NULL AND p.isActive = true")
     List<Product> findByProductForServicesAmcGoldNotNull();
 
-    List<Product> findByBrandBrandId(Long brandId);
+    @Query("SELECT p FROM Product p WHERE p.brand.brandId = :brandId AND p.isActive = true")
+    List<Product> findByBrandBrandId(@Param("brandId") Long brandId);
 
-    List<Product> findByCategoryCategoryId(Long id);
+    @Query("SELECT p FROM Product p WHERE p.category.categoryId = :id AND p.isActive = true")
+    List<Product> findByCategoryCategoryId(@Param("id") Long id);
 
-    List<Product> findBySubCategoryCategoryId(Long id);
+    @Query("SELECT p FROM Product p WHERE p.subCategory.categoryId = :id AND p.isActive = true")
+    List<Product> findBySubCategoryCategoryId(@Param("id") Long id);
 
-    @Query("SELECT p FROM Product p WHERE LOWER(p.name) LIKE LOWER(CONCAT('%', :query, '%'))")
-    List<Product> findByProductNameRegex(@Param("query") String query);
 
     // For caching all products (if dataset is small < 10k products)
     @EntityGraph(attributePaths = {"brand", "category", "subCategory"})
-    @Query("SELECT p FROM Product p")
+    @Query("SELECT p FROM Product p WHERE p.isActive = true")
     List<Product> findAllWithRelationships();
 
     // For direct database search (better for large datasets)

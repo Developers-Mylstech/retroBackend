@@ -5,9 +5,7 @@ import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.OrderResponse;
 import com.mylstech.rentro.exception.PermissionDeniedException;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
-import com.mylstech.rentro.model.Address;
-import com.mylstech.rentro.model.Cart;
-import com.mylstech.rentro.model.CheckOut;
+import com.mylstech.rentro.model.*;
 import com.mylstech.rentro.repository.AddressRepository;
 import com.mylstech.rentro.repository.CartRepository;
 import com.mylstech.rentro.repository.CheckOutRepository;
@@ -56,7 +54,8 @@ public class CheckOutServiceImpl implements CheckOutService {
         // Find the cart
         Cart cart = cartRepository.findById ( request.getCartId ( ) )
                 .orElseThrow ( () -> new ResourceNotFoundException ( "Cart not found with id: " + request.getCartId ( ) ) );
-
+        List<CartItem> updatedItemlist = cart.getItems ( ).stream ( ).filter ( item -> item.getProduct ( ).getIsActive ( ) ).toList ( );
+        cart.setItems ( updatedItemlist );
         // Create checkout
         CheckOut checkOut = request.toCheckOut ( cart );
 

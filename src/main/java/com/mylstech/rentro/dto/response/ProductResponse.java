@@ -35,9 +35,11 @@ public class ProductResponse {
     private List<ImageDTO> images;
     private List<OurServiceResponse> ourServices;
     private String productCode;
+    private Boolean isActive;
 
 
     public ProductResponse(Product product) {
+        this.isActive = product.getIsActive ( );
         this.productId = product.getProductId ( );
         this.name = product.getName ( );
         this.description = product.getDescription ( );
