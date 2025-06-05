@@ -5,29 +5,45 @@ import com.mylstech.rentro.dto.response.CheckOutResponse;
 import com.mylstech.rentro.dto.response.OrderResponse;
 import com.mylstech.rentro.exception.PermissionDeniedException;
 import com.mylstech.rentro.exception.ResourceNotFoundException;
-import com.mylstech.rentro.model.*;
+import com.mylstech.rentro.model.Address;
+import com.mylstech.rentro.model.Cart;
+import com.mylstech.rentro.model.CheckOut;
 import com.mylstech.rentro.repository.AddressRepository;
 import com.mylstech.rentro.repository.CartRepository;
 import com.mylstech.rentro.repository.CheckOutRepository;
 import com.mylstech.rentro.service.CheckOutService;
 import com.mylstech.rentro.service.OrderService;
-import lombok.RequiredArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
 
 @Service
-@RequiredArgsConstructor
 public class CheckOutServiceImpl implements CheckOutService {
     private static final String CHECKOUT_NOT_FOUND_WITH_ID = "Checkout not found with id: ";
     private final CheckOutRepository checkOutRepository;
     private final CartRepository cartRepository;
     private final OrderService orderService;
     private final AddressRepository addressRepository;
+    private final CheckOutService self;
     private final Logger logger = LoggerFactory.getLogger ( CheckOutServiceImpl.class );
+
+    @Autowired
+    public CheckOutServiceImpl(CheckOutRepository checkOutRepository,
+                               CartRepository cartRepository,
+                               OrderService orderService,
+                               AddressRepository addressRepository,
+                               @Lazy CheckOutService self) {
+        this.checkOutRepository = checkOutRepository;
+        this.cartRepository = cartRepository;
+        this.orderService = orderService;
+        this.addressRepository = addressRepository;
+        this.self = self;
+    }
 
     @Override
     public List<CheckOutResponse> getAllCheckOuts() {
@@ -54,8 +70,7 @@ public class CheckOutServiceImpl implements CheckOutService {
         // Find the cart
         Cart cart = cartRepository.findById ( request.getCartId ( ) )
                 .orElseThrow ( () -> new ResourceNotFoundException ( "Cart not found with id: " + request.getCartId ( ) ) );
-        List<CartItem> updatedItemlist = cart.getItems ( ).stream ( ).filter ( item -> item.getProduct ( ).getIsActive ( ) ).toList ( );
-        cart.setItems ( updatedItemlist );
+
         // Create checkout
         CheckOut checkOut = request.toCheckOut ( cart );
 
@@ -74,7 +89,7 @@ public class CheckOutServiceImpl implements CheckOutService {
 
         CheckOut savedCheckOut = checkOutRepository.save ( checkOut );
         logger.debug ( "Created checkout with ID: {}", savedCheckOut.getCheckoutId ( ) );
-        return placeOrder ( savedCheckOut.getCheckoutId ( ) );
+        return self.placeOrder ( savedCheckOut.getCheckoutId ( ) );
     }
 
 

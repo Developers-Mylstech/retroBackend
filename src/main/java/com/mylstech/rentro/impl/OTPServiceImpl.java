@@ -133,7 +133,7 @@ public class OTPServiceImpl implements OtpService {
         templateModel.put ( "instagramUrl", "https://instagram.com/rentro" );
         templateModel.put ( "linkedinUrl", "https://linkedin.com/company/rentro" );
 
-        emailService.sendHtmlEmail ( to, subject, "otp-email", templateModel );
+        emailService.sendHtmlEmailAsync ( to, subject, "otp-email", templateModel );
     }
 }
 

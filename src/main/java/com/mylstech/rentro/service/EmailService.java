@@ -18,6 +18,6 @@ public interface EmailService {
      * @param templateName Name of the Thymeleaf template (without .html extension)
      * @param templateModel Model containing the variables to be used in the template
      */
-    void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> templateModel);
+    void sendHtmlEmailAsync(String to, String subject, String templateName, Map<String, Object> templateModel);
 
 }

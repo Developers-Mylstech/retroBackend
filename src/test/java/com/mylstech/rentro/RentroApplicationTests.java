@@ -8,6 +8,7 @@ class RentroApplicationTests {
 
 	@Test
 	void contextLoads() {
+		//  Add tests
 	}
 
 }

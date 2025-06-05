@@ -11,6 +11,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.thymeleaf.TemplateEngine;
 import org.thymeleaf.context.Context;
@@ -47,7 +48,8 @@ public class EmailServiceImpl implements EmailService {
     }
 
     @Override
-    public void sendHtmlEmail(String to, String subject, String templateName, Map<String, Object> templateModel) {
+    @Async
+    public void sendHtmlEmailAsync(String to, String subject, String templateName, Map<String, Object> templateModel) {
         try {
             // Prepare the evaluation context
             Context context = new Context();

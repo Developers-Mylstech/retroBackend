@@ -187,20 +187,7 @@ public class CartServiceImpl implements CartService {
                 product.getName ( ),
                 product.getProductFor ( ) != null ? "present" : "null" );
 
-        // Validate product configuration
-        if ( product.getProductFor ( ) == null ) {
-            throw new IllegalArgumentException ( "Product is not properly configured for purchase or rental" );
-        }
-        // Validate product type compatibility
-        if ( request.getProductType ( ) == ProductType.SELL &&
-                (product.getProductFor ( ).getSell ( ) == null) ) {
-            throw new IllegalArgumentException ( "This product is not available for purchase" );
-        }
-
-        if ( request.getProductType ( ) == ProductType.RENT &&
-                (product.getProductFor ( ).getRent ( ) == null) ) {
-            throw new IllegalArgumentException ( "This product is not available for rent" );
-        }
+        validatingCartRequest ( request, product );
         // Create the cart item
         CartItem cartItem = new CartItem ( );
         cartItem.setCart ( cart );
@@ -240,6 +227,23 @@ public class CartServiceImpl implements CartService {
         cart.addItem ( cartItemRepository.save ( cartItem ) );
         logger.info ( "after adding in cart  item Quantity {}", cart.getItems ( ).get ( cart.getItems ( ).size ( ) - 1 ).getQuantity ( ) );
         return cart;
+    }
+
+    private static void validatingCartRequest(CartItemRequest request, Product product) {
+        // Validate product configuration
+        if ( product.getProductFor ( ) == null ) {
+            throw new IllegalArgumentException ( "Product is not properly configured for purchase or rental" );
+        }
+        // Validate product type compatibility
+        if ( request.getProductType ( ) == ProductType.SELL &&
+                (product.getProductFor ( ).getSell ( ) == null) ) {
+            throw new IllegalArgumentException ( "This product is not available for purchase" );
+        }
+
+        if ( request.getProductType ( ) == ProductType.RENT &&
+                (product.getProductFor ( ).getRent ( ) == null) ) {
+            throw new IllegalArgumentException ( "This product is not available for rent" );
+        }
     }
 
     @Override
