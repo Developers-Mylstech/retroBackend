@@ -8,6 +8,7 @@ import jakarta.mail.internet.MimeMessage;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.core.io.ClassPathResource;
 import org.springframework.mail.SimpleMailMessage;
 import org.springframework.mail.javamail.JavaMailSender;
 import org.springframework.mail.javamail.MimeMessageHelper;
@@ -67,7 +68,8 @@ public class EmailServiceImpl implements EmailService {
             helper.setTo(to);
             helper.setSubject(subject);
             helper.setText(htmlContent, true); // true = isHtml
-
+            ClassPathResource image = new ClassPathResource("static/rentro.png");
+            helper.addInline("logoImage", image);
             // Send the email
             mailSender.send(message);
             log.info("HTML email sent successfully to: {}", to);

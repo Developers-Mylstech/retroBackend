@@ -5,11 +5,10 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Your OTP Code</title>
     <style type="text/css">
-        /* Base styles */
         body, html {
             margin: 0;
             padding: 0;
-            font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+            font-family: 'Helvetica Neue ' , Helvetica, Arial, sans-serif;
             line-height: 1.6;
             color: #333333;
             background-color: #f7f7f7;
@@ -24,12 +23,13 @@
         .header {
             padding: 30px 20px;
             text-align: center;
-<!--            background: linear-gradient(90deg,rgba(48, 122, 184, 1) 0%, rgba(255, 255, 255, 1) 50%, rgba(48, 122, 184, 1) 100%);-->
         }
 
         .logo {
-            max-width: 180px;
-            height: auto;
+            max-width: 100% !important;
+            height: auto !important;
+            display: block;
+            margin: 0 auto;
         }
 
         .company-name {
@@ -39,7 +39,6 @@
             margin-top: 15px;
         }
 
-        /* Content */
         .content {
             padding: 30px 20px;
         }
@@ -56,7 +55,6 @@
             font-size: 16px;
         }
 
-        /* OTP Box */
         .otp-box {
             background: #f5f5f5;
             border-radius: 8px;
@@ -69,7 +67,6 @@
             font-size: 32px;
             color: #307AB8;
             font-weight: bold;
-
         }
 
         .otp-expiry {
@@ -77,7 +74,6 @@
             color: #777777;
         }
 
-        /* Button */
         .button {
             display: inline-block;
             padding: 12px 25px;
@@ -89,7 +85,6 @@
             margin: 20px 0;
         }
 
-        /* Footer */
         .footer {
             padding: 20px;
             text-align: center;
@@ -113,7 +108,6 @@
             margin-top: 15px;
         }
 
-        /* Responsive */
         @media screen and (max-width: 480px) {
             .content, .header, .footer {
                 padding-left: 15px;
@@ -127,23 +121,29 @@
             .otp-code {
                 font-size: 24px;
             }
+
+            .logo {
+                width: 100% !important;
+                height: auto !important;
+            }
         }
     </style>
 </head>
 <body>
 <div class="email-container">
     <div class="header">
-        <img src="https://demo.panel.rentro.ae/assets/renroLogo-p3-PWqCh.png" height="50px" width="auto"/>
-<!--        <div class="company-name">Rent RO</div>-->
+        <img src="cid:logoImage"
+             alt="rentro.ae"
+             class="logo"
+             style="max-width: 100%; height: auto; display: block; margin: 0 auto;"
+             width="180" />
     </div>
 
-    <!-- Main Content -->
     <div class="content">
         <h1>Your One-Time Password (OTP)</h1>
         <p>Hello <span th:text="${recipientName}">Customer</span>,</p>
         <p>We received a request to access your account. Please use the following OTP to verify your identity:</p>
 
-        <!-- OTP Display Box -->
         <div class="otp-box">
             <div class="otp-code" th:text="${otp}">123456</div>
             <div class="otp-expiry" th:text="'This code expires in ' + ${expiryMinutes} + ' minutes'">This code expires in 5 minutes</div>
@@ -151,11 +151,9 @@
 
         <p>If you didn't request this OTP, please ignore this email or contact our support team immediately.</p>
 
-        <!-- Optional Button -->
         <a th:href="${websiteUrl}" class="button" target="_blank">Visit Our Website</a>
     </div>
 
-    <!-- Footer -->
     <div class="footer">
         <div class="social-links">
             <a th:if="${facebookUrl}" th:href="${facebookUrl}">Facebook</a>
