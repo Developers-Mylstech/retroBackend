@@ -178,11 +178,11 @@ public class ImageServiceImpl implements ImageService {
             boolean fallbackToJpeg) throws IOException {
 
         // Upload the file first
-        String originalFilename = file.getOriginalFilename();
-        if (originalFilename == null) {
-            throw new IllegalArgumentException("File name cannot be null");
+        String originalFilename = file.getOriginalFilename ( );
+        if ( originalFilename == null ) {
+            throw new IllegalArgumentException ( "File name cannot be null" );
         }
-        String fileName = StringUtils.cleanPath(originalFilename);
+        String fileName = StringUtils.cleanPath ( originalFilename );
         String fileUrl = fileStorageService.storeImageAsWebP ( file, quality, fallbackToJpeg );
         String contentType = fileUrl.endsWith ( ".webp" ) ? "image/webp" : "image/jpeg";
 
@@ -200,19 +200,19 @@ public class ImageServiceImpl implements ImageService {
         // Associate the image URL with the appropriate entity
         switch (entityType.toLowerCase ( )) {
             case PRODUCT:
-                handleProductImage ( entityId, fileUrl );
+                handleProductImage ( entityId );
                 break;
             case BRAND:
-                handleBrandImage ( entityId, fileUrl );
+                handleBrandImage ( entityId );
                 break;
             case CATEGORY:
-                handleCategoryImage ( entityId, fileUrl );
+                handleCategoryImage ( entityId );
                 break;
             case JOBPOST:
-                handleJobPostImage ( entityId, fileUrl );
+                handleJobPostImage ( entityId );
                 break;
             case OURSERVICES:
-                handleOurServicesImage ( entityId, fileUrl );
+                handleOurServicesImage ( entityId );
                 break;
             default:
                 throw new IllegalArgumentException ( "Unknown entity type: " + entityType );
@@ -232,7 +232,7 @@ public class ImageServiceImpl implements ImageService {
                 deleteBrandImage ( entityId );
                 break;
             case CATEGORY:
-                deleteCategoryImage ( entityId );
+
                 break;
             case JOBPOST:
                 deleteJobPostImage ( entityId );
@@ -245,20 +245,19 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
-    private void handleProductImage(Long productId, String fileUrl) {
+    private void handleProductImage(Long productId) {
         Product product = productRepository.findById ( productId )
                 .orElseThrow ( () -> new RuntimeException ( PRODUCT_NOT_FOUND_WITH_ID + productId ) );
 
         productRepository.save ( product );
     }
 
-    private void handleBrandImage(Long brandId, String fileUrl) {
+    private void handleBrandImage(Long brandId) {
         Brand brand = brandRepository.findById ( brandId )
                 .orElseThrow ( () -> new RuntimeException ( BRAND_NOT_FOUND_WITH_ID + brandId ) );
 
         // Create a new Image entity
         Image image = new Image ( );
-        image.setImageUrl ( fileUrl );
         image = imageRepository.save ( image );
 
         // Set the image for the brand
@@ -266,7 +265,7 @@ public class ImageServiceImpl implements ImageService {
         brandRepository.save ( brand );
     }
 
-    private void handleCategoryImage(Long categoryId, String fileUrl) {
+    private void handleCategoryImage(Long categoryId) {
         Category category = categoryRepository.findById ( categoryId )
                 .orElseThrow ( () -> new RuntimeException ( CATEGORY_NOT_FOUND_WITH_ID + categoryId ) );
 
@@ -274,7 +273,7 @@ public class ImageServiceImpl implements ImageService {
         categoryRepository.save ( category );
     }
 
-    private void handleJobPostImage(Long jobPostId, String fileUrl) {
+    private void handleJobPostImage(Long jobPostId) {
         JobPost jobPost = jobPostRepository.findById ( jobPostId )
                 .orElseThrow ( () -> new RuntimeException ( JOB_POST_NOT_FOUND_WITH_ID + jobPostId ) );
 
@@ -315,9 +314,6 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
-    private void deleteCategoryImage(Long categoryId) {
-
-    }
 
     private void deleteJobPostImage(Long jobPostId) {
         JobPost jobPost = jobPostRepository.findById ( jobPostId )
@@ -331,7 +327,7 @@ public class ImageServiceImpl implements ImageService {
         }
     }
 
-    private void handleOurServicesImage(Long ourServicesId, String fileUrl) {
+    private void handleOurServicesImage(Long ourServicesId) {
         OurService ourServices = ourServicesRepository.findById ( ourServicesId )
                 .orElseThrow ( () -> new RuntimeException ( OUR_SERVICES_NOT_FOUND_WITH_ID + ourServicesId ) );
 
